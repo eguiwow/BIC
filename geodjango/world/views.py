@@ -11,6 +11,7 @@ def index(request):
     gpx_files = []
     json_files = []
     paths = ""
+    kml_file = ""
 
     # For de prueba para ver si pinta kml únicamente con url
     for f in kml:
@@ -38,7 +39,7 @@ def index(request):
     #context = {"gpx_files": gpx_files, 'center': [ 43.270200001993764,-2.9456500000716574], 'zoom':14}
     # coords en metros (mercator) CONSEGUIR cambiar de proyección
     context = {"gpx_files": gpx_files, "kml_files":kml_file,  'paths': paths, 'center': [-2.9456500000716574, 43.270200001993764], 'zoom':13}
-    return render(request, 'index.html', context)
+    return render(request, 'base.html', context)
 
 
 def serveFiles(request):

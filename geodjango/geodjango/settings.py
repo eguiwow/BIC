@@ -134,3 +134,7 @@ STATICFILES_DIRS = (
     os.path.join(BASE_DIR,'static'),
     #os.path.join(BASE_DIR,'world','static'),
 )
+
+# GDAL_LIBRARY_PATH (for Windows)
+GDAL_LIBRARY_PATH = r'C:\Program Files (x86)\release-1928-x64-gdal-3-2-1-mapserver-7-6-2\bin\gdal302'
+GEOS_LIBRARY_PATH=r'C:\Program Files (x86)\release-1928-x64-gdal-3-2-1-mapserver-7-6-2\bin\geos_c.dll'

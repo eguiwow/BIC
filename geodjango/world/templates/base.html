@@ -1,0 +1,128 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <title>Bike Intelligence Centre</title>
+    <style>#map {
+        width: 100%;
+        height: 400px;
+    }</style>
+	
+  <!-- OpenLayers CSS --> 
+  <link rel="stylesheet" href="{% static 'js/map.css' %}"></head>
+
+  <!-- Bootstrap core CSS -->
+  <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}"rel="stylesheet">
+
+  <!-- Custom styles for this template -->
+  <link href="{% static 'css/simple-sidebar.css' %}" rel="stylesheet">
+
+</head>
+
+<body>
+
+  <div class="d-flex" id="wrapper">
+
+    <!-- Sidebar -->
+    <div class="bg-light border-right" id="sidebar-wrapper">
+      <div class="sidebar-heading">Bike Intelligence Centre </div>
+      <div class="list-group list-group-flush">
+        <a href="#" class="list-group-item list-group-item-action bg-light">Dashboard</a>
+        <a href="#" class="list-group-item list-group-item-action bg-light">Shortcuts</a>
+        <a href="#" class="list-group-item list-group-item-action bg-light">Overview</a>
+        <a href="#" class="list-group-item list-group-item-action bg-light">Events</a>
+        <a href="#" class="list-group-item list-group-item-action bg-light">Profile</a>
+        <a href="#" class="list-group-item list-group-item-action bg-light">Status</a>
+      </div>
+    </div>
+    <!-- /#sidebar-wrapper -->
+
+    <!-- Page Content - all page content should be here -->
+    <div id="page-content-wrapper">
+	  <!-- Top Nav Bar --> 
+      <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">	
+        <button class="btn btn-primary" id="menu-toggle"> <img src="{% static 'images/toggle.png' %}" alt=""></button>
+
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav ml-auto mt-2 mt-lg-0">
+            <li class="nav-item active">
+              <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Link</a>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Dropdown
+              </a>
+              <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                <a class="dropdown-item" href="#">Action</a>
+                <a class="dropdown-item" href="#">Another action</a>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="#">Something else here</a>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </nav>
+	  <!-- /#top-nav-bar -->
+	
+      <div class="container-fluid">
+        <!-- MAP area --> 
+		<h1> Aquí va el mapita </h1>
+		<div id="map"></div>
+		<div id="info">&nbsp;</div>
+		<var id="zoom" hidden> {{zoom}} </var>
+		<var id="center" hidden> {{center}} </var>
+		<var id="gpx_files" hidden> {{gpx_files}}> </var>
+		<var id="kml_files" hidden> {{kml_files}}> </var>
+		<var id="paths" hidden> {{paths}} </var>
+		<div class="archivos"></div>
+		  <h3> Nombres archivos gpx</h3>
+			{% if gpx_files %}
+			  {% for g in gpx_files %}
+			  <p>{{g}}</p>
+			  {% endfor %}
+			{% else %}
+			  <p> NO se han pasado los GPXs </p>     
+			{% endif %}
+		  <h3>Nombres archivos kml</h3>
+			{% if kml_files %}
+			  {{kml_files}}
+			{% endif %}  
+		</div>
+		<script src="{% static 'js/map.js' %}"></script>        
+		<!-- /#MAP area --> 
+        <p>Make sure to keep all page content within the <code>#page-content-wrapper</code>. The top navbar is optional, and just for demonstration. Just create an element with the <code>#menu-toggle</code> ID which will toggle the menu when clicked.</p>
+      </div>
+    </div>
+    <!-- /#page-content-wrapper -->
+
+  </div>
+  <!-- /#wrapper -->
+
+  <!-- Bootstrap core JavaScript -->
+  <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
+  <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+
+  <!-- Menu Toggle Script -->
+  <script>
+    $("#menu-toggle").click(function(e) {
+      e.preventDefault();
+      $("#wrapper").toggleClass("toggled");
+    });
+  </script>
+
+</body>
+
+</html>
