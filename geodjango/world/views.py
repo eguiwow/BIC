@@ -42,6 +42,9 @@ def index(request):
     return render(request, 'index.html', context)
 
 
-def serveFiles(request):
-    filepath = request.get_full_path()
-    return serve(request, os.path.basename(filepath), os.path.dirname(filepath))
+# def serveFiles(request):
+#     filepath = request.get_full_path()
+#     return serve(request, os.path.basename(filepath), os.path.dirname(filepath))
+
+def project(request):
+    return render(request, 'project.html')
