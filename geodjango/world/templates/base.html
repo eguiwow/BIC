@@ -8,14 +8,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta name="description" content="">
   <meta name="author" content="">
-  <title>Bike Intelligence Centre</title>
-    <style>#map {
-        width: 100%;
-        height: 400px;
-    }</style>
-	
+  {% block title %}{% endblock %}
+  
   <!-- OpenLayers CSS --> 
-  <link rel="stylesheet" href="{% static 'js/map.css' %}"></head>
+  <link href="{% static 'js/map.css' %}" rel="stylesheet" ></head>
 
   <!-- Bootstrap core CSS -->
   <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}"rel="stylesheet">
@@ -79,30 +75,8 @@
 	
       <div class="container-fluid">
         <!-- MAP area --> 
-		<h1> Aquí va el mapita </h1>
-		<div id="map"></div>
-		<div id="info">&nbsp;</div>
-		<var id="zoom" hidden> {{zoom}} </var>
-		<var id="center" hidden> {{center}} </var>
-		<var id="gpx_files" hidden> {{gpx_files}}> </var>
-		<var id="kml_files" hidden> {{kml_files}}> </var>
-		<var id="paths" hidden> {{paths}} </var>
-		<div class="archivos"></div>
-		  <h3> Nombres archivos gpx</h3>
-			{% if gpx_files %}
-			  {% for g in gpx_files %}
-			  <p>{{g}}</p>
-			  {% endfor %}
-			{% else %}
-			  <p> NO se han pasado los GPXs </p>     
-			{% endif %}
-		  <h3>Nombres archivos kml</h3>
-			{% if kml_files %}
-			  {{kml_files}}
-			{% endif %}  
-		</div>
-		<script src="{% static 'js/map.js' %}"></script>        
-		<!-- /#MAP area --> 
+    {% block map %}{% endblock %}
+    <!-- /#MAP area --> 
         <p>Make sure to keep all page content within the <code>#page-content-wrapper</code>. The top navbar is optional, and just for demonstration. Just create an element with the <code>#menu-toggle</code> ID which will toggle the menu when clicked.</p>
       </div>
     </div>
