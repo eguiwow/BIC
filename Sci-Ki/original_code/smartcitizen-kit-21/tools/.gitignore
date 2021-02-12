@@ -1,0 +1,14 @@
+kits.csv
+orders.yaml
+deliveries.csv
+inventory.csv
+tmp
+uf2conv.pyc
+secrets.py
+secret.py*
+*.pyc
+.env
+.DS_Store
+*_archived.yaml
+*.BAK
+orders/*.yaml

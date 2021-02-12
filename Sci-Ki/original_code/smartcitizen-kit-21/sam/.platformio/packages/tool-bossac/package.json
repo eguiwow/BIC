@@ -1,0 +1,19 @@
+{
+  "name": "tool-bossac",
+  "version": "1.10700.190624",
+  "description": "Basic Open Source SAM-BA Application (BOSSA)",
+  "keywords": [
+    "tools",
+    "uploader"
+  ],
+  "license": "BSD-3-Clause",
+  "system": [
+    "windows",
+    "windows_amd64",
+    "windows_x86"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shumatech/BOSSA"
+  }
+}
