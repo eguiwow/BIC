@@ -2,43 +2,44 @@ from django.shortcuts import render
 from django.views.static import serve
 from .models import GPX_file, KML_file
 from gpx_converter import Converter
+from .utils import parse_gpx_file
 import json
 import time
+from django.core.files import File
+import gpxpy
+# Library for bonding js interpreter to python to execute a gpx -> geojson conversion
+import bond
 
 def index(request):
     gpx = GPX_file.objects.all()
     kml = KML_file.objects.all()
     gpx_files = []
-    json_files = []
-    paths = ""
-    kml_file = ""
-
-    # For de prueba para ver si pinta kml únicamente con url
+    gpx_file = ""
+    geojson_files = []
+    kml_files = []
+    python = bond.make_bond("JavaScript")
+    
     for f in kml:
-        kml_file = f.kml_file.path
+        kml_files.append(f.kml_file)
 
     for f in gpx:
-        gpx_files.append(f.gpx_file) #Pasamos el path
-        paths += f.gpx_file.path + "#"
-        json_name = f.gpx_name + ".json"
-        json_files.append(Converter(input_file=f.gpx_file.path).gpx_to_json(output_file=json_name))
-        print(f.gpx_name)
-    
-    
-    # for f in json_files:
-    #     with open(f) as jsonFile:
-    #         time.sleep(1000)
-    #         print("before loading")
-    #         data = json.load(jsonFile)
-    #         print("AJJAAJJ")
-    #         print(data)
-    # # Center & Zoom from Zaratamap
-    
+        
+        print (str(f.gpx_file))
+        gpx_file = open(str(f.gpx_file))
+        gpx = gpxpy.parse(gpx_file)
+        gpx_files.append(gpx.to_xml)
+        # Este print SÍ saca el contenido del gpx a consola
+        # print('GPX:', gpx.to_xml())
+        # Llamada a función JS del archivo togeojson.js a través de un intérprete Node.js
+        # geojson_files.append(python.call('toGeoJSON', gpx_file))
 
-    # coords bilbao en lon/lat
-    #context = {"gpx_files": gpx_files, 'center': [ 43.270200001993764,-2.9456500000716574], 'zoom':14}
-    # coords en metros (mercator) CONSEGUIR cambiar de proyección
-    context = {"gpx_files": gpx_files, "kml_files":kml_file,  'paths': paths, 'center': [-2.9456500000716574, 43.270200001993764], 'zoom':13}
+    # Conversion using an external function (not yet implemented)     
+    # gpx_to_geoJSON(gpx_files)
+    
+    # Center & Zoom from Zaratamap
+    # -- coords bilbao en lon/lat
+    # [ 43.270200001993764,-2.9456500000716574] --> Cambiadas al pasarlas como parámetros
+    context = {"gpx_files": gpx_files, "kml_files":kml_files, "geojson_files": geojson_files, 'center': [-2.9456500000716574, 43.270200001993764], 'zoom':13}
     return render(request, 'index.html', context)
 
 
