@@ -1,13 +1,13 @@
 import 'ol/ol.css';
-import {useGeographic, transform, fromLonLat} from 'ol/proj'
-import KML from 'ol/format/KML';
-import GPX from 'ol/format/GPX';
+import {KML, GPX, GeoJSON} from 'ol/format';
 import Map from 'ol/Map';
 import VectorSource from 'ol/source/Vector';
+import {XYZ, OSM} from 'ol/source';
 import View from 'ol/View';
-import XYZ from 'ol/source/XYZ';
 import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style';
 import {Tile as TileLayer, Vector as VectorLayer} from 'ol/layer';
+import {useGeographic, transform, fromLonLat} from 'ol/proj'
+import {getAllTextContent, parse} from 'ol/xml';
 
 // Esta función CAMBIA la proyección de Mercator a WGS-84
 // TOFIX al cambiar la proyección parece que peta
@@ -20,15 +20,20 @@ var attributions =
   '<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> ' +
   '<a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>';
 
-// Tiles (pintado del mapa)
+// TOFIX - server de OpenMapTiles
+// var raster = new TileLayer({
+//   source: new XYZ({
+//     attributions: attributions,
+//     //URL correspondiente al servidor de mapas alojado en este mismo servidor
+//     url: 'http://localhost:8080/styles/klokantech-basic/{z}/{x}/{y}.png',
+//     maxZoom: 20,
+//   }),
+// });
+
 var raster = new TileLayer({
-  source: new XYZ({
-    attributions: attributions,
-    // URL correspondiente al servidor mapTiles alojado en el propio PC
-    url: 'http://localhost:8080/styles/klokantech-basic/{z}/{x}/{y}.png',
-    maxZoom: 20,
-  }),
+  source: new OSM(),
 });
+
 
 // Estilo de pintado de círculos/líneas/etc. 
 // TODO: customizarlo al gusto
@@ -61,49 +66,61 @@ var style = {
 
 // ###### Variables dinámicas ######
 var gpx_files = document.getElementById("gpx_files")
-var gpx_paths = document.getElementById("paths").innerText.split('#')
-// var kml_path = document.getElementById("kml").textContent
+var json_files = document.getElementById("json_files")
 
 // From Zaratamap
 var centerLon = JSON.parse(document.getElementById("center").innerText)[0]
 var centerLat = JSON.parse(document.getElementById("center").innerText)[1]
 var zoom = document.getElementById("zoom").innerText
 
+var xml_doc = parse(gpx_files.innerText)
+
+// Layers tipo JSON
+// var sourceJSON = new VectorSource({
+//   wrapX: false,
+//   features: new GeoJSON().readFeatures(JSON.parse(json_files))
+// });
+
+// var vectorJSON = new VectorLayer({
+//   source: sourceJSON,
+// });
+
 // Layers tipo KML 
-var vector_kml = new VectorLayer({
-  source: new VectorSource({
-    // url: kml_path,
-    url: 'uploads/kml/bidegorris.kml',
-    format: new KML(),
-  }),
-});
+// --> VectorSource()
 
 // Layers tipo GPX 
+
+// var sourceGPX = new VectorSource({
+//   wrapX: false,
+//   //TOFIX hay que parsear primero el GPX para pasarlo a JSON
+//   features: new GPX().readFeatures(gpx_files.innerText)
+// });
+
+// var vector_gpx = new VectorLayer({
+//   source: xml_doc,
+//   style: function (feature) {
+//     return style[feature.getGeometry().getType()];
+//   },
+// });
+
 var sourceGPX = new VectorSource({
-  wrapX: false,
-  //TOFIX hay que parsear primero el GPX para pasarlo a JSON
-  features: new GPX().readFeatures(gpx_files.innerText)
+  url: 'diego.gpx',
+  //URL.createObjectURL(xml_doc),
+  format: new GPX(),
 });
 
-var vector_gpx = new VectorLayer({
+
+var vector_gpx2 = new VectorLayer({
   source: sourceGPX,
-  style: function (feature) {
+    style: function (feature) {
     return style[feature.getGeometry().getType()];
   },
-});
 
-// Layers tipo GPX con url 
-var vector_url = new VectorLayer({
-  source: new VectorSource({
-    //url: gpx_paths[0],
-    url: 'uploads/gpx/diego.gpx',
-    format: new GPX(),
-  }),
 });
 
 // Mapa
 var map = new Map({
-  layers: [raster, vector_gpx, vector_url, vector_kml],
+  layers: [raster, vector_gpx2],
   target: document.getElementById('map'),
   view: new View({
     // Esta función comentada no cambia la proyección pero nos permite fijar el centro con lonlat
@@ -158,12 +175,10 @@ map.on('click', function (evt) {
   displayFeatureInfo(evt.pixel);
   // Centramos mapa
   // TODO que esta llamada a CenterMap() esté en un botón a parte
-  CenterMap(centerLon, centerLat)
+  CenterMap(centerLon, centerLat);
   // Zona DEBUGGING 
-  console.log(sourceGPX.getFeatures());
-  console.log(sourceGPX.forEachFeature())
-  console.log(gpx_files.innerText)
-  console.log(kml_path.innerText)
-  console.log(kml_path)
+  console.log(json_files).getGeommetry();
+  console.log(json.files);
+
 });
 

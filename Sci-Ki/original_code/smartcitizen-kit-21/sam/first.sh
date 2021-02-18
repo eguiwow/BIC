@@ -1,2 +1,0 @@
-pio run
-echo ready 

@@ -7,8 +7,9 @@ import json
 import time
 from django.core.files import File
 import gpxpy
+import subprocess
 # Library for bonding js interpreter to python to execute a gpx -> geojson conversion
-import bond
+# import bond
 
 def index(request):
     gpx = GPX_file.objects.all()
@@ -17,13 +18,13 @@ def index(request):
     gpx_file = ""
     geojson_files = []
     kml_files = []
-    python = bond.make_bond("JavaScript")
     
     for f in kml:
         kml_files.append(f.kml_file)
 
     for f in gpx:
-        
+        # geojson = subprocess.call(['sh','./togeojson.sh', nomGPX]) # Esto convierte un archivo GPX a GeoJSON dejando el nuevo en la carpeta
+        # geojson_files.append(geojson) 
         print (str(f.gpx_file))
         gpx_file = open(str(f.gpx_file))
         gpx = gpxpy.parse(gpx_file)
