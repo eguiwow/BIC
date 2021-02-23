@@ -17,10 +17,11 @@
   <var id="center" hidden> {{center}} </var>
   <var id="gpx_files" hidden> {{gpx_files}}> </var>
   <var id="kml_files" hidden> {{kml_files}}> </var>
-  <var id="json_files" hidden> {{json_files}} </var>
+  <var id="json_files" hidden> {{geojson_files}} </var>
 
   <!-- /Zona Variables ocultas -->
   <!-- Zona archivos -->
+  <div class="botonEliminarCuandoEsté"><button class="botonDebug" id="debugButton"> Debug </button></div>
   <div class="archivos"></div>
     <h3> Nombres archivos gpx</h3>
     {% if gpx_files %}
@@ -32,9 +33,7 @@
     {% endif %}
     <h3> Nombres archivos geojson</h3>
     {% if geojson_files %}
-      {% for j in geojson_files %}
-      <p>{{j}}</p>
-      {% endfor %}
+    {{ geojson_files }}
     {% else %}
       <p> NO se han pasado los GeoJSON </p>     
     {% endif %}
