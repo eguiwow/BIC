@@ -1,3 +1,5 @@
+# Script para cargar todas las layers de un GPX en BD PostGIS
+# --> Uso para pruebas de consultas geoespaciales 
 # From https://gis.stackexchange.com/questions/52271/automating-batch-load-of-multiple-gpx-files-into-postgis
 
 import os

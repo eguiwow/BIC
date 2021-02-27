@@ -25,7 +25,7 @@ class GPX_waypoint(models.Model):
     # Django fields corresponding to 
     # layer [waypoints] of gpx
     name = models.CharField(max_length=50, null=True)
-
+    time = models.DateTimeField()
     lon = models.FloatField()
     lat = models.FloatField()
 
@@ -41,6 +41,8 @@ class GPX_track(models.Model):
     # Django fields corresponding to 
     # layer [tracks] of gpx
     name = models.CharField(max_length=50, null=True)
+    # TODO como la lyr track no tiene time habrá que sacarlo de otro sitio
+    # time = models.DateTimeField() 
 
     # GeoDjango-field <-> (MultiLineString)
     mlstring = models.MultiLineStringField()
@@ -94,6 +96,7 @@ class KML_lstring(models.Model):
     # Django fields corresponding to 
     # layer [3D LineString] of kml
     name = models.CharField(max_length=50, null=True)
+    time = models.DateTimeField()
 
     # GeoDjango-field <-> (LineString)
     lstring = models.LineStringField()

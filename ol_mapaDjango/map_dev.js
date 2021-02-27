@@ -2,6 +2,10 @@ import 'ol/ol.css';
 import {KML, GPX, GeoJSON} from 'ol/format';
 import Map from 'ol/Map';
 import VectorSource from 'ol/source/Vector';
+
+import Feature from 'ol/Feature';
+import Circle from 'ol/geom/Circle';
+
 import {XYZ, OSM} from 'ol/source';
 import View from 'ol/View';
 import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style';
@@ -9,8 +13,15 @@ import {Tile as TileLayer, Vector as VectorLayer} from 'ol/layer';
 import {useGeographic, transform, fromLonLat} from 'ol/proj'
 import {getAllTextContent, parse} from 'ol/xml';
 
-// Esta función CAMBIA la proyección de Mercator a WGS-84
-// TOFIX al cambiar la proyección parece que peta
+// Pequeña intro sobre Proyecciones en OpenLayers
+// ----------------------------------------------
+// OpenLayers trabaja por defecto con proyección EPSG:3857 (Mercator)
+// Nuestros datos (coordenadas lon;lat) están en proyección EPSG:4326 (WGS-84)
+// Tenemos que hacer la conversión en la vista (View)
+// Si nuestro mapa base (TileLayer) está en proyección Mercator se ajustará en función del cambio que se haga
+// Hay veces que al introducir una Feature puede no mostrarse. Puede tener que ver con su proyección
+
+// TODO (Revisar qué hace la función) Esta función CAMBIA la proyección de Mercator (EPSG:3857) --> WGS-84
 // useGeographic();
 
 // ###### Variables NO dinámicas ######
@@ -21,7 +32,7 @@ var attributions =
   '<a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>';
 
 // TOFIX - server de OpenMapTiles
-// var raster = new TileLayer({
+// var openmap_tiles = new TileLayer({
 //   source: new XYZ({
 //     attributions: attributions,
 //     //URL correspondiente al servidor de mapas alojado en este mismo servidor
@@ -30,12 +41,11 @@ var attributions =
 //   }),
 // });
 
-var raster = new TileLayer({
+var osm_tiles = new TileLayer({
   source: new OSM(),
 });
 
-
-// Estilo de pintado de círculos/líneas/etc. 
+// ###### Estilo de pintado de Features ######
 // TODO: customizarlo al gusto
 var style = {
   'Point': new Style({
@@ -63,75 +73,70 @@ var style = {
     }),
   }),
 };
+// Función para llamar en VectorSource que aplica el estilo definido en 'style'
+var styleFunction = function (feature) {
+  return style[feature.getGeometry().getType()];
+};
+// ###### FIN Estilo de pintado de Features ######
+
 
 // ###### Variables dinámicas ######
 var gpx_files = document.getElementById("gpx_files")
 var json_files = document.getElementById("json_files")
-
+var geojson = new GeoJSON().readFeatures(JSON.parse(json_files.innerText))
+var botonDebug = document.getElementById("debugButton")
 // From Zaratamap
 var centerLon = JSON.parse(document.getElementById("center").innerText)[0]
 var centerLat = JSON.parse(document.getElementById("center").innerText)[1]
 var zoom = document.getElementById("zoom").innerText
+// ###### FIN Variables dinámicas ######
 
-var xml_doc = parse(gpx_files.innerText)
+// ###### Layers tipo JSON ######
+var sourceJSON = new VectorSource({
+  wrapX: false,
+  features: geojson
+});
 
-// Layers tipo JSON
-// var sourceJSON = new VectorSource({
-//   wrapX: false,
-//   features: new GeoJSON().readFeatures(JSON.parse(json_files))
-// });
+var vectorJSON = new VectorLayer({
+  source: sourceJSON,
+  style: styleFunction,
+});
+// ###### FIN Layers tipo JSON ######
 
-// var vectorJSON = new VectorLayer({
-//   source: sourceJSON,
-// });
-
-// Layers tipo KML 
+// ###### Layers tipo KML ######
+// TODO - probar bidegorris.kml desde url de Bizkaia 
 // --> VectorSource()
+// ###### FIN Layers tipo KML ######
 
-// Layers tipo GPX 
-
+// ###### Layers tipo GPX ######
 // var sourceGPX = new VectorSource({
-//   wrapX: false,
-//   //TOFIX hay que parsear primero el GPX para pasarlo a JSON
-//   features: new GPX().readFeatures(gpx_files.innerText)
+//   url: 'diego.gpx',
+//   format: new GPX(),
 // });
 
 // var vector_gpx = new VectorLayer({
-//   source: xml_doc,
-//   style: function (feature) {
-//     return style[feature.getGeometry().getType()];
-//   },
+//   source: sourceGPX,
+//     style: styleFunction,
 // });
-
-var sourceGPX = new VectorSource({
-  url: 'diego.gpx',
-  //URL.createObjectURL(xml_doc),
-  format: new GPX(),
-});
-
-
-var vector_gpx2 = new VectorLayer({
-  source: sourceGPX,
-    style: function (feature) {
-    return style[feature.getGeometry().getType()];
-  },
-
-});
+// ###### FIN Layers tipo GPX ######
 
 // Mapa
 var map = new Map({
-  layers: [raster, vector_gpx2],
-  target: document.getElementById('map'),
-  view: new View({
-    // Esta función comentada no cambia la proyección pero nos permite fijar el centro con lonlat
-    center: fromLonLat([centerLon, centerLat]),
-    // center: [centerLon,centerLat],
-    // projection: 'EPSG:4326',
+  layers: [osm_tiles, vectorJSON], // Capas de información geoespacial
+  target: document.getElementById('map'), // Elemento HTML donde va situado el mapa
+  view: new View({ // Configuración de la vista (centro, proyección del mapa)
+    // Esta función comentada es para cuando la proyección usada sea Mercator
+    // center: fromLonLat([centerLon, centerLat]),
+    center: [centerLon,centerLat],
+    projection: 'EPSG:4326',
     // https://stackoverflow.com/questions/58107691/openlayers-map-center-issue
     zoom: zoom,
   }),
 });
 
+// ###### Funciones ######
+// Display Feature Info --> example OpenLayers 
+// TODO - esta función será la que tendrá que sacar información de los puntos de las rutas
 var displayFeatureInfo = function (pixel) {
   var features = [];
   map.forEachFeatureAtPixel(pixel, function (feature) {
@@ -153,32 +158,42 @@ var displayFeatureInfo = function (pixel) {
   console.log(loc);
 };
 
-// Funciones
-// Centrar Mapa https://gis.stackexchange.com/questions/112892/change-openlayers-3-view-center
+// Centrar Mapa 
+// src: https://gis.stackexchange.com/questions/112892/change-openlayers-3-view-center
 function CenterMap(long, lati) {
-  console.log("Long: " + long + " Lat: " + lati);
-  map.getView().setCenter(fromLonLat([long, lati]));
+  // console.log("Long: " + long + " Lat: " + lati);
+  // map.getView().setCenter(fromLonLat([long, lati]));
+  map.getView().setCenter([long, lati]);
   map.getView().setZoom(13);
 }
 
-// EVENTOS del mapa
+// ###### FIN Funciones ######
+
+// ###### EVENTOS del mapa ######
 // Drag
 map.on('pointermove', function (evt) {
   if (evt.dragging) {
     return;
   }
-  var pixel = map.getEventPixel(evt.originalEvent);
-  displayFeatureInfo(pixel);
+  // var pixel = map.getEventPixel(evt.originalEvent);
+  // displayFeatureInfo(pixel);
 });
+
 // Click
 map.on('click', function (evt) {
-  displayFeatureInfo(evt.pixel);
+  // displayFeatureInfo(evt.pixel);
+  
   // Centramos mapa
-  // TODO que esta llamada a CenterMap() esté en un botón a parte
+  // TODO - que esta llamada a CenterMap() esté en un botón a parte
   CenterMap(centerLon, centerLat);
-  // Zona DEBUGGING 
-  console.log(json_files).getGeommetry();
-  console.log(json.files);
-
 });
+// ###### FIN EVENTOS del mapa ######
 
+// ###### BOTONES ######
+botonDebug.onclick = function(){
+// Zona DEBUGGING
+  alert("2HOLA");
+  console.log("222HOLAAAAAAAA");
+};
+
+// ###### FIN BOTONES ######
