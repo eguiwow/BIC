@@ -21,6 +21,7 @@ def index(request):
     kml_files = []
     geojson_files = []
     gpx_file = ""
+<<<<<<< HEAD
       
     for f in kml:
         kml_files.append(f.kml_file)
@@ -28,23 +29,43 @@ def index(request):
     
     geojson_files.append("{\"type\": \"FeatureCollection\",\"features\": [") # Abrimos el GeoJSON con sus Features
 
+=======
+    
+    geojson_files.append("{\"type\": \"FeatureCollection\",\"features\": [") # Abrimos el GeoJSON con sus Features
+    
+    for f in kml:
+        kml_files.append(f.kml_file)
+
+>>>>>>> 35f09649dade736b577ca28ee4f68275cfc79f8d
     for track in gpx_tracks:
         # print("***TRACKS***")
         # print ('MLString de track', track.mlstring) #Sacamos el SRID y una lista de coordenadas 
         gpx_track = track.mlstring # MultiLineString 
         geojson_files.append("{\"type\": \"Feature\",\"geometry\": ") #Inicio de una Feature
         geojson_files.append(GEOSGeometry(track.mlstring, srid=4326).geojson) #Añadimos a la lista el geojson pertinente
+<<<<<<< HEAD
         geojson_files.append("},") # Cerramos el Feature (track) 
+=======
+        
+>>>>>>> 35f09649dade736b577ca28ee4f68275cfc79f8d
         #geojson_files.append(", \"properties\": { } }") # TODO parte de Properties
 
         # Para crear clase MultiLineString(coordinates, opt_layout, ot_ends)
         # - coordinates (array of Coordinate or LineString geometries)
+<<<<<<< HEAD
         # - flat coordinates in combination with opt_layout and opt_ends are also accepted 
     if len(geojson_files) > 1:
         geojson_files = geojson_files[:-1] # Quitamos la coma para el último track
 
     geojson_files.append("}]}") # Cerramos el GeoJSON 
     geojson = ''.join(geojson_files)
+=======
+        # - flat coordinates in combination with opt_layout and opt_ends are also accepted
+
+    geojson_files.append("}]}") # Cerramos el GeoJSON 
+    geojson = ''.join(geojson_files)
+    
+>>>>>>> 35f09649dade736b577ca28ee4f68275cfc79f8d
 
 #    print('\n\n\n\n', geojson) # Printea el GeoJSON ya formateado
 
