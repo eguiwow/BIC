@@ -73,17 +73,39 @@ var style = {
     }),
   }),
 };
+var style2 = {
+  'LineString': new Style({
+    stroke: new Stroke({
+      color: '#fff',
+      width: 3,
+    }),
+  }),
+  'MultiLineString': new Style({
+    stroke: new Stroke({
+      color: '#f00',
+      width: 3,
+    }),
+  }),
+};
+
 // Función para llamar en VectorSource que aplica el estilo definido en 'style'
 var styleFunction = function (feature) {
   return style[feature.getGeometry().getType()];
 };
+// Estilo 2 TODO mejorar para otro tipo de tracks
+var styleFunction2 = function(feature){
+  return style2[feature.getGeometry().getType()];
+};
+
 // ###### FIN Estilo de pintado de Features ######
 
 
 // ###### Variables dinámicas ######
 var gpx_files = document.getElementById("gpx_files")
-var json_files = document.getElementById("json_files")
-var geojson = new GeoJSON().readFeatures(JSON.parse(json_files.innerText))
+var json_tracks = document.getElementById("json_tracks")
+var json_dtours = document.getElementById("json_dtours")
+var geojson_tracks = new GeoJSON().readFeatures(JSON.parse(json_tracks.innerText))
+var geojson_dtours = new GeoJSON().readFeatures(JSON.parse(json_dtours.innerText))
 var botonDebug = document.getElementById("debugButton")
 // From Zaratamap
 var centerLon = JSON.parse(document.getElementById("center").innerText)[0]
@@ -94,12 +116,22 @@ var zoom = document.getElementById("zoom").innerText
 // ###### Layers tipo JSON ######
 var sourceJSON = new VectorSource({
   wrapX: false,
-  features: geojson
+  features: geojson_tracks
 });
 
 var vectorJSON = new VectorLayer({
   source: sourceJSON,
   style: styleFunction,
+});
+
+var sourceJSONdtour = new VectorSource({
+  wrapX: false,
+  features: geojson_dtours
+});
+
+var vectorJSONdtour = new VectorLayer({
+  source: sourceJSONdtour,
+  style: styleFunction2,
 });
 // ###### FIN Layers tipo JSON ######
 
@@ -122,7 +154,7 @@ var vectorJSON = new VectorLayer({
 
 // Mapa
 var map = new Map({
-  layers: [osm_tiles, vectorJSON], // Capas de información geoespacial
+  layers: [osm_tiles, vectorJSON, vectorJSONdtour], // Capas de información geoespacial
   target: document.getElementById('map'), // Elemento HTML donde va situado el mapa
   view: new View({ // Configuración de la vista (centro, proyección del mapa)
     // Esta función comentada es para cuando la proyección usada sea Mercator

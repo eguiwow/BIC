@@ -17,7 +17,8 @@
   <var id="center" hidden> {{center}} </var>
   <var id="gpx_files" hidden> {{gpx_files}}> </var>
   <var id="kml_files" hidden> {{kml_files}}> </var>
-  <var id="json_files" hidden> {{geojson_files}} </var>
+  <var id="json_tracks" hidden> {{geojson_tracks}} </var>
+  <var id="json_dtours" hidden> {{geojson_dtours}} </var>
 
   <!-- /Zona Variables ocultas -->
   <!-- Zona archivos -->
@@ -31,11 +32,17 @@
     {% else %}
       <p> NO se han pasado los GPXs </p>     
     {% endif %}
-    <h3> Nombres archivos geojson</h3>
-    {% if geojson_files %}
-    {{ geojson_files }}
+<!--    <h3> Nombres archivos geojson</h3>
+    {% if geojson_tracks %}
+    {{ geojson_tracks }}
     {% else %}
       <p> NO se han pasado los GeoJSON </p>     
+    {% endif %} -->
+    <h3> Nombres archivos geojson (Dtours)</h3>
+    {% if geojson_dtours %}
+    {{ geojson_dtours }}
+    {% else %}
+      <p> NO se han pasado los GeoJSON (Dtours)</p>     
     {% endif %}
     <h3>Nombres archivos kml</h3>
     {% if kml_files %}

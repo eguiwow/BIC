@@ -19,38 +19,55 @@ def index(request):
     kml = KML_file.objects.all()
     gpx_files = []
     kml_files = []
-    geojson_files = []
+    geojson_tracks = []
+    geojson_dtours = []
+
     gpx_file = ""
       
     for f in kml:
         kml_files.append(f.kml_file)
 
-    
-    geojson_files.append("{\"type\": \"FeatureCollection\",\"features\": [") # Abrimos el GeoJSON con sus Features
+    geojson_dtours.append("{\"type\": \"FeatureCollection\",\"features\": [") # Abrimos el GeoJSON con sus Features
+    geojson_tracks.append("{\"type\": \"FeatureCollection\",\"features\": [") # Abrimos el GeoJSON con sus Features
 
+    # RAW SQL probando
+    for t in GPX_track.objects.raw( # Ejecutamos el query que debe hacer la diferencia de los tracks
+        '''SELECT p1.id ,p2.id, ST_AsText(
+        ST_Difference(p1.mlstring,p2.mlstring)
+        ) AS diff_geom
+        FROM datacentre_gpx_track AS p1, datacentre_gpx_track AS p2 WHERE p1.id > p2.id;'''):
+        geojson_dtours.append("{\"type\": \"Feature\",\"geometry\": ")
+        geojson_dtours.append(GEOSGeometry(t.mlstring, srid=4326).geojson)
+        geojson_dtours.append("},")
+
+    if len(geojson_dtours) > 1:
+        geojson_dtours = geojson_dtours[:-1] # Quitamos la coma para el último track
+
+    geojson_dtours.append("}]}") # Cerramos el GeoJSON 
+    geojson_d = ''.join(geojson_dtours)
+    
     for track in gpx_tracks:
         # print("***TRACKS***")
         # print ('MLString de track', track.mlstring) #Sacamos el SRID y una lista de coordenadas 
-        gpx_track = track.mlstring # MultiLineString 
-        geojson_files.append("{\"type\": \"Feature\",\"geometry\": ") #Inicio de una Feature
-        geojson_files.append(GEOSGeometry(track.mlstring, srid=4326).geojson) #Añadimos a la lista el geojson pertinente
-        geojson_files.append("},") # Cerramos el Feature (track) 
-        #geojson_files.append(", \"properties\": { } }") # TODO parte de Properties
+        geojson_tracks.append("{\"type\": \"Feature\",\"geometry\": ") #Inicio de una Feature
+        geojson_tracks.append(GEOSGeometry(track.mlstring, srid=4326).geojson) #Añadimos a la lista el geojson pertinente
+        geojson_tracks.append("},") # Cerramos el Feature (track) 
+        #geojson_tracks.append(", \"properties\": { } }") # TODO parte de Properties
 
         # Para crear clase MultiLineString(coordinates, opt_layout, ot_ends)
         # - coordinates (array of Coordinate or LineString geometries)
         # - flat coordinates in combination with opt_layout and opt_ends are also accepted 
-    if len(geojson_files) > 1:
-        geojson_files = geojson_files[:-1] # Quitamos la coma para el último track
+    if len(geojson_tracks) > 1:
+        geojson_tracks = geojson_tracks[:-1] # Quitamos la coma para el último track
 
-    geojson_files.append("}]}") # Cerramos el GeoJSON 
-    geojson = ''.join(geojson_files)
+    geojson_tracks.append("}]}") # Cerramos el GeoJSON 
+    geojson = ''.join(geojson_tracks) #TODO cambiar nombre a esta variable a geojson_trks o algo así
 
 #    print('\n\n\n\n', geojson) # Printea el GeoJSON ya formateado
 
     for f in gpx:
         # geojson = subprocess.call(['sh','./togeojson.sh', nomGPX]) # Esto convierte un archivo GPX a GeoJSON dejando el nuevo en la carpeta
-        # geojson_files.append(geojson) 
+        # geojson_tracks.append(geojson) 
         print (str(f.gpx_file))
         gpx_file = open(str(f.gpx_file))
         gpx = gpxpy.parse(gpx_file)
@@ -60,11 +77,14 @@ def index(request):
 
     # TODO Conversion using an external function   
     # gpx_to_geoJSON(gpx_files)
+
+
+
     
     # ~| Center & Zoom from Zaratamap |~
     # -- coords bilbao en lon/lat --
     # -- [ 43.270200001993764,-2.9456500000716574] --> Cambiadas al pasarlas como parámetros --
-    context = {"gpx_files": gpx_files, "kml_files":kml_files, "geojson_files": geojson, 'center': [-2.9456500000716574, 43.270200001993764], 'zoom':13}
+    context = {"gpx_files": gpx_files, "kml_files":kml_files, "geojson_tracks": geojson, "geojson_dtours": geojson_d, 'center': [-2.9456500000716574, 43.270200001993764], 'zoom':13}
     return render(request, 'index.html', context)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
