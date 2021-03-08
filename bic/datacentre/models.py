@@ -25,9 +25,9 @@ class GPX_waypoint(models.Model):
     # Django fields corresponding to 
     # layer [waypoints] of gpx
     name = models.CharField(max_length=50, null=True)
-    time = models.DateTimeField()
-    lon = models.FloatField()
-    lat = models.FloatField()
+    time = models.DateTimeField(null=True)
+    lon = models.FloatField(null=True)
+    lat = models.FloatField(null=True)
 
     # GeoDjango-field <-> (Point)
     point = models.PointField()
@@ -62,8 +62,8 @@ class GPX_trackpoint(models.Model):
     # track_seg_id = models.ForeignKey(GPX_seg, on_delete=models.CASCADE)
     lon = models.FloatField()
     lat = models.FloatField()
-    ele = models.FloatField()
-    time = models.DateTimeField()
+    ele = models.FloatField(null=True)
+    time = models.DateTimeField(null=True)
 
     # GeoDjango-field <-> (Point)
     point = models.PointField()
@@ -96,7 +96,7 @@ class KML_lstring(models.Model):
     # Django fields corresponding to 
     # layer [3D LineString] of kml
     name = models.CharField(max_length=50, null=True)
-    time = models.DateTimeField()
+    #time = models.DateTimeField()
 
     # GeoDjango-field <-> (LineString)
     lstring = models.LineStringField()

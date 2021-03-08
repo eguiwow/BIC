@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.views.static import serve
-from .models import GPX_file, GPX_track, KML_file
+from .models import GPX_file, GPX_track, KML_lstring
 from gpx_converter import Converter
 from django.contrib.gis.geos import GEOSGeometry # For lazy geometries
 import json
@@ -14,77 +14,105 @@ import subprocess # For running bash scripts from python
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 def index(request):
     # Retrieve the GPX_file
-    gpx = GPX_file.objects.all()
     gpx_tracks = GPX_track.objects.all()
-    kml = KML_file.objects.all()
-    gpx_files = []
-    kml_files = []
-    geojson_tracks = []
-    geojson_dtours = []
+    kml_tracks = KML_lstring.objects.all()
+    gj_bidegorris = [] # GeoJSON bidegorris = stored KML bidegorris (lstrings)
+    gj_tracks = [] # GeoJSON tracks = stored GPX tracks (mlstrings)
+    gj_dtours = [] # GeoJSON dtours = difference from track and bidegorri (mlstrings)
+    buff_bidegorris = [] # Buffered_bidegorris (polys)
 
-    gpx_file = ""
-      
-    for f in kml:
-        kml_files.append(f.kml_file)
-
-    geojson_dtours.append("{\"type\": \"FeatureCollection\",\"features\": [") # Abrimos el GeoJSON con sus Features
-    geojson_tracks.append("{\"type\": \"FeatureCollection\",\"features\": [") # Abrimos el GeoJSON con sus Features
-
-    # RAW SQL probando
-    for t in GPX_track.objects.raw( # Ejecutamos el query que debe hacer la diferencia de los tracks
-        '''SELECT p1.id ,p2.id, ST_AsText(
-        ST_Difference(p1.mlstring,p2.mlstring)
-        ) AS diff_geom
-        FROM datacentre_gpx_track AS p1, datacentre_gpx_track AS p2 WHERE p1.id > p2.id;'''):
-        geojson_dtours.append("{\"type\": \"Feature\",\"geometry\": ")
-        geojson_dtours.append(GEOSGeometry(t.mlstring, srid=4326).geojson)
-        geojson_dtours.append("},")
-
-    if len(geojson_dtours) > 1:
-        geojson_dtours = geojson_dtours[:-1] # Quitamos la coma para el último track
-
-    geojson_dtours.append("}]}") # Cerramos el GeoJSON 
-    geojson_d = ''.join(geojson_dtours)
+    buffers_de_prueba = []      
     
-    for track in gpx_tracks:
-        # print("***TRACKS***")
-        # print ('MLString de track', track.mlstring) #Sacamos el SRID y una lista de coordenadas 
-        geojson_tracks.append("{\"type\": \"Feature\",\"geometry\": ") #Inicio de una Feature
-        geojson_tracks.append(GEOSGeometry(track.mlstring, srid=4326).geojson) #Añadimos a la lista el geojson pertinente
-        geojson_tracks.append("},") # Cerramos el Feature (track) 
-        #geojson_tracks.append(", \"properties\": { } }") # TODO parte de Properties
+    # Abrimos los GeoJSON con sus Features
+    gj_bidegorris.append("{\"type\": \"FeatureCollection\",\"features\": [")
+    gj_dtours.append("{\"type\": \"FeatureCollection\",\"features\": [") 
+    gj_tracks.append("{\"type\": \"FeatureCollection\",\"features\": [")
+    buff_bidegorris.append("{\"type\": \"FeatureCollection\",\"features\": [")
+    # Contador para pruebas
+    cont=0
 
-        # Para crear clase MultiLineString(coordinates, opt_layout, ot_ends)
-        # - coordinates (array of Coordinate or LineString geometries)
-        # - flat coordinates in combination with opt_layout and opt_ends are also accepted 
-    if len(geojson_tracks) > 1:
-        geojson_tracks = geojson_tracks[:-1] # Quitamos la coma para el último track
+    # RETRIEVE already buffered BIDEGORRIS
+    # for track in kml_tracks:
+    #     buff_bidegorris.append("{\"type\": \"Feature\",\"geometry\": ") #Inicio de una Feature
+    #     buff_bidegorris.append(GEOSGeometry(track.lstring, srid=4326).geojson) #Añadimos a la lista el geojson pertinente
+    #     buff_bidegorris.append("},") # Cerramos el Feature (track) 
+    #     #gj_tracks.append(", \"properties\": { } }") # TODO parte de Properties
 
-    geojson_tracks.append("}]}") # Cerramos el GeoJSON 
-    geojson = ''.join(geojson_tracks) #TODO cambiar nombre a esta variable a geojson_trks o algo así
+    # if len(buff_bidegorris) > 1:
+    #     buff_bidegorris = buff_bidegorris[:-1] # Quitamos la coma para el último track
+    #     buff_bidegorris.append("}")
 
-#    print('\n\n\n\n', geojson) # Printea el GeoJSON ya formateado
+    # buff_bidegorris.append("]}") # Cerramos el GeoJSON 
+    # bidegorris = ''.join(gj_tracks) #TODO cambiar nombre a esta variable a geojson_trks o algo así
+    # FIN RETRIEVE buffered bidegorris    
 
-    for f in gpx:
-        # geojson = subprocess.call(['sh','./togeojson.sh', nomGPX]) # Esto convierte un archivo GPX a GeoJSON dejando el nuevo en la carpeta
-        # geojson_tracks.append(geojson) 
-        print (str(f.gpx_file))
-        gpx_file = open(str(f.gpx_file))
-        gpx = gpxpy.parse(gpx_file)
-        gpx_files.append(gpx.to_xml)
-        # Este print SÍ saca el contenido del gpx a consola
-        # print('GPX:', gpx.to_xml())
+    # ST_Buffer() --> Aquí deben ir los gj_bidegorris (esto se puede hacer solo una vez)
+    for track in kml_tracks:
+        buff_bidegorris.append("{\"type\": \"Feature\",\"geometry\": ")
+        line = GEOSGeometry(track.lstring, srid=4326)
+        buffered_line = line.buffer(0.00005,quadsegs=8) # Aquí hacemos el buffer con la distancia que queramos
+        buff_bidegorris.append(buffered_line.geojson) 
+        #prueba para Difference
+        buffers_de_prueba.append(buffered_line) # metemos los polys correspondientes
+        buff_bidegorris.append("},")
+        # limitar cantidad en pruebas
+    if len(buff_bidegorris) > 1:
+        buff_bidegorris = buff_bidegorris[:-1] # Quitamos la coma para el último track
 
-    # TODO Conversion using an external function   
-    # gpx_to_geoJSON(gpx_files)
-
-
-
+    buff_bidegorris.append("}]}") # Cerramos el GeoJSON 
+    buffered_l = ''.join(buff_bidegorris)
+    # FIN ST_Buffer()    
     
+    # ST_Difference()
+    for t in gpx_tracks:
+        track = GEOSGeometry(t.mlstring, srid=4326)
+        for i in buffers_de_prueba: # sacamos cada poly de la lista
+            if track.intersects(i):# if they intersect --> then do the .difference()
+                intersected = True
+                track = track.difference(i) # Guardamos el resultante como nuevo track y guardamos solo al final
+        if intersected:
+            gj_dtours.append("{\"type\": \"Feature\",\"geometry\": ")
+            dtour = track # Difference = Track - Poly
+            print(dtour.geom_type)
+            gj_dtours.append(dtour.geojson)
+            gj_dtours.append("},")
+            intersected = False
+                
+    cont=0
+    if len(gj_dtours) > 1:
+        gj_dtours = gj_dtours[:-1] # Quitamos la coma para el último track
+    
+    gj_dtours.append("}]}") # Cerramos el GeoJSON 
+    geojson_d = ''.join(gj_dtours)
+    # FIN ST_Difference()
+
+    # STORE ALL TRACKS
+    # for track in gpx_tracks:
+    #     # print("***TRACKS***")
+    #     # print ('MLString de track', track.mlstring) #Sacamos el SRID y una lista de coordenadas 
+    #     gj_tracks.append("{\"type\": \"Feature\",\"geometry\": ") #Inicio de una Feature
+    #     gj_tracks.append(GEOSGeometry(track.mlstring, srid=4326).geojson) #Añadimos a la lista el geojson pertinente
+    #     gj_tracks.append("},") # Cerramos el Feature (track) 
+    #     #gj_tracks.append(", \"properties\": { } }") # TODO parte de Properties
+        
+    #     cont+=1
+    #     if cont ==3:
+    #         break
+
+    # if len(gj_tracks) > 1:
+    #     gj_tracks = gj_tracks[:-1] # Quitamos la coma para el último track
+    #     gj_tracks.append("}")
+
+    gj_tracks.append("]}") # Cerramos el GeoJSON 
+    geojson = ''.join(gj_tracks) #TODO cambiar nombre a esta variable a geojson_trks o algo así
+    # FIN STORE ALL TRACKS
+
     # ~| Center & Zoom from Zaratamap |~
     # -- coords bilbao en lon/lat --
     # -- [ 43.270200001993764,-2.9456500000716574] --> Cambiadas al pasarlas como parámetros --
-    context = {"gpx_files": gpx_files, "kml_files":kml_files, "geojson_tracks": geojson, "geojson_dtours": geojson_d, 'center': [-2.9456500000716574, 43.270200001993764], 'zoom':13}
+    context = {"gj_bidegorris":gj_bidegorris, "gj_tracks": geojson,\
+    "gj_dtours": geojson_d, "buff_bidegorris": buffered_l,\
+    'center': [-2.9456500000716574, 43.270200001993764],'zoom':13} # TODO pasar zoom y center com parámetro
     return render(request, 'index.html', context)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

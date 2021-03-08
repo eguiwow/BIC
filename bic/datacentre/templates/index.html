@@ -5,7 +5,7 @@
   <title>Bike Intelligence Centre</title>
   <style>#map {
       width: 100%;
-      height: 400px;
+      height: 500px; /*TODO poner la altura en porcentaje (ahora si cambiamos peta) */
     }</style>
   {% endblock %}
   {% block map %}
@@ -15,43 +15,30 @@
   <!-- Zona Variables ocultas -->
   <var id="zoom" hidden> {{zoom}} </var>
   <var id="center" hidden> {{center}} </var>
-  <var id="gpx_files" hidden> {{gpx_files}}> </var>
-  <var id="kml_files" hidden> {{kml_files}}> </var>
-  <var id="json_tracks" hidden> {{geojson_tracks}} </var>
-  <var id="json_dtours" hidden> {{geojson_dtours}} </var>
+  <var id="bidegorris" hidden> {{bidegorris}}> </var>
+  <var id="json_tracks" hidden> {{gj_tracks}} </var>
+  <var id="json_dtours" hidden> {{gj_dtours}} </var>
+  <var id="json_bufflines" hidden> {{buff_bidegorris}} </var>
 
   <!-- /Zona Variables ocultas -->
   <!-- Zona archivos -->
-  <div class="botonEliminarCuandoEsté"><button class="botonDebug" id="debugButton"> Debug </button></div>
+  <div class="botonesRapidos">
+    <button class="botonDebug" id="debugButton"> Debug </button>
+    <button class="botonCentrar" id="centerButton"> Centrar </button>
+  </div>
   <div class="archivos"></div>
-    <h3> Nombres archivos gpx</h3>
-    {% if gpx_files %}
-      {% for g in gpx_files %}
-      <p>{{g}}</p>
-      {% endfor %}
-    {% else %}
-      <p> NO se han pasado los GPXs </p>     
-    {% endif %}
 <!--    <h3> Nombres archivos geojson</h3>
     {% if geojson_tracks %}
     {{ geojson_tracks }}
     {% else %}
       <p> NO se han pasado los GeoJSON </p>     
     {% endif %} -->
-    <h3> Nombres archivos geojson (Dtours)</h3>
-    {% if geojson_dtours %}
-    {{ geojson_dtours }}
+    <h3> Nombres archivos geojson (dtours)</h3>
+    {% if gj_dtours %}
+    {{ gj_dtours }}
     {% else %}
-      <p> NO se han pasado los GeoJSON (Dtours)</p>     
+      <p> NO se han pasado los GeoJSON (buffers)</p>     
     {% endif %}
-    <h3>Nombres archivos kml</h3>
-    {% if kml_files %}
-      {% for k in kml_files %}
-      <p>{{k}}</p>
-      {% endfor %}
-    {% else %}
-      <p> NO se han pasado los KML </p>     
-    {% endif %} 
   </div>
   <!-- /Zona archivos -->
   <script src="{% static 'js/map.js' %}"></script>        

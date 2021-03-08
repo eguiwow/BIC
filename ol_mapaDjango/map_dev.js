@@ -55,34 +55,44 @@ var style = {
       }),
       radius: 5,
       stroke: new Stroke({
-        color: '#ff0',
+        color: '#ff0', 
         width: 1,
       }),
     }),
   }),
   'LineString': new Style({
     stroke: new Stroke({
-      color: '#f00',
+      color: '#000', // BLACK
       width: 3,
     }),
   }),
   'MultiLineString': new Style({
     stroke: new Stroke({
-      color: '#0f0',
+      color: '#0f0', // GREEN
       width: 3,
+    }),
+  }),
+  'Polygon': new Style({
+    stroke: new Stroke({
+      color: 'blue',
+      lineDash: [4],
+      width: 3,
+    }),
+    fill: new Fill({
+      color: 'rgba(0, 0, 255, 0.1)',
     }),
   }),
 };
 var style2 = {
   'LineString': new Style({
     stroke: new Stroke({
-      color: '#fff',
+      color: '#fff', //WHITE
       width: 3,
     }),
   }),
   'MultiLineString': new Style({
     stroke: new Stroke({
-      color: '#f00',
+      color: '#f00', //RED
       width: 3,
     }),
   }),
@@ -101,12 +111,15 @@ var styleFunction2 = function(feature){
 
 
 // ###### Variables dinámicas ######
-var gpx_files = document.getElementById("gpx_files")
+// var gpx_files = document.getElementById("gpx_files")
 var json_tracks = document.getElementById("json_tracks")
 var json_dtours = document.getElementById("json_dtours")
+var json_bufflines = document.getElementById("json_bufflines")
 var geojson_tracks = new GeoJSON().readFeatures(JSON.parse(json_tracks.innerText))
 var geojson_dtours = new GeoJSON().readFeatures(JSON.parse(json_dtours.innerText))
+var buffered_lines = new GeoJSON().readFeatures(JSON.parse(json_bufflines.innerText))
 var botonDebug = document.getElementById("debugButton")
+var botonCenter = document.getElementById("centerButton")
 // From Zaratamap
 var centerLon = JSON.parse(document.getElementById("center").innerText)[0]
 var centerLat = JSON.parse(document.getElementById("center").innerText)[1]
@@ -118,20 +131,26 @@ var sourceJSON = new VectorSource({
   wrapX: false,
   features: geojson_tracks
 });
+var sourceJSONdtour = new VectorSource({
+  wrapX: false,
+  features: geojson_dtours
+});
+var sourceJbufflines = new VectorSource({
+  wrapX:false,
+  features: buffered_lines
+});
 
 var vectorJSON = new VectorLayer({
   source: sourceJSON,
   style: styleFunction,
 });
-
-var sourceJSONdtour = new VectorSource({
-  wrapX: false,
-  features: geojson_dtours
-});
-
 var vectorJSONdtour = new VectorLayer({
   source: sourceJSONdtour,
   style: styleFunction2,
+});
+var vectorJbufflines = new VectorLayer({
+  source: sourceJbufflines,
+  style: styleFunction,
 });
 // ###### FIN Layers tipo JSON ######
 
@@ -154,7 +173,7 @@ var vectorJSONdtour = new VectorLayer({
 
 // Mapa
 var map = new Map({
-  layers: [osm_tiles, vectorJSON, vectorJSONdtour], // Capas de información geoespacial
+  layers: [osm_tiles, vectorJSON, vectorJSONdtour, vectorJbufflines], // Capas de información geoespacial
   target: document.getElementById('map'), // Elemento HTML donde va situado el mapa
   view: new View({ // Configuración de la vista (centro, proyección del mapa)
     // Esta función comentada es para cuando la proyección usada sea Mercator
@@ -215,17 +234,21 @@ map.on('pointermove', function (evt) {
 map.on('click', function (evt) {
   // displayFeatureInfo(evt.pixel);
   
-  // Centramos mapa
-  // TODO - que esta llamada a CenterMap() esté en un botón a parte
-  CenterMap(centerLon, centerLat);
+
 });
 // ###### FIN EVENTOS del mapa ######
 
 // ###### BOTONES ######
 botonDebug.onclick = function(){
 // Zona DEBUGGING
-  alert("2HOLA");
-  console.log("222HOLAAAAAAAA");
+  console.log("HOLA");ç
+  console.log(json_bufflines)
 };
+
+botonCenter.onclick = function(){
+  // Centramos mapa
+  CenterMap(centerLon, centerLat);
+};
+  
 
 // ###### FIN BOTONES ######

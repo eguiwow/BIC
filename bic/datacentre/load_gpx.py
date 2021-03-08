@@ -7,12 +7,10 @@ from pathlib import Path
 from django.contrib.gis.utils import LayerMapping
 from .models import GPX_track, GPX_trackpoint , GPX_waypoint
 
+# Mapear atributos modelo Django contra layers del DataSource 
 gpx_track_mapping = {
     'mlstring':'MultiLineString',
 }
-
-# world_shp = Path(__file__).resolve().parent / 'data' / 'TM_WORLD_BORDERS-0.3.shp'
-#gpx_file_path = Path(__file__).resolve().parent / 'data' / 'gpx' / 'diego.gpx' 
 
 # Método que recorre la carpeta datacentre/data/gpx e introduce en la BD los tracks de los GPX 
 # TODO load no solo tracks sino trackpts, wpts, etc.
