@@ -8,8 +8,10 @@
       height: 500px; /*TODO poner la altura en porcentaje (ahora si cambiamos peta) */
     }</style>
   {% endblock %}
+  {% block content %}
+  <h1> Dtours en Bizkaia </h1>  
+  {% endblock %}
   {% block map %}
-  <h1> Dtours en Bizkaia </h1>
   <div id="map"></div>
   <div id="info">&nbsp;</div>
   <!-- Zona Variables ocultas -->
@@ -42,5 +44,7 @@
   </div>
   <!-- /Zona archivos -->
   <script src="{% static 'js/map.js' %}"></script>        
+  {% endblock %}
+  {% block aftermap %}
   {% endblock %}
 
