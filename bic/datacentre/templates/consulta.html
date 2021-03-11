@@ -8,8 +8,15 @@
       height: 500px; /*TODO poner la altura en porcentaje (ahora si cambiamos peta) */
     }</style>
   {% endblock %}
+  {% block content %}
+  <!-- Formulario de consulta
+  DÍA/HORA INICIO
+  DÍA/HORA FINAL
+  LON/LAT ? (se puede hacer por bounding box)
+  -->
+  {% endblock %}
   {% block map %}
-  <h1> Dtours en Bizkaia </h1>
+  <h1> Dtours </h1>
   <div id="map"></div>
   <div id="info">&nbsp;</div>
   <!-- Zona Variables ocultas -->

@@ -31,7 +31,7 @@ def index(request):
     # Contador para pruebas
     cont=0
 
-    # RETRIEVE already buffered BIDEGORRIS
+    # RETRIEVE already buffered BIDEGORRIS TODO cuando esté guardado el bidegorri en polygons
     # for track in kml_tracks:
     #     buff_bidegorris.append("{\"type\": \"Feature\",\"geometry\": ") #Inicio de una Feature
     #     buff_bidegorris.append(GEOSGeometry(track.lstring, srid=4326).geojson) #Añadimos a la lista el geojson pertinente
@@ -116,8 +116,16 @@ def index(request):
     return render(request, 'index.html', context)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# Vista del proyecto: En qué consiste? De dónde surge? Cuál es su propósito?  #
+# Vista del PROYECTO: En qué consiste? De dónde surge? Cuál es su propósito?  #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 # TODO implementar 
 def project(request):
     return render(request, 'project.html')
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# Vista de CONSULTA: Seleccionar los datos que quieren ser vistos #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+# TODO implementar 
+def consulta(request):
+    return render(request, 'consulta.html')    

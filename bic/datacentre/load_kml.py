@@ -25,6 +25,7 @@ def get_feat_property(feat):
     return property
 
 def run(verbose=True):
+    # Ruta al archivo que queremos introducir en la BD KML_lstrings
     kml_file = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data', 'kml', 'bidegorris.kml'),)
     # Reading Data by DataSource
     ds = DataSource(kml_file)
