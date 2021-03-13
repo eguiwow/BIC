@@ -102,6 +102,7 @@ class KML_lstring(models.Model):
 
     # GeoDjango-field <-> (LineString)
     lstring = models.LineStringField()
+    poly = models.PolygonField(null=True)
 
     # Returns the string representation of the model.
     def __str__(self):
@@ -111,3 +112,4 @@ class KML_lstring(models.Model):
 ########################################
 ############## GeoJSON #################
 ########################################
+

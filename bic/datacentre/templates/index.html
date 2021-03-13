@@ -17,10 +17,9 @@
   <!-- Zona Variables ocultas -->
   <var id="zoom" hidden> {{zoom}} </var>
   <var id="center" hidden> {{center}} </var>
-  <var id="bidegorris" hidden> {{bidegorris}}> </var>
   <var id="json_tracks" hidden> {{gj_tracks}} </var>
   <var id="json_dtours" hidden> {{gj_dtours}} </var>
-  <var id="json_bufflines" hidden> {{buff_bidegorris}} </var>
+  <var id="json_bufflines" hidden> {{gj_bidegorris}} </var>
 
   <!-- /Zona Variables ocultas -->
   <!-- Zona archivos -->
@@ -29,9 +28,9 @@
     <button class="botonCentrar" id="centerButton"> Centrar </button>
   </div>
   <div class="archivos"></div>
-<!--    <h3> Nombres archivos geojson</h3>
-    {% if geojson_tracks %}
-    {{ geojson_tracks }}
+   <!-- <h3> Nombres archivos geojson</h3>
+    {% if buff_bidegorris %}
+    {{ buff_bidegorris }}
     {% else %}
       <p> NO se han pasado los GeoJSON </p>     
     {% endif %} -->
