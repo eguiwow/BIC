@@ -42,7 +42,9 @@ class GPX_track(models.Model):
     # layer [tracks] of gpx
     name = models.CharField(max_length=50, null=True)
     # TODO como la lyr track no tiene time habrá que sacarlo de otro sitio
-    # time = models.DateTimeField() 
+    # en metadata hay un <time> __ </time> con el datetime inicial 
+    start_time = models.DateTimeField(null=True)
+    end_time = models.DateTimeField(null=True) 
 
     # GeoDjango-field <-> (MultiLineString)
     mlstring = models.MultiLineStringField()

@@ -241,7 +241,7 @@ map.on('click', function (evt) {
 // ###### BOTONES ######
 botonDebug.onclick = function(){
 // Zona DEBUGGING
-  console.log("HOLA");ç
+  console.log("HOLA");
   console.log(json_bufflines)
 };
 

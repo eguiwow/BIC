@@ -7,6 +7,7 @@ from .forms import DateTimeRangeForm
 from .models import GPX_file, GPX_track, KML_lstring
 from .utils import tracklist_to_geojson, empty_geojson
 
+import datetime
 import json
 import time 
 
@@ -49,7 +50,7 @@ def index(request):
     #     buff_bidegorris.append("}")
 
     # buff_bidegorris.append("]}") # Cerramos el GeoJSON 
-    # bidegorris = ''.join(gj_tracks) #TODO cambiar nombre a esta variable a geojson_trks o algo así
+    # bidegorris = ''.join(gj_tracks)
     # FIN RETRIEVE buffered bidegorris    
 
     # ST_Buffer() --> Aquí deben ir los gj_bidegorris (esto se puede hacer solo una vez)
@@ -133,6 +134,7 @@ def project(request):
 def consulta(request):
     # 1 display de form y mapa vacíos 
     dates = []
+    gj_tracks = []
     # If this is a POST request then process the Form data
     if request.method == 'POST':
 
@@ -141,15 +143,26 @@ def consulta(request):
 
         # Check if the form is valid:
         if form.is_valid():
-            # process the data in form.cleaned_data as required (here we just write it to the model due_back field)
+            # Obtenemos la info del formulario
             dates = form.clean_range_datetime()
-            tracks = GPX_track.objects.filter(date__range=[date[0], date[1]])
+            
+            # Volvemos a crear el formulario para que se vean las fechas que hemos metido
+            proposed_start_date = dates[0]
+            proposed_end_date = dates[1]
+            form = DateTimeRangeForm(initial={'since_datetime': proposed_start_date,
+            'until_datetime':proposed_end_date })
+            
+            # dates[0] = form.cleaned_data['since_datetime']
+            # dates[1] = form.cleaned_data['until_datetime']
+            tracks = GPX_track.objects.filter(end_time__range=[dates[0], dates[1]])
+
             gj_tracks = tracklist_to_geojson(tracks)
-            # Probando función empty_geojson
             gj_dtours = empty_geojson()
             buffered_l = empty_geojson()
 
-            context = { 'gj_tracks': gj_tracks, "gj_dtours": geojson_d, "buff_bidegorris": buffered_l }
+            context = { 'form': form,\
+            'gj_tracks': gj_tracks, "gj_dtours": gj_dtours, "buff_bidegorris": buffered_l,\
+            'center': [-2.9456500000716574, 43.270200001993764],'zoom':13} 
 
             return render(request, 'consulta.html', context)
 
@@ -159,11 +172,12 @@ def consulta(request):
         proposed_end_date = datetime.date.today()
         form = DateTimeRangeForm(initial={'since_datetime': proposed_start_date,
         'until_datetime':proposed_end_date })
-        # Probando función empty_geojson
         gj_tracks = empty_geojson()
         gj_dtours = empty_geojson()
         buffered_l = empty_geojson()
 
-    context = { 'form': form, 'gj_tracks': gj_tracks, "gj_dtours": geojson_d, "buff_bidegorris": buffered_l }
+    context = { 'form': form,\
+    'gj_tracks': gj_tracks, "gj_dtours": gj_dtours, "buff_bidegorris": buffered_l,\
+    'center': [-2.9456500000716574, 43.270200001993764],'zoom':13 }
 
     return render(request, 'consulta.html', context)    
