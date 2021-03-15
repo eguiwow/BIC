@@ -9,7 +9,8 @@ import Circle from 'ol/geom/Circle';
 import {XYZ, OSM} from 'ol/source';
 import View from 'ol/View';
 import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style';
-import {Tile as TileLayer, Vector as VectorLayer} from 'ol/layer';
+import {Tile as TileLayer, Vector as VectorLayer, Group as LayerGroup} from 'ol/layer';
+import LayerSwitcher from 'ol-layerswitcher';
 import {useGeographic, transform, fromLonLat} from 'ol/proj'
 import {getAllTextContent, parse} from 'ol/xml';
 
@@ -31,7 +32,7 @@ var attributions =
   '<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> ' +
   '<a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>';
 
-// TOFIX - server de OpenMapTiles
+// TODO - reactivar server de OpenMapTiles
 // var openmap_tiles = new TileLayer({
 //   source: new XYZ({
 //     attributions: attributions,
@@ -42,6 +43,7 @@ var attributions =
 // });
 
 var osm_tiles = new TileLayer({
+  type: 'base',
   source: new OSM(),
 });
 
@@ -141,14 +143,17 @@ var sourceJbufflines = new VectorSource({
 });
 
 var vectorJSON = new VectorLayer({
+  title: 'tracks',
   source: sourceJSON,
   style: styleFunction,
 });
 var vectorJSONdtour = new VectorLayer({
+  title: 'dtours',
   source: sourceJSONdtour,
   style: styleFunction2,
 });
 var vectorJbufflines = new VectorLayer({
+  title: 'bidegorris',
   source: sourceJbufflines,
   style: styleFunction,
 });
@@ -171,9 +176,17 @@ var vectorJbufflines = new VectorLayer({
 // });
 // ###### FIN Layers tipo GPX ######
 
+// Grupo de Layers para LayerSwitcher
+var overlayGroup = new LayerGroup({
+  title: 'Capas',
+  layers: [vectorJSON, vectorJSONdtour, vectorJbufflines],
+})
+// LayerSwitcher (para cambiar entre capas)
+var layerSwitcher = new LayerSwitcher();
+
 // Mapa
 var map = new Map({
-  layers: [osm_tiles, vectorJSON, vectorJSONdtour, vectorJbufflines], // Capas de información geoespacial
+  layers: [osm_tiles, overlayGroup], // Capas de información geoespacial
   target: document.getElementById('map'), // Elemento HTML donde va situado el mapa
   view: new View({ // Configuración de la vista (centro, proyección del mapa)
     // Esta función comentada es para cuando la proyección usada sea Mercator
@@ -184,6 +197,8 @@ var map = new Map({
     zoom: zoom,
   }),
 });
+// Añadimos LayerSwitcher
+map.addControl(layerSwitcher);
 
 // ###### Funciones ######
 // Display Feature Info --> example OpenLayers 

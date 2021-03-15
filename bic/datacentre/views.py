@@ -11,9 +11,8 @@ import datetime
 import json
 import time 
 
-# TODO Revisar si estas de abajo no se si hacen falta ya
+# TODO Revisar si estas de abajo hacen falta ya
 from gpx_converter import Converter
-import gpxpy # For manipulating gpx files from python
 import subprocess # For running bash scripts from python
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
