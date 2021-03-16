@@ -1,6 +1,6 @@
 from django.contrib.gis.geos import GEOSGeometry # For lazy geometries
 from django.core.exceptions import ValidationError
-from django.contrib.gis.geos import LineString, MultiLineString, Point
+from django.contrib.gis.geos import LineString, MultiLineString, Point, MultiPoint
 import gpxpy
 
 # Returns an empty but formatted GeoJSON
@@ -86,6 +86,43 @@ def get_dtours(tracks, polys):
     
     return geojson_d
 
+
+# def get_lista_puntos(gpx):
+#     # gpx es una instancia de GPX_track
+#     track = GEOSGeometry(gpx.mlstring, srid=4326)
+#     track_list_of_points = []
+#     # track es una GEOSGeometry
+#     for ls in track:
+#         for point in ls:
+#             p = Point(point)
+#             track_list_of_points.append(p)
+#     multipoint = MultiPoint(track_list_of_points)
+#     return multipoint
+
+# Prueba por si no se puede con MultiPoint el HeatMap
+def get_lista_puntos(gpx):
+    # gpx es una instancia de GPX_track
+    track = GEOSGeometry(gpx.mlstring, srid=4326)
+    track_list_of_points = []
+    # track es una GEOSGeometry
+    for ls in track:
+        for point in ls:
+            p = Point(point)
+            track_list_of_points.append(p)
+    return track_list_of_points
+
+    # py_track = gpxpy.parse(track)
+    # # py_track funciona con un archivo gpx como input AjÁ!
+    
+    # for track in py_track.tracks:
+    #     for segment in track.segments:
+    #         for point in segment.points:
+    #             point_in_segment = Point(point.longitude, point.latitude)
+    #             track_list_of_points.append(point_in_segment.coords)
+    # multipoint = MultiPoint(track_list_of_points)
+    # return multipoint
+
+
 # These bunch of functions --> Given a gpx_file from a gpxpy parser, returns a MLSTRING
 # From: https://github.com/PetrDlouhy/django-gpxpy/blob/master/django_gpxpy/gpx_parse.py
 # Returns points[] from segment
@@ -95,14 +132,15 @@ def parse_segment(segment):
         point_in_segment = Point(point.longitude, point.latitude)
         track_list_of_points.append(point_in_segment.coords)
     return track_list_of_points
-# Returns multiline, start&end_times from tracks[] 
-# TODO que devuelva una lista de data porque son varios tracks los que sepasan
+# Returns multiline, start&end_times from tracks[]
+# Método adaptado para coger tiempo inicio y fin 
+# TODO que devuelva una lista de data porque son varios tracks los que se pasan
 # aunque normalmente solo hay un track en cada gpx
 def parse_tracks(tracks):
     data = []
     multiline = []
     for track in tracks:
-        start_time, end_time = track.get_time_bounds()
+        start_time, end_time = track.get_time_bounds() 
         for segment in track.segments:
             track_list_of_points = parse_segment(segment)
             if len(track_list_of_points) > 1:
