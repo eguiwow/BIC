@@ -19,7 +19,7 @@
   <var id="center" hidden> {{center}} </var>
   <var id="json_tracks" hidden> {{gj_tracks}} </var>
   <var id="json_dtours" hidden> {{gj_dtours}} </var>
-  <var id="json_bufflines" hidden> {{gj_bidegorris}} </var>
+  <var id="json_bidegorris" hidden> {{gj_bidegorris}} </var>
 
   <!-- /Zona Variables ocultas -->
   <!-- Zona archivos -->
@@ -28,12 +28,12 @@
     <button class="botonCentrar" id="centerButton"> Centrar </button>
   </div>
   <div class="archivos"></div>
-   <!-- <h3> Nombres archivos geojson</h3>
-    {% if buff_bidegorris %}
-    {{ buff_bidegorris }}
+   <h3> Nombres archivos geojson</h3>
+    {% if gj_tracks %}
+    {{ gj_tracks }}
     {% else %}
       <p> NO se han pasado los GeoJSON </p>     
-    {% endif %} -->
+    {% endif %}
     <!-- <h3> Nombres archivos geojson (dtours)</h3>
     {% if gj_dtours %}
     {{ gj_dtours }}

@@ -2,10 +2,11 @@ from django.shortcuts import render
 from django.views.static import serve
 from django.core.files import File
 from django.contrib.gis.geos import GEOSGeometry # For lazy geometries
+from django.utils import timezone
 
 from .forms import DateTimeRangeForm
 from .models import GPX_file, GPX_track, KML_lstring
-from .utils import tracklist_to_geojson, empty_geojson, get_dtours
+from .utils import tracklist_to_geojson, empty_geojson, get_dtours, get_lista_puntos
 
 import datetime
 import json
@@ -35,8 +36,8 @@ def index(request):
     dtours = get_dtours(gpx_tracks, polys)
 
     # RETRIEVE ALL tracks = stored GPX tracks (mlstrings)
-    # gj_tracks = tracklist_to_geojson(gpx_tracks, "mlstring")
-    gj_tracks = empty_geojson
+    gj_tracks = tracklist_to_geojson(gpx_tracks, "mlstring")
+    # gj_tracks = empty_geojson
 
     # ~| Center & Zoom from Zaratamap |~
     # -- coords bilbao en lon/lat --
@@ -57,7 +58,9 @@ def project(request):
 # Vista de CONSULTA: Seleccionar los datos que quieren ser vistos #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 def consulta(request):
-
+    
+    kml_tracks = KML_lstring.objects.all()
+    bidegorris = tracklist_to_geojson(kml_tracks, "poly")     
     # If this is a POST request then process the Form data
     # Sacamos los tracks correspondientes de la consulta 
     if request.method == 'POST':
@@ -82,10 +85,9 @@ def consulta(request):
 
             gj_tracks = tracklist_to_geojson(tracks,"mlstring")
             gj_dtours = empty_geojson()
-            gj_bidegorris = empty_geojson()
 
             context = { 'form': form,\
-            'gj_tracks': gj_tracks, "gj_dtours": gj_dtours, "gj_bidegorris": gj_bidegorris,\
+            'gj_tracks': gj_tracks, "gj_dtours": gj_dtours, "gj_bidegorris": bidegorris,\
             'center': [-2.9456500000716574, 43.270200001993764],'zoom':13} 
 
             return render(request, 'consulta.html', context)
@@ -94,7 +96,7 @@ def consulta(request):
     # If this is a GET (or any other method) create the default form.
     else:
         proposed_start_date = datetime.date.today() - datetime.timedelta(weeks=3)
-        proposed_end_date = datetime.date.today()
+        proposed_end_date = timezone.now()
         form = DateTimeRangeForm(initial={'since_datetime': proposed_start_date,
         'until_datetime':proposed_end_date })
         gj_vacio = empty_geojson()
@@ -104,3 +106,48 @@ def consulta(request):
     'center': [-2.9456500000716574, 43.270200001993764],'zoom':13 }
 
     return render(request, 'consulta.html', context)    
+
+
+# # # # # # # # # # # # # # # # # # # # # #
+# Vista de PRUEBAS: FUTURA VISTA ANÁLISIS #
+# # # # # # # # # # # # # # # # # # # # # # 
+# TODO implementar 
+def analisis(request):
+    # WORKING ON Heatmap --> sacar colección de puntos de un track
+    gpx_tracks = GPX_track.objects.all()
+    puntos_track = []
+    lista_multipoints = []
+    lista_multipoints.append("{\"type\": \"FeatureCollection\",\"features\": [")
+    for track in gpx_tracks:
+        #lista_multipoints.append("{\"type\": \"Feature\",\"geometry\": ") 
+        cont = 0
+        puntos_track = get_lista_puntos(track) # Devolver Multipoint
+        for punto in puntos_track:
+            if cont == 1: # quitando la mitad de los puntos
+                lista_multipoints.append("{\"type\": \"Feature\",\"geometry\": ") 
+                lista_multipoints.append(punto.geojson) # Añadir Multipoint 
+                lista_multipoints.append("},")  
+                cont = 0
+            else:
+                cont += 1
+        #lista_multipoints.append(puntos_track.geojson) # Añadir Multipoint
+
+        #lista_multipoints.append("},")
+        
+        # TODO parte de Properties
+        # gj_tracks.append(", \"properties\": { } }") 
+    
+    # Quitamos la coma para el último track
+    if len(lista_multipoints) > 1:
+        lista_multipoints = lista_multipoints[:-1]
+        lista_multipoints.append("}")
+    
+    lista_multipoints.append("]}")
+    formatted_geojson = ''.join(lista_multipoints)
+    # Pasar colección de puntos a OL y pintar
+
+    gj_vacio = empty_geojson()
+    context = { "gj_tracks": formatted_geojson,"gj_dtours": gj_vacio, "gj_bidegorris": gj_vacio,\
+    'center': [-2.9456500000716574, 43.270200001993764],'zoom':13} # TODO pasar zoom y center como parámetro
+
+    return render(request, 'index.html', context)

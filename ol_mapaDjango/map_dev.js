@@ -2,15 +2,13 @@ import 'ol/ol.css';
 import {KML, GPX, GeoJSON} from 'ol/format';
 import Map from 'ol/Map';
 import VectorSource from 'ol/source/Vector';
-
-import Feature from 'ol/Feature';
-import Circle from 'ol/geom/Circle';
-
-import {XYZ, OSM} from 'ol/source';
+import {XYZ, OSM, Stamen} from 'ol/source';
 import View from 'ol/View';
 import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style';
-import {Tile as TileLayer, Vector as VectorLayer, Group as LayerGroup} from 'ol/layer';
+import {Tile as TileLayer, Vector as VectorLayer, Group as LayerGroup, Heatmap as HeatMapLayer} from 'ol/layer';
 import LayerSwitcher from 'ol-layerswitcher';
+
+import Feature from 'ol/Feature';
 import {useGeographic, transform, fromLonLat} from 'ol/proj'
 import {getAllTextContent, parse} from 'ol/xml';
 
@@ -22,7 +20,7 @@ import {getAllTextContent, parse} from 'ol/xml';
 // Si nuestro mapa base (TileLayer) está en proyección Mercator se ajustará en función del cambio que se haga
 // Hay veces que al introducir una Feature puede no mostrarse. Puede tener que ver con su proyección
 
-// TODO (Revisar qué hace la función) Esta función CAMBIA la proyección de Mercator (EPSG:3857) --> WGS-84
+// [EN DUDA] Esta función CAMBIA la proyección de Mercator (EPSG:3857) --> WGS-84
 // useGeographic();
 
 // ###### Variables NO dinámicas ######
@@ -41,7 +39,16 @@ var attributions =
 //     maxZoom: 20,
 //   }),
 // });
+//
+// Tiles de Stamen
+// var raster = new TileLayer({
+//   source: new Stamen({
+//     layer: 'toner',
+//   }),
+// });
 
+
+// Tiles de OpenStreetMaps
 var osm_tiles = new TileLayer({
   type: 'base',
   source: new OSM(),
@@ -51,6 +58,18 @@ var osm_tiles = new TileLayer({
 // TODO: customizarlo al gusto
 var style = {
   'Point': new Style({
+    image: new CircleStyle({
+      fill: new Fill({
+        color: 'rgba(255,255,0,0.4)',
+      }),
+      radius: 5,
+      stroke: new Stroke({
+        color: '#ff0', 
+        width: 1,
+      }),
+    }),
+  }),
+  'MultiPoint': new Style({
     image: new CircleStyle({
       fill: new Fill({
         color: 'rgba(255,255,0,0.4)',
@@ -104,7 +123,7 @@ var style2 = {
 var styleFunction = function (feature) {
   return style[feature.getGeometry().getType()];
 };
-// Estilo 2 TODO mejorar para otro tipo de tracks
+// TODO mejorar para otro tipo de tracks
 var styleFunction2 = function(feature){
   return style2[feature.getGeometry().getType()];
 };
@@ -113,13 +132,12 @@ var styleFunction2 = function(feature){
 
 
 // ###### Variables dinámicas ######
-// var gpx_files = document.getElementById("gpx_files")
 var json_tracks = document.getElementById("json_tracks")
 var json_dtours = document.getElementById("json_dtours")
-var json_bufflines = document.getElementById("json_bufflines")
-var geojson_tracks = new GeoJSON().readFeatures(JSON.parse(json_tracks.innerText))
-var geojson_dtours = new GeoJSON().readFeatures(JSON.parse(json_dtours.innerText))
-var buffered_lines = new GeoJSON().readFeatures(JSON.parse(json_bufflines.innerText))
+var json_bidegorris = document.getElementById("json_bidegorris")
+var gj_tracks = new GeoJSON().readFeatures(JSON.parse(json_tracks.innerText))
+var gj_dtours = new GeoJSON().readFeatures(JSON.parse(json_dtours.innerText))
+var gj_bidegorris = new GeoJSON().readFeatures(JSON.parse(json_bidegorris.innerText))
 var botonDebug = document.getElementById("debugButton")
 var botonCenter = document.getElementById("centerButton")
 // From Zaratamap
@@ -129,34 +147,55 @@ var zoom = document.getElementById("zoom").innerText
 // ###### FIN Variables dinámicas ######
 
 // ###### Layers tipo JSON ######
-var sourceJSON = new VectorSource({
+var sourceGJTracks = new VectorSource({
   wrapX: false,
-  features: geojson_tracks
+  features: new GeoJSON().readFeatures(json_tracks.innerText, {
+    dataProjection: "EPSG:4326",
+    featureProjection: "EPSG:4326"
+  })
 });
-var sourceJSONdtour = new VectorSource({
+var sourceGJDtours = new VectorSource({
   wrapX: false,
-  features: geojson_dtours
+  features: gj_dtours
 });
-var sourceJbufflines = new VectorSource({
+var sourceGJBidegorris = new VectorSource({
   wrapX:false,
-  features: buffered_lines
+  features: gj_bidegorris
 });
 
-var vectorJSON = new VectorLayer({
+var vTracks = new VectorLayer({
   title: 'tracks',
-  source: sourceJSON,
+  source: sourceGJTracks,
   style: styleFunction,
 });
-var vectorJSONdtour = new VectorLayer({
+var vDtours = new VectorLayer({
   title: 'dtours',
-  source: sourceJSONdtour,
+  source: sourceGJDtours,
   style: styleFunction2,
 });
-var vectorJbufflines = new VectorLayer({
+var vBidegorris = new VectorLayer({
   title: 'bidegorris',
-  source: sourceJbufflines,
+  source: sourceGJBidegorris,
   style: styleFunction,
 });
+
+var blur = 30;
+var radius = 4;
+
+var hmTracks = new HeatMapLayer({
+  title: 'heatmap_tracks',
+  source: sourceGJTracks,
+  blur: blur,
+  radius: radius,
+  weight: function (feature) {
+    // 2012_Earthquakes_Mag5.kml stores the magnitude of each earthquake in a
+    // standards-violating <magnitude> tag in each Placemark.  We extract it from
+    // the Placemark's name instead.
+    // var name = feature.get('name');
+    // var magnitude = parseFloat(name.substr(2));
+    return 1;
+  },
+})
 // ###### FIN Layers tipo JSON ######
 
 // ###### Layers tipo KML ######
@@ -177,19 +216,19 @@ var vectorJbufflines = new VectorLayer({
 // ###### FIN Layers tipo GPX ######
 
 // Grupo de Layers para LayerSwitcher
-var overlayGroup = new LayerGroup({
+var grupoVectores = new LayerGroup({
   title: 'Capas',
-  layers: [vectorJSON, vectorJSONdtour, vectorJbufflines],
+  layers: [vTracks, vDtours, vBidegorris],
 })
-// LayerSwitcher (para cambiar entre capas)
+// LayerSwitcher (para cambiar entre capas) - https://github.com/walkermatt/ol-layerswitcher 
 var layerSwitcher = new LayerSwitcher();
 
 // Mapa
 var map = new Map({
-  layers: [osm_tiles, overlayGroup], // Capas de información geoespacial
+  layers: [osm_tiles, hmTracks, grupoVectores], // Capas de información geoespacial
   target: document.getElementById('map'), // Elemento HTML donde va situado el mapa
   view: new View({ // Configuración de la vista (centro, proyección del mapa)
-    // Esta función comentada es para cuando la proyección usada sea Mercator
+    // Esta función es para cuando la proyección usada sea Mercator
     // center: fromLonLat([centerLon, centerLat]),
     center: [centerLon,centerLat],
     projection: 'EPSG:4326',
@@ -256,8 +295,9 @@ map.on('click', function (evt) {
 // ###### BOTONES ######
 botonDebug.onclick = function(){
 // Zona DEBUGGING
-  console.log("HOLA");
-  console.log(json_bufflines)
+  console.log("AhoraQTAL?");
+  console.log(blur);
+  console.log(gj_tracks);
 };
 
 botonCenter.onclick = function(){
