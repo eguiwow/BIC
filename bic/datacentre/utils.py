@@ -1,6 +1,7 @@
 from django.contrib.gis.geos import GEOSGeometry # For lazy geometries
 from django.core.exceptions import ValidationError
 from django.contrib.gis.geos import LineString, MultiLineString, Point, MultiPoint
+from .models import KML_lstring
 import gpxpy
 
 # Returns an empty but formatted GeoJSON
@@ -71,7 +72,6 @@ def get_dtours(tracks, polys):
             if intersected:
                 gj_dtours.append("{\"type\": \"Feature\",\"geometry\": ")
                 dtour = track # Difference = Track - Poly
-                print(dtour.geom_type)
                 gj_dtours.append(dtour.geojson)
                 gj_dtours.append("},")
                 intersected = False
@@ -86,8 +86,18 @@ def get_dtours(tracks, polys):
     
     return geojson_d
 
+def get_polygonized_bidegorris():
+    kml_tracks = KML_lstring.objects.all() 
+    polys = []
 
-# def get_lista_puntos(gpx):
+    # Llenamos la lista de bidegorris poligonizados
+    for track in kml_tracks:
+        polys.append(track.poly)
+    
+    return polys
+
+
+# def get_multipoint_from_track(gpx):
 #     # gpx es una instancia de GPX_track
 #     track = GEOSGeometry(gpx.mlstring, srid=4326)
 #     track_list_of_points = []
@@ -110,18 +120,6 @@ def get_lista_puntos(gpx):
             p = Point(point)
             track_list_of_points.append(p)
     return track_list_of_points
-
-    # py_track = gpxpy.parse(track)
-    # # py_track funciona con un archivo gpx como input AjÁ!
-    
-    # for track in py_track.tracks:
-    #     for segment in track.segments:
-    #         for point in segment.points:
-    #             point_in_segment = Point(point.longitude, point.latitude)
-    #             track_list_of_points.append(point_in_segment.coords)
-    # multipoint = MultiPoint(track_list_of_points)
-    # return multipoint
-
 
 # These bunch of functions --> Given a gpx_file from a gpxpy parser, returns a MLSTRING
 # From: https://github.com/PetrDlouhy/django-gpxpy/blob/master/django_gpxpy/gpx_parse.py

@@ -18,9 +18,12 @@
     {% csrf_token %}
     <table>
     {{ form.as_table }}
+    
     </table>
     <input type="submit" value="Submit">
   </form>
+    <!-- TODO que estos botones estén separados -->
+  <button class="botonSelectArea" id="selectAreaButton"> Seleccionar Área </button>
   
   {% endblock %}
   {% block map %}
@@ -33,6 +36,7 @@
   <var id="json_tracks" hidden> {{gj_tracks}} </var>
   <var id="json_dtours" hidden> {{gj_dtours}} </var>
   <var id="json_bidegorris" hidden> {{gj_bidegorris}} </var>
+  <var id="consulta_vacia" hidden> {{consulta_vacia}} </var>
 
   <!-- /Zona Variables ocultas -->
   <!-- Zona archivos -->
@@ -55,6 +59,6 @@
     {% endif %} -->
   </div>
   <!-- /Zona archivos -->
-  <script src="{% static 'js/map.js' %}"></script>        
+  <script src="{% static 'js/query_map.js' %}"></script>        
   {% endblock %}
 

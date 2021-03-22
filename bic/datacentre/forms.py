@@ -5,9 +5,14 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 
 # Formulario para Consulta de tracks
-class DateTimeRangeForm(forms.Form):
+class DateTimeRangeBBoxForm(forms.Form):
     since_datetime = forms.DateTimeField(help_text=_("Desde cuándo"))
     until_datetime = forms.DateTimeField(help_text=_("Hasta cuándo"))
+    # DecimalField - https://docs.djangoproject.com/en/3.1/ref/models/fields/ 
+    SW_lon = forms.DecimalField(help_text=_("Punto esquina inferior izquierda"))
+    SW_lat = forms.DecimalField(help_text=_("Punto esquina inferior derecha"))
+    NE_lon = forms.DecimalField(help_text=_("Punto esquina superior izquierda"))
+    NE_lat = forms.DecimalField(help_text=_("Punto esquina superior derecha"))
 
     def clean_range_datetime(self):
         date1 = self.cleaned_data['since_datetime']

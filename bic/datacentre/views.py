@@ -1,10 +1,10 @@
 from django.shortcuts import render
 from django.views.static import serve
 from django.core.files import File
-from django.contrib.gis.geos import GEOSGeometry # For lazy geometries
+from django.contrib.gis.geos import Point, Polygon, GEOSGeometry # For lazy geometries
 from django.utils import timezone
 
-from .forms import DateTimeRangeForm
+from .forms import DateTimeRangeBBoxForm
 from .models import GPX_file, GPX_track, KML_lstring
 from .utils import tracklist_to_geojson, empty_geojson, get_dtours, get_lista_puntos
 
@@ -58,49 +58,70 @@ def project(request):
 # Vista de CONSULTA: Seleccionar los datos que quieren ser vistos #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 def consulta(request):
-    
+    # Gestionar Bidegorris    
     kml_tracks = KML_lstring.objects.all()
-    bidegorris = tracklist_to_geojson(kml_tracks, "poly")     
+    bidegorris = tracklist_to_geojson(kml_tracks, "poly")
+    polys = []
+    for track in kml_tracks:
+        polys.append(track.poly)     
+    consulta_vacia = 0 # para alerta por consulta vacía
     # If this is a POST request then process the Form data
     # Sacamos los tracks correspondientes de la consulta 
     if request.method == 'POST':
 
         # Create a form instance and populate it with data from the request (binding):
-        form = DateTimeRangeForm(request.POST)
+        form = DateTimeRangeBBoxForm(request.POST)
 
         # Check if the form is valid:
         if form.is_valid():
             # Obtenemos la info del formulario
             dates = form.clean_range_datetime()
-            
+            bbox_ne_lon = form.cleaned_data["NE_lon"]
+            bbox_ne_lat = form.cleaned_data["NE_lat"]
+            bbox_sw_lon = form.cleaned_data["SW_lon"]
+            bbox_sw_lat = form.cleaned_data["SW_lat"]
             # Volvemos a crear el formulario para que se vean las fechas que hemos metido
             proposed_start_date = dates[0]
             proposed_end_date = dates[1]
-            form = DateTimeRangeForm(initial={'since_datetime': proposed_start_date,
-            'until_datetime':proposed_end_date })
+
+            form = DateTimeRangeBBoxForm(initial={'since_datetime': proposed_start_date,
+            'until_datetime':proposed_end_date, 'NE_lon': bbox_ne_lon,
+             'NE_lat': bbox_ne_lat,'SW_lon': bbox_sw_lon,'SW_lat': bbox_sw_lat})
             
-            # dates[0] = form.cleaned_data['since_datetime']
-            # dates[1] = form.cleaned_data['until_datetime']
-            tracks = GPX_track.objects.filter(end_time__range=[dates[0], dates[1]])
-
+            # Creamos bbox partiendo de la entrada de usuario
+            bbox = (bbox_sw_lon, bbox_sw_lat, bbox_ne_lon, bbox_ne_lat)
+            geom = Polygon.from_bbox(bbox) # (xmin, ymin, xmax, ymax)
+            
+            # Filtro de rango de tiempo + Filtro espacial (BBox)
+            # Ahora mismo, el bbox tiene que contener enteramente el track para mostrarlo (pensar si es así la mejor manera)
+            tracks = GPX_track.objects.filter(end_time__range=[dates[0], dates[1]]).filter(mlstring__contained=geom)
             gj_tracks = tracklist_to_geojson(tracks,"mlstring")
-            gj_dtours = empty_geojson()
+            if not tracks:
+                gj_dtours = empty_geojson()
+                consulta_vacia = 1
+            else:
+                gj_dtours = get_dtours(tracks, polys)
+                consulta_vacia = 0
 
-            context = { 'form': form,\
+            context = { 'form': form, 'consulta_vacia': consulta_vacia,\
             'gj_tracks': gj_tracks, "gj_dtours": gj_dtours, "gj_bidegorris": bidegorris,\
             'center': [-2.9456500000716574, 43.270200001993764],'zoom':13} 
 
             return render(request, 'consulta.html', context)
     
+
     # Display de form y mapa vacíos 
     # If this is a GET (or any other method) create the default form.
     else:
-        proposed_start_date = datetime.date.today() - datetime.timedelta(weeks=3)
+        proposed_start_date = datetime.date.today() - datetime.timedelta(weeks=52)
         proposed_end_date = timezone.now()
-        form = DateTimeRangeForm(initial={'since_datetime': proposed_start_date,
-        'until_datetime':proposed_end_date })
-        gj_vacio = empty_geojson()
+        proposed_sw = Point(-3, 40)
+        proposed_ne = Point(-1, 44)
+        form = DateTimeRangeBBoxForm(initial={'since_datetime': proposed_start_date,
+        'until_datetime':proposed_end_date,'NE_lon': proposed_ne[0],
+        'NE_lat': proposed_ne[1],'SW_lon': proposed_sw[0],'SW_lat': proposed_sw[1]})
 
+    gj_vacio = empty_geojson()
     context = { 'form': form,\
     'gj_tracks': gj_vacio, "gj_dtours": gj_vacio, "gj_bidegorris": gj_vacio,\
     'center': [-2.9456500000716574, 43.270200001993764],'zoom':13 }
@@ -111,43 +132,41 @@ def consulta(request):
 # # # # # # # # # # # # # # # # # # # # # #
 # Vista de PRUEBAS: FUTURA VISTA ANÁLISIS #
 # # # # # # # # # # # # # # # # # # # # # # 
-# TODO implementar 
 def analisis(request):
-    # WORKING ON Heatmap --> sacar colección de puntos de un track
     gpx_tracks = GPX_track.objects.all()
     puntos_track = []
-    lista_multipoints = []
-    lista_multipoints.append("{\"type\": \"FeatureCollection\",\"features\": [")
+    gj_points = []
+    gj_points.append("{\"type\": \"FeatureCollection\",\"features\": [")
     for track in gpx_tracks:
-        #lista_multipoints.append("{\"type\": \"Feature\",\"geometry\": ") 
+        #gj_points.append("{\"type\": \"Feature\",\"geometry\": ") 
         cont = 0
         puntos_track = get_lista_puntos(track) # Devolver Multipoint
         for punto in puntos_track:
             if cont == 1: # quitando la mitad de los puntos
-                lista_multipoints.append("{\"type\": \"Feature\",\"geometry\": ") 
-                lista_multipoints.append(punto.geojson) # Añadir Multipoint 
-                lista_multipoints.append("},")  
+                gj_points.append("{\"type\": \"Feature\",\"geometry\": ") 
+                gj_points.append(punto.geojson) # Añadir Multipoint 
+                gj_points.append("},")  
                 cont = 0
             else:
                 cont += 1
-        #lista_multipoints.append(puntos_track.geojson) # Añadir Multipoint
+        #gj_points.append(puntos_track.geojson) # Añadir Multipoint
 
-        #lista_multipoints.append("},")
+        #gj_points.append("},")
         
         # TODO parte de Properties
         # gj_tracks.append(", \"properties\": { } }") 
     
     # Quitamos la coma para el último track
-    if len(lista_multipoints) > 1:
-        lista_multipoints = lista_multipoints[:-1]
-        lista_multipoints.append("}")
+    if len(gj_points) > 1:
+        gj_points = gj_points[:-1]
+        gj_points.append("}")
     
-    lista_multipoints.append("]}")
-    formatted_geojson = ''.join(lista_multipoints)
+    gj_points.append("]}")
+    formatted_geojson = ''.join(gj_points)
     # Pasar colección de puntos a OL y pintar
 
     gj_vacio = empty_geojson()
     context = { "gj_tracks": formatted_geojson,"gj_dtours": gj_vacio, "gj_bidegorris": gj_vacio,\
     'center': [-2.9456500000716574, 43.270200001993764],'zoom':13} # TODO pasar zoom y center como parámetro
 
-    return render(request, 'index.html', context)
+    return render(request, 'analisis.html', context)
