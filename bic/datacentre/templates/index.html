@@ -3,10 +3,30 @@
 
   {% block title %}
   <title>Bike Intelligence Centre</title>
-  <style>#map {
-      width: 100%;
-      height: 500px; /*TODO poner la altura en porcentaje (ahora si cambiamos peta) */
-    }</style>
+  <style>
+    #map {
+    width: 100%;
+    height: 500px; /*TODO poner la altura en porcentaje (ahora si cambiamos peta) */
+    }
+    #marker {
+      width: 20px;
+      height: 20px;
+      border: 1px solid #088;
+      border-radius: 10px;
+      background-color: #0FF;
+      opacity: 0.5;
+    }
+    #bilbao {
+      text-decoration: none;
+      color: white;
+      font-size: 11pt;
+      font-weight: bold;
+      text-shadow: black 0.1em 0.1em 0.2em;
+    }
+    .popover-body {
+      min-width: 276px;
+    }
+  </style>
   {% endblock %}
   {% block content %}
   <h1> Dtours en Bizkaia </h1>  
@@ -15,6 +35,17 @@
   <div id="map"></div>
   <!-- Info de Features -->
   <div id="info">&nbsp;</div>
+  <!-- Popups -->
+  <!-- https://openlayers.org/en/latest/examples/overlay.html --> 
+  <div style="display: none;">
+    <!-- Clickable label for Bilbao -->
+    <a class="overlay" id="bilbao" target="_blank" href="http://en.wikipedia.org/wiki/Bilbao">Bilbao</a>
+    <div id="marker" title="Marker"></div>
+    <!-- Popup -->
+    <div id="popup" title="Info Features"></div>
+  </div>
+  <!-- /Popups-->
+
   <!-- Zona Variables ocultas -->
   <var id="zoom" hidden> {{zoom}} </var>
   <var id="center" hidden> {{center}} </var>
@@ -29,12 +60,12 @@
     <button class="botonCentrar" id="centerButton"> Centrar </button>
   </div>
   <div class="archivos"></div>
-   <h3> Nombres archivos geojson</h3>
+   <!-- <h3> Nombres archivos geojson</h3>
     {% if gj_tracks %}
     {{ gj_tracks }}
     {% else %}
       <p> NO se han pasado los GeoJSON </p>     
-    {% endif %}
+    {% endif %} -->
     <!-- <h3> Nombres archivos geojson (dtours)</h3>
     {% if gj_dtours %}
     {{ gj_dtours }}

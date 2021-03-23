@@ -10,6 +10,8 @@ import View from 'ol/View';
 import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style';
 import {Tile as TileLayer, Vector as VectorLayer, Group as LayerGroup} from 'ol/layer';
 import LayerSwitcher from 'ol-layerswitcher';
+import Overlay from 'ol/Overlay';
+import {toStringHDMS} from 'ol/coordinate';
 
 import Feature from 'ol/Feature';
 import {useGeographic, transform, fromLonLat} from 'ol/proj'
@@ -225,10 +227,41 @@ var map = new Map({
 // Añadimos LayerSwitcher
 map.addControl(layerSwitcher);
 
+// VARIABLES OVERLAY
+// LonLat de Bilbao
+var pos = [centerLon, centerLat];
+// Popup que se va a generar en el html
+var popup = new Overlay({
+  element: document.getElementById('popup'),
+});
+map.addOverlay(popup);
+
+// Bilbao marker
+var marker = new Overlay({
+  position: pos,
+  positioning: 'center-center',
+  element: document.getElementById('marker'),
+  stopEvent: false,
+});
+map.addOverlay(marker);
+
+// Bilbao label
+var bilbao = new Overlay({
+  position: pos,
+  element: document.getElementById('bilbao'),
+});
+map.addOverlay(bilbao);
+
+map.on('click', function (evt) {
+
+});
+
 // ###### Funciones ######
 // Display Feature Info --> example OpenLayers 
 // TODO - esta función será la que tendrá que sacar información de los puntos de las rutas
-var displayFeatureInfo = function (pixel) {
+var displayFeatureInfo = function (pixel, coords) {
+  $(element).popover('dispose');
+  // Parte recogida features
   var features = [];
   map.forEachFeatureAtPixel(pixel, function (feature) {
     features.push(feature);
@@ -239,19 +272,38 @@ var displayFeatureInfo = function (pixel) {
     for (i = 0, ii = features.length; i < ii; ++i) {
       info.push(features[i].get('name'));
     }
-    document.getElementById('info').innerHTML = info.join(', ') || '(unknown)';
+    // Display en info
+    document.getElementById('info').innerHTML = 'FeatureName' + info.join(', ') || '(unknown)';
     map.getTarget().style.cursor = 'pointer';
+    // Display en PopUp
+    var element = popup.getElement();
+    var coordinate = coords;
+    var hdms = toStringHDMS(coordinate);
+
+    
+    popup.setPosition(coordinate);
+    $(element).popover({
+      container: element,
+      placement: 'top',
+      animation: false,
+      html: true,
+      content: '<p>The location you clicked was:</p><code>' + hdms + '</code>',
+    });
+    $(element).popover('show');
+
+
   } else {
     document.getElementById('info').innerHTML = '&nbsp;';
     map.getTarget().style.cursor = '';
   }
-  var loc = window.location.pathname;
-  console.log(loc);
+  // saca la ruta de la URL
+  // var loc = window.location.pathname;
+  // console.log(loc);
+  
 };
 
 // Centrar Mapa - https://gis.stackexchange.com/questions/112892/change-openlayers-3-view-center
 function CenterMap(long, lati) {
-  // console.log("Long: " + long + " Lat: " + lati);
   // map.getView().setCenter(fromLonLat([long, lati]));
   map.getView().setCenter([long, lati]);
   map.getView().setZoom(13);
@@ -271,10 +323,7 @@ map.on('pointermove', function (evt) {
 
 // Click
 map.on('click', function (evt) {  
-  // evt.coordinate guarda las coordenadas (lon,lat) del evento de click
-  displayFeatureInfo(evt.pixel);
-  console.log(evt.coordinate[0]);
-  console.log(evt.coordinate[1]);
+  displayFeatureInfo(evt.pixel, evt.coordinate);
 });
 // ###### FIN EVENTOS del mapa ######
 

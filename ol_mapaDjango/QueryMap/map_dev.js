@@ -324,19 +324,19 @@ map.on('click', function (evt) {
       // Check that BBox is correctly formed
       // Check lon
       if (lon1>lon2){
-        document.getElementById("id_bbox_sw_lon").value = lon2;
-        document.getElementById("id_bbox_ne_lon").value = lon1;
+        document.getElementById("id_SW_lon").value = lon2;
+        document.getElementById("id_NE_lon").value = lon1;
       }else{
-        document.getElementById("id_bbox_sw_lon").value = lon1;
-        document.getElementById("id_bbox_ne_lon").value = lon2;
+        document.getElementById("id_SW_lon").value = lon1;
+        document.getElementById("id_NE_lon").value = lon2;
       }
       // Check lat
       if (lat1>lat2){
-        document.getElementById("id_bbox_sw_lat").value = lat2;  
-        document.getElementById("id_bbox_ne_lat").value = lat1;  
+        document.getElementById("id_SW_lat").value = lat2;  
+        document.getElementById("id_NE_lat").value = lat1;  
       }else{
-        document.getElementById("id_bbox_sw_lat").value = lat1;  
-        document.getElementById("id_bbox_ne_lat").value = lat2;  
+        document.getElementById("id_SW_lat").value = lat1;  
+        document.getElementById("id_NE_lat").value = lat2;  
       }
     }
   }else{ // Si no estamos en modo 'Box' sacamos info feature
