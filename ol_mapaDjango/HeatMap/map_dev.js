@@ -292,7 +292,7 @@ map.on('pointermove', function (evt) {
 
 // Click
 map.on('click', function (evt) {
-
+  displayFeatureInfo(pixel);
 });
 // ###### FIN EVENTOS del mapa ######
 

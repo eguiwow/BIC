@@ -272,6 +272,7 @@ map.on('pointermove', function (evt) {
 // Click
 map.on('click', function (evt) {  
   // evt.coordinate guarda las coordenadas (lon,lat) del evento de click
+  displayFeatureInfo(evt.pixel);
   console.log(evt.coordinate[0]);
   console.log(evt.coordinate[1]);
 });

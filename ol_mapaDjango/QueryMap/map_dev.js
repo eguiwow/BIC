@@ -224,19 +224,13 @@ var map = new Map({
 // Añadimos LayerSwitcher
 map.addControl(layerSwitcher);
 
-
-
-
-
 // DIBUJAR BBOX - https://openlayers.org/en/latest/examples/draw-shapes.html?q=draw
 // Adaptado para dibujar solo Box
-
 var draw; // global so we can remove it later
 function addInteraction() {
   // Si no tenemos "Selección Área" no hacemos ná
   // draw.removeLastPoint();
   var value = typeSelect;
-  console.log(value);
   if (value != 'None') {
     var geometryFunction;
     if (value == 'Box') {
@@ -253,13 +247,10 @@ function addInteraction() {
 }
 // FIN DIBUJAR BBOX
 
-
-
-
-
 // ###### Funciones ######
-// Display Feature Info --> example OpenLayers 
-// TODO - esta función será la que tendrá que sacar información de los puntos de las rutas
+// Display Feature Info - https://openlayers.org/en/latest/examples/gpx.html 
+// Esta función saca información de las features al pinchar (ahora mismo el 'name')
+// TODO - 
 var displayFeatureInfo = function (pixel) {
   var features = [];
   map.forEachFeatureAtPixel(pixel, function (feature) {
@@ -278,7 +269,7 @@ var displayFeatureInfo = function (pixel) {
     map.getTarget().style.cursor = '';
   }
   var loc = window.location.pathname;
-  console.log(loc);
+  console.log(loc); // saca la ruta de la URL
 };
 
 // Centrar Mapa 
@@ -305,7 +296,7 @@ window.onload = function() {
   }
 };
 
-// EVENTOSmapa 
+// EVENTOSmapa
 // Drag
 map.on('pointermove', function (evt) {
   if (evt.dragging) {
@@ -348,7 +339,8 @@ map.on('click', function (evt) {
         document.getElementById("id_bbox_ne_lat").value = lat2;  
       }
     }
-  }else{
+  }else{ // Si no estamos en modo 'Box' sacamos info feature
+    displayFeatureInfo(evt.pixel);
     primerclick = true;
   }
 
@@ -360,6 +352,7 @@ map.on('click', function (evt) {
 botonDebug.onclick = function(){
 // Zona DEBUGGING y PRUEBAS
   console.log(typeSelect)
+  
 
 };
 // Botón CENTER
