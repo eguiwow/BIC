@@ -8,6 +8,8 @@ from pathlib import Path
 from django.contrib.gis.utils import LayerMapping
 from django.contrib.gis.geos import GEOSGeometry, LineString, WKTWriter
 from django.contrib.gis.gdal import DataSource
+from django.contrib.gis.measure import D, Distance
+from django.contrib.gis.db.models.functions import Length
 from .models import GPX_track, GPX_trackpoint , GPX_waypoint, KML_lstring
 from .utils import parse_gpx
 
@@ -43,7 +45,8 @@ def load_gpx(verbose=True):
         print(filepath)
         gpx_file = open(filepath, 'r')
         data = parse_gpx(gpx_file)
-        new_track = GPX_track(name=filepath.name, start_time=data[0], end_time=data[1], mlstring=data[2])
+        distance = Length(data[2])
+        new_track = GPX_track(name=filepath.name, start_time=data[0], end_time=data[1], distance=distance, mlstring=data[2])
         new_track.save()
 
 
@@ -78,10 +81,12 @@ def load_kml(verbose=True):
                 property = get_feat_property(feat)
 
                 if (len(geom.coords) >= 2 ):
-                    # Make a GeosGeometry object
-                    lstring = GEOSGeometry(wkt_w.write(geom.geos))
+                    # Make a GEOSGeometry object
+                    lstring = GEOSGeometry(wkt_w.write(geom.geos), srid=4326)
+                    dist = Length(geom.geos)
                     line = KML_lstring.objects.create(
                         name = property['name'],
+                        distance = dist,
                         lstring = lstring,
                         # ST_Buffer() --> Poligonizamos los bidegorris a una anchura de 0.00005
                         poly = lstring.buffer(0.00005,quadsegs=8)                    

@@ -292,7 +292,8 @@ map.on('pointermove', function (evt) {
 
 // Click
 map.on('click', function (evt) {
-  displayFeatureInfo(pixel);
+  // No sé por qué con el heatmap parece que no funciona
+  displayFeatureInfo(evt.pixel);
 });
 // ###### FIN EVENTOS del mapa ######
 
@@ -300,7 +301,7 @@ map.on('click', function (evt) {
 
 botonDebug.onclick = function(){
 // Zona DEBUGGING y PRUEBAS
-
+  console.log("YAHORA")
 };
 
 botonCenter.onclick = function(){

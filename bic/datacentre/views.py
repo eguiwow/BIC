@@ -37,7 +37,6 @@ def index(request):
 
     # RETRIEVE ALL tracks = stored GPX tracks (mlstrings)
     gj_tracks = tracklist_to_geojson(gpx_tracks, "mlstring")
-    # gj_tracks = empty_geojson
 
     # ~| Center & Zoom from Zaratamap |~
     # -- coords bilbao en lon/lat --
@@ -61,10 +60,11 @@ def consulta(request):
     # Gestionar Bidegorris    
     kml_tracks = KML_lstring.objects.all()
     bidegorris = tracklist_to_geojson(kml_tracks, "poly")
+    consulta_vacia = 0 # para alerta por consulta vacía
     polys = []
     for track in kml_tracks:
         polys.append(track.poly)     
-    consulta_vacia = 0 # para alerta por consulta vacía
+    
     # If this is a POST request then process the Form data
     # Sacamos los tracks correspondientes de la consulta 
     if request.method == 'POST':
@@ -134,39 +134,12 @@ def consulta(request):
 # # # # # # # # # # # # # # # # # # # # # # 
 def analisis(request):
     gpx_tracks = GPX_track.objects.all()
-    puntos_track = []
-    gj_points = []
-    gj_points.append("{\"type\": \"FeatureCollection\",\"features\": [")
-    for track in gpx_tracks:
-        #gj_points.append("{\"type\": \"Feature\",\"geometry\": ") 
-        cont = 0
-        puntos_track = get_lista_puntos(track) # Devolver Multipoint
-        for punto in puntos_track:
-            if cont == 1: # quitando la mitad de los puntos
-                gj_points.append("{\"type\": \"Feature\",\"geometry\": ") 
-                gj_points.append(punto.geojson) # Añadir Multipoint 
-                gj_points.append("},")  
-                cont = 0
-            else:
-                cont += 1
-        #gj_points.append(puntos_track.geojson) # Añadir Multipoint
-
-        #gj_points.append("},")
-        
-        # TODO parte de Properties
-        # gj_tracks.append(", \"properties\": { } }") 
-    
-    # Quitamos la coma para el último track
-    if len(gj_points) > 1:
-        gj_points = gj_points[:-1]
-        gj_points.append("}")
-    
-    gj_points.append("]}")
-    formatted_geojson = ''.join(gj_points)
-    # Pasar colección de puntos a OL y pintar
+    kml_tracks = KML_lstring.objects.all() 
+    bidegorris = tracklist_to_geojson(kml_tracks, "poly") # Buffered Bidegorris   
+    gj_points = tracklist_to_geojson(gpx_tracks, "point") # Puntos de los tracks para Heatmap
 
     gj_vacio = empty_geojson()
-    context = { "gj_tracks": formatted_geojson,"gj_dtours": gj_vacio, "gj_bidegorris": gj_vacio,\
+    context = { "gj_tracks": gj_points,"gj_dtours": gj_vacio, "gj_bidegorris": bidegorris,\
     'center': [-2.9456500000716574, 43.270200001993764],'zoom':13} # TODO pasar zoom y center como parámetro
 
     return render(request, 'analisis.html', context)

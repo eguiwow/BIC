@@ -41,14 +41,13 @@ class GPX_track(models.Model):
     # Django fields corresponding to 
     # layer [tracks] of gpx
     name = models.CharField(max_length=50, null=True)
-    # TODO como la lyr track no tiene time habrá que sacarlo de otro sitio
-    # en metadata hay un <time> __ </time> con el datetime inicial 
     start_time = models.DateTimeField(null=True)
     end_time = models.DateTimeField(null=True) 
+    distance = models.FloatField(null=True)
 
     # GeoDjango-field <-> (MultiLineString)
     mlstring = models.MultiLineStringField()
-
+    
     # Returns the string representation of the model.
     def __str__(self):
         return self.name
@@ -98,11 +97,13 @@ class KML_lstring(models.Model):
     # Django fields corresponding to 
     # layer [3D LineString] of kml
     name = models.CharField(max_length=50, null=True)
+    distance = models.FloatField(null=True)
     #time = models.DateTimeField()
 
-    # GeoDjango-field <-> (LineString)
+    # GeoDjango-field <-> (LineString) + Polygon (for buffered bidegorri)
     lstring = models.LineStringField()
     poly = models.PolygonField(null=True)
+
 
     # Returns the string representation of the model.
     def __str__(self):

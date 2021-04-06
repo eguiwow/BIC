@@ -1,6 +1,8 @@
 from django.contrib.gis.geos import GEOSGeometry # For lazy geometries
 from django.core.exceptions import ValidationError
 from django.contrib.gis.geos import LineString, MultiLineString, Point, MultiPoint
+from django.contrib.gis.db.models.functions import Length
+from django.contrib.gis.measure import D, Distance
 from .models import KML_lstring
 import gpxpy
 
@@ -31,6 +33,19 @@ def tracklist_to_geojson(tracks, geom_name):
                 gj_tracks.append(GEOSGeometry(track.mlstring, srid=4326).geojson) 
             elif geom_name == "lstring":
                 gj_tracks.append(GEOSGeometry(track.lstring, srid=4326).geojson)
+            elif geom_name == "point":
+                del gj_tracks[-1:]
+                cont = 0
+                puntos_track = get_lista_puntos(track) # Devolver Multipoints
+                for punto in puntos_track:
+                    if cont == 1: # quitamos la mitad de los puntos
+                        gj_tracks.append("{\"type\": \"Feature\",\"geometry\": ") 
+                        gj_tracks.append(punto.geojson) # Añadir Point 
+                        gj_tracks.append("},")  
+                        cont = 0
+                    else:
+                        cont += 1
+                del gj_tracks[-1:]
             else:
                 print("ERROR IN PASSING 2nd parameter <geom_name>")
             # Cerramos el Feature (track) 
@@ -52,10 +67,12 @@ def tracklist_to_geojson(tracks, geom_name):
     # Si la lista de tracks está vacía, devolvemos un GeoJSON vacío
     else:
         formatted_geojson = empty_geojson()
+        print("The tracklist is empty")
     
     return formatted_geojson
 
 # Applies ST_Difference() between a list of tracks and polys (diff = track - poly [mlstring])
+# Returns multilinestring[] with properties[dtour_length, ratio dtour/track]
 def get_dtours(tracks, polys):
     intersected = False
     gj_dtours = []
@@ -64,16 +81,29 @@ def get_dtours(tracks, polys):
 
     if polys:
         for t in tracks:
+            if t.distance:
+                track_length = t.distance # length del track en m
             track = GEOSGeometry(t.mlstring, srid=4326)
             for i in polys: # sacamos cada poly de la lista
                 if track.intersects(i):# if they intersect --> then do the .difference()
                     intersected = True
                     track = track.difference(i) # Guardamos el resultante como nuevo track y guardamos solo al final
             if intersected:
-                gj_dtours.append("{\"type\": \"Feature\",\"geometry\": ")
-                dtour = track # Difference = Track - Poly
-                gj_dtours.append(dtour.geojson)
+                gj_dtours.append("{\"type\": \"Feature\",")
+                dtour = track # Difference = Track - Poly                
+                gj_dtours.append("\"geometry\": " + dtour.geojson)
+                gj_dtours.append(",")
+                
+                # Calcular distancia dtours
+                geos = GEOSGeometry(dtour)
+                geos.transform(3857)
+                dtour_length = geos.length #Length(geos) # Length del dtour
+                ratio_dtour_to_track = (dtour_length/track_length)*100
+
+                # PROPERTIES                
+                gj_dtours.append("\"properties\":{\"dtour_l\":\"" + str(dtour_length) + "\", \"ratio\": \"" + str(ratio_dtour_to_track) + "\"}") 
                 gj_dtours.append("},")
+
                 intersected = False
                     
         if len(gj_dtours) > 1:
@@ -166,7 +196,7 @@ def parse_gpx(track):
 
         if gpx.routes:
             multiline += parse_routes(gpx.routes)
-        data[2] = MultiLineString(multiline)
+        data[2] = MultiLineString(multiline, srid=4326)
         return data
 
     except gpxpy.gpx.GPXException as e:
