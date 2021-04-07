@@ -12,6 +12,10 @@ import datetime
 import json
 import time 
 
+# REST
+from rest_framework import viewsets
+from .serializers import GPX_trackSerializer, KML_lstringSerializer
+
 # TODO Revisar si estas de abajo hacen falta ya
 from gpx_converter import Converter
 import subprocess # For running bash scripts from python
@@ -143,3 +147,18 @@ def analisis(request):
     'center': [-2.9456500000716574, 43.270200001993764],'zoom':13} # TODO pasar zoom y center como parámetro
 
     return render(request, 'analisis.html', context)
+
+
+
+
+
+# # # # # # # # # #
+# REST FRAMEWORK  #
+# # # # # # # # # #
+class GPX_trackViewSet(viewsets.ModelViewSet):
+    queryset = GPX_track.objects.all().order_by('end_time')
+    serializer_class = GPX_trackSerializer  
+
+class KML_lstringViewSet(viewsets.ModelViewSet):
+    queryset = KML_lstring.objects.all().order_by('distance')
+    serializer_class = KML_lstringSerializer 
