@@ -25,11 +25,37 @@ def main(): # Ejemplo sacado de https://github.com/fablabbcn/smartcitizen-data/b
     # Con autenticación:
     # resp = requests.get(url, auth=HTTPBasicAuth('eguiwan_kenobi','MORElab2020')) # TODO esto es recomendable hacerlo con OAuth
     j = json.loads(resp.text)
-    url2 = "https://api.smartcitizen.me/v0/devices/"+str(id)+"/readings?sensor_id=88&rollup=1y" #Sacando readings de un sensor en concreot
+    url2 = "https://api.smartcitizen.me/v0/devices/"+str(id)+"/readings?sensor_id=53&rollup=4h&from=2019-07-28&to=2021-04-30" #Sacando readings de un sensor en concreot
     resp2 = requests.get(url2)
-    j2 = json.loads(resp2.text)
+
+# getDevice()
+    readings = []
+    if resp2.status_code == 200:
+        j1 = json.loads(resp.text)
+        timestamp = j1["last_reading_at"]
+        data = j1["data"]
+        sensors = data["sensors"]
+        for sensor in sensors:
+            id_sensor = sensor["id"]
+            name = sensor["name"]
+            value = sensor["value"] 
+            reading = {timestamp, id_sensor, name, value}
+            readings.append(reading)
+        #print(j1)
+    else:
+        print("NOT a 200 answer code") #TODO handle this exception
+
+    print(readings)
+# getSensor()
+    # if resp2.status_code == 200:
+    #     j2 = json.loads(resp2.text)
+    #     readings = j2["readings"] #Lecturas del sensor en tupla [timestamp, lectura]
+    #     for reading in readings:    
+    #         print(reading)    
+    # else:
+    #     print("NOT a 200 answer code") #TODO handle this exception
     
-    print(j2)
+    
     
 if __name__ == '__main__':
     main()

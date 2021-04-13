@@ -111,6 +111,30 @@ class KML_lstring(models.Model):
 
 
 ########################################
-############## GeoJSON #################
+############## SENSORS #################
 ########################################
 
+class SCK_device(models.Model):
+    sck_id = models.IntegerField(primary_key=True) # ID provided by SCPlatform
+    name = models.CharField(max_length=50, null=True)
+    # TODO cómo meter tracks de dispositivo -> GPX_track u otro modelo    
+    def __str__(self):
+        return self.name
+    
+class Sensor(models.Model):    
+    sensor_id = models.IntegerField(primary_key=True) # ID provided by SCPlatform
+    device = models.ForeignKey(SCK_device, on_delete=models.CASCADE)
+    name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name
+
+class Measurement(models.Model):
+    sensor = models.ForeignKey(Sensor, on_delete=models.CASCADE)
+    value = models.FloatField(null=True)
+    units = models.CharField(max_length=50)
+    point = models.PointField()
+    time  = models.DateTimeField(null=True)
+
+    def __str__(self):
+        return self.name

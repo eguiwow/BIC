@@ -7,6 +7,7 @@ from django.utils import timezone
 from .forms import DateTimeRangeBBoxForm
 from .models import GPX_file, GPX_track, KML_lstring
 from .utils import tracklist_to_geojson, empty_geojson, get_dtours, get_lista_puntos
+from .sck_api import check_devices
 
 import datetime
 import json
@@ -24,6 +25,9 @@ import subprocess # For running bash scripts from python
 # VISTA PRINCIPAL: mapa de rutas por capas + acceso a datos #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 def index(request):
+    # Refresh Sensors' Values
+    check_devices()
+
     # Retrieve the GPX_file
     gpx_tracks = GPX_track.objects.all()
     kml_tracks = KML_lstring.objects.all() 
