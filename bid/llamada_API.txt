@@ -1,4 +1,0 @@
-curl -X POST -H "Content-Type: application/json" \
--d '{"name": "track_from_eguiubu","mlstring": "SRID=4326;MULTILINESTRING ((-5.0 43.0, -2.0 43.0))","start_time":"2020-10-11T15:11:15Z","end_time": "2020-11-11T15:18:22.876000Z","distance": "0" }' localhost:8000/bic/api/gpx_tracks/
-
-
