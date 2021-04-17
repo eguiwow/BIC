@@ -26,7 +26,7 @@ import subprocess # For running bash scripts from python
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 def index(request):
     # Refresh Sensors' Values
-    check_devices()
+    # check_devices()
 
     # Retrieve the GPX_file
     gpx_tracks = GPX_track.objects.all()

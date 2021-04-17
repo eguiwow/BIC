@@ -89,7 +89,7 @@ def get_dtours(tracks, polys):
                     intersected = True
                     track = track.difference(i) # Guardamos el resultante como nuevo track y guardamos solo al final
             if intersected:
-                gj_dtours.append("{\"type\": \"Feature\",")
+                gj_dtours.append("{\"type\": \"Feature\",") # Abrimos Feature
                 dtour = track # Difference = Track - Poly                
                 gj_dtours.append("\"geometry\": " + dtour.geojson)
                 gj_dtours.append(",")
@@ -99,10 +99,12 @@ def get_dtours(tracks, polys):
                 geos.transform(3857)
                 dtour_length = geos.length #Length(geos) # Length del dtour
                 ratio_dtour_to_track = (dtour_length/track_length)*100
+                
+                # PROPERTIES
+                prop_dict = { 'dtour_l' : str(dtour_length), 'ratio' : str(ratio_dtour_to_track) }
+                gj_dtours = addProperties(gj_dtours, prop_dict)                
 
-                # PROPERTIES                
-                gj_dtours.append("\"properties\":{\"dtour_l\":\"" + str(dtour_length) + "\", \"ratio\": \"" + str(ratio_dtour_to_track) + "\"}") 
-                gj_dtours.append("},")
+                gj_dtours.append("},") # Cerramos Feature
 
                 intersected = False
                     
@@ -125,6 +127,19 @@ def get_polygonized_bidegorris():
         polys.append(track.poly)
     
     return polys
+
+# Given a list of geojson strs and a propertiesf {}, adds the properties to the geojson list
+def addProperties(geojson, properties):
+    props = []
+    props.append("\"properties\":{")
+    for key in properties:
+        props.append("\"" + key + "\":\"" + properties[key] + "\"")
+        props.append(",")
+    props = props[:-1] # Quitamos la coma para el último property
+    props.append("}")
+    props_str = ''.join(props)
+    geojson.append(props_str)
+    return geojson
 
 
 # def get_multipoint_from_track(gpx):

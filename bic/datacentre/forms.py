@@ -4,10 +4,15 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 
+class DateInput(forms.DateTimeInput):
+    # Esta línea comentada hace que salga en formato HTML5 pero sin valor por defecto!
+    # input_type = 'datetime-local'
+    input_type = 'datetime'
+
 # Formulario para Consulta de tracks
 class DateTimeRangeBBoxForm(forms.Form):
-    since_datetime = forms.DateTimeField(help_text=_("Desde cuándo"))
-    until_datetime = forms.DateTimeField(help_text=_("Hasta cuándo"))
+    since_datetime = forms.DateTimeField(widget=DateInput, help_text=_("Desde cuándo"))
+    until_datetime = forms.DateTimeField(widget=DateInput, help_text=_("Hasta cuándo"))
     # DecimalField - https://docs.djangoproject.com/en/3.1/ref/models/fields/ 
     SW_lon = forms.DecimalField(help_text=_("Punto esquina inferior izquierda"))
     SW_lat = forms.DecimalField(help_text=_("Punto esquina inferior derecha"))
