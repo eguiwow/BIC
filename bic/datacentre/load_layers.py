@@ -45,7 +45,11 @@ def load_gpx(verbose=True):
         print(filepath)
         gpx_file = open(filepath, 'r')
         data = parse_gpx(gpx_file)
-        distance = Length(data[2])
+        # Alternativa a .length
+        # distance = Length(data[2])
+        lstring = GEOSGeometry(data[2], srid=4326)
+        lstring.transform(3035) # Proyección europea EPSG:3035 https://epsg.io/3035 
+        distance = lstring.length
         new_track = GPX_track(name=filepath.name, start_time=data[0], end_time=data[1], distance=distance, mlstring=data[2])
         new_track.save()
 
@@ -83,13 +87,16 @@ def load_kml(verbose=True):
                 if (len(geom.coords) >= 2 ):
                     # Make a GEOSGeometry object
                     lstring = GEOSGeometry(wkt_w.write(geom.geos), srid=4326)
-                    dist = Length(geom.geos)
+                    lstring_eu = GEOSGeometry(wkt_w.write(geom.geos), srid=3035)
+                    # Proyección europea EPSG:3035 https://epsg.io/3035 
+                    dist = lstring_eu.length
                     line = KML_lstring.objects.create(
                         name = property['name'],
                         distance = dist,
                         lstring = lstring,
-                        # ST_Buffer() --> Poligonizamos los bidegorris a una anchura de 0.00005
-                        poly = lstring.buffer(0.00005,quadsegs=8)                    
+                        # ST_Buffer() --> Poligonizamos los bidegorris a una anchura de 0.00009 grados aproximadamente 10m
+                        # https://www.usna.edu/Users/oceano/pguth/md_help/html/approx_equivalents.htm#:~:text=0.00001%C2%B0%20%3D%201.11%20m 
+                        poly = lstring.buffer(0.00009,quadsegs=8)                    
                     )
                     print(line)
 

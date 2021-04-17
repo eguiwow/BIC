@@ -83,6 +83,8 @@ def get_dtours(tracks, polys):
         for t in tracks:
             if t.distance:
                 track_length = t.distance # length del track en m
+                print(t.name)
+                print("track length:" + str(track_length))
             track = GEOSGeometry(t.mlstring, srid=4326)
             for i in polys: # sacamos cada poly de la lista
                 if track.intersects(i):# if they intersect --> then do the .difference()
@@ -95,10 +97,15 @@ def get_dtours(tracks, polys):
                 gj_dtours.append(",")
                 
                 # Calcular distancia dtours
-                geos = GEOSGeometry(dtour)
-                geos.transform(3857)
-                dtour_length = geos.length #Length(geos) # Length del dtour
+                dtour.transform(3035)
+                dtour_length = 0
+                for lstring in dtour:
+                    dtour_length += lstring.length
+                # dtour_length = dtour.length
+                #dtour_length = dtour_geos.length # Length del dtour
                 ratio_dtour_to_track = (dtour_length/track_length)*100
+                print("Dtour Length:" + str(dtour_length))
+                print("RATIO:" + str(ratio_dtour_to_track) + "\n")
                 
                 # PROPERTIES
                 prop_dict = { 'dtour_l' : str(dtour_length), 'ratio' : str(ratio_dtour_to_track) }
