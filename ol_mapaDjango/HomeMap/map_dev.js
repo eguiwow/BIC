@@ -184,6 +184,10 @@ var vBidegorris = new VectorLayer({
 var blur = 30;
 var radius = 4;
 
+var ratio;
+var ratioChanged = false;
+var length = 0;
+
 // ###### FIN Layers tipo JSON ######
 
 // ###### Layers tipo KML ######
@@ -263,32 +267,55 @@ var displayFeatureInfo = function (pixel, coords) {
   $(element).popover('dispose');
   // Parte recogida features
   var features = [];
+  var i, ii;
+  // Recogemos todas las features del pixel seleccionado
   map.forEachFeatureAtPixel(pixel, function (feature) {
     features.push(feature);
   });
+  // Guardamos 'length' y 'ratio' cuando haya
   if (features.length > 0) {
     var info = [];
-    var i, ii;
     for (i = 0, ii = features.length; i < ii; ++i) {
-      info.push(features[i].get('name'));
+      length = parseFloat(features[i].get('length')); // Sacamos length track    
+      info.push(length.toFixed(2));
+      if (features[i].get('ratio')){
+        length = parseFloat(features[i].get('length')); // Sacamos length de Dtour 
+        ratio = parseFloat(features[i].get('ratio')); // Sacamos ratio en Dtours
+        info.push(ratio.toFixed(2));
+        ratioChanged = true;
+      }
     }
-    // Display en info
+    // Parte de info
     document.getElementById('info').innerHTML = 'FeatureName' + info.join(', ') || '(unknown)';
     map.getTarget().style.cursor = 'pointer';
-    // Display en PopUp
+    // Parte de PopUp
     var element = popup.getElement();
-    var coordinate = coords;
-    var hdms = toStringHDMS(coordinate);
+    var hdms = toStringHDMS(coords);
 
-    
-    popup.setPosition(coordinate);
-    $(element).popover({
-      container: element,
-      placement: 'top',
-      animation: false,
-      html: true,
-      content: '<p>The location you clicked was:</p><code>' + hdms + '</code>',
-    });
+    popup.setPosition(coords);
+    if (ratioChanged){
+      ratioChanged = false;
+      $(element).popover("dispose").popover({
+        container: element,
+        placement: 'top',
+        animation: false,
+        html: true,
+        content: 
+        '<p>Dtour\'s length: ' + length.toFixed(2) + 'm</p>'+
+        '<p>Ratio dtour/track: '+ ratio.toFixed(2) + '%</p>' +
+        '<p>Location:</p><code>' + hdms + '</code>',
+      });
+    }else{
+      $(element).popover("dispose").popover({
+        container: element,
+        placement: 'top',
+        animation: false,
+        html: true,
+        content: 
+        '<p>Track\'s length: ' + length.toFixed(2) + 'm</p>'+
+        '<p>Location:</p><code>' + hdms + '</code>',
+      });
+    }
     $(element).popover('show');
 
 
@@ -331,7 +358,10 @@ map.on('click', function (evt) {
 
 botonDebug.onclick = function(){
 // Zona DEBUGGING y PRUEBAS
-  console.log("QPASAAAA");
+  var i, ii;
+  console.log("A5");
+  console.log(ratio);
+  console.log(length);   
 };
 
 botonCenter.onclick = function(){

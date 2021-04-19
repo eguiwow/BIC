@@ -80,23 +80,20 @@ def load_kml(verbose=True):
             if(feat.geom.geom_type.name.startswith('Line')):
                 # Get the feature geometry.
                 geom = feat.geom
-
                 # get the feature property
                 property = get_feat_property(feat)
-
                 if (len(geom.coords) >= 2 ):
                     # Make a GEOSGeometry object
                     lstring = GEOSGeometry(wkt_w.write(geom.geos), srid=4326)
-                    lstring_eu = GEOSGeometry(wkt_w.write(geom.geos), srid=3035)
-                    # Proyección europea EPSG:3035 https://epsg.io/3035 
-                    dist = lstring_eu.length
+                    lstring.transform(3035)
+                    dist = lstring.length
                     line = KML_lstring.objects.create(
                         name = property['name'],
                         distance = dist,
                         lstring = lstring,
                         # ST_Buffer() --> Poligonizamos los bidegorris a una anchura de 0.00009 grados aproximadamente 10m
                         # https://www.usna.edu/Users/oceano/pguth/md_help/html/approx_equivalents.htm#:~:text=0.00001%C2%B0%20%3D%201.11%20m 
-                        poly = lstring.buffer(0.00009,quadsegs=8)                    
+                        poly = lstring.buffer(10,quadsegs=8)                    
                     )
                     print(line)
 

@@ -48,19 +48,22 @@ def tracklist_to_geojson(tracks, geom_name):
                 del gj_tracks[-1:]
             else:
                 print("ERROR IN PASSING 2nd parameter <geom_name>")
+        
+            # PROPERTIES (length)
+            gj_tracks.append(",")  
+            length = track.distance
+            prop_dict = { 'length' : str(length) }
+            gj_tracks = addProperties(gj_tracks, prop_dict)
+
             # Cerramos el Feature (track) 
             gj_tracks.append("},")
-            
-            # TODO parte de Properties
-            # gj_tracks.append(", \"properties\": { } }") 
         
         # Quitamos la coma para el último track
         if len(gj_tracks) > 1:
             gj_tracks = gj_tracks[:-1]
-            gj_tracks.append("}")
         
         # Cerramos el GeoJSON 
-        gj_tracks.append("]}")
+        gj_tracks.append("}]}")
         # Lo unimos en un único String
         formatted_geojson = ''.join(gj_tracks)
 
@@ -108,7 +111,7 @@ def get_dtours(tracks, polys):
                 print("RATIO:" + str(ratio_dtour_to_track) + "\n")
                 
                 # PROPERTIES
-                prop_dict = { 'dtour_l' : str(dtour_length), 'ratio' : str(ratio_dtour_to_track) }
+                prop_dict = { 'length' : str(dtour_length), 'ratio' : str(ratio_dtour_to_track) }
                 gj_dtours = addProperties(gj_dtours, prop_dict)                
 
                 gj_dtours.append("},") # Cerramos Feature
@@ -135,7 +138,7 @@ def get_polygonized_bidegorris():
     
     return polys
 
-# Given a list of geojson strs and a propertiesf {}, adds the properties to the geojson list
+# Given a list of geojson strs and a properties {}, adds the properties to the geojson list
 def addProperties(geojson, properties):
     props = []
     props.append("\"properties\":{")
@@ -147,7 +150,6 @@ def addProperties(geojson, properties):
     props_str = ''.join(props)
     geojson.append(props_str)
     return geojson
-
 
 # def get_multipoint_from_track(gpx):
 #     # gpx es una instancia de GPX_track
