@@ -7,7 +7,7 @@ import Map from 'ol/Map';
 import VectorSource from 'ol/source/Vector';
 import {XYZ, OSM, Stamen} from 'ol/source';
 import View from 'ol/View';
-import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style';
+import {Circle as CircleStyle, RegularShape, Fill, Stroke, Style} from 'ol/style';
 import {Tile as TileLayer, Vector as VectorLayer, Group as LayerGroup, Heatmap as HeatMapLayer} from 'ol/layer';
 import LayerSwitcher from 'ol-layerswitcher';
 
@@ -58,12 +58,60 @@ var osm_tiles = new TileLayer({
 });
 
 // ###### Estilo de pintado de Features ######
-// TODO: customizarlo al gusto
+// Estilo por defecto
+var defaultStyle = new Style({
+    image: new CircleStyle({
+        fill: new Fill({
+            color: 'rgba(165,165,165,0.4)', // GRAY
+        }),
+        radius: 5,
+        stroke: new Stroke({
+            color: '#A5A4A4', 
+            width: 0.2,
+        }),
+    }),        
+});
+// https://openlayersbook.github.io/ch06-styling-vector-layers/example-07.html 
+// Style de Ruido y Polución
+var dangerous = [0,0,0,0.5];    // BLACK > 100dB / 250 PM2.5
+var high = [255,0,0,0.5];       // RED: 70-100dB / 120-250 PM2.5
+var mid_high = [255,166,0,0.5]  // ORANGE: 65-70 dB / 90-120 PM2.5
+var mid = [255,255,0,0.5];      // YELLOW: 60-65 dB / 60-90 PM2.5
+var low = [0,255,0,0.5];        // GREEN: 50-60 dB / 30-60 PM2.5
+var very_low = [255,255,255,0.9]; // WHITE < 50 dB / 30 PM2.5
+// Creamos lista de estilos en función de valor
+var styleListNoise = [];
+var styleListAir = [];
+var values = [dangerous, high, mid_high, mid, low, very_low] // high income
+var i, ii;
+for (i = 0; i < values.length; i++){
+  // Circle for Noise
+  styleListNoise[i] = new Style({
+    image: new CircleStyle({
+        fill: new Fill({
+            color: values[i],
+        }),
+        radius: 7,
+        stroke: defaultStyle.stroke,
+    }),
+  });
+  // Rhombus for Air
+  styleListAir[i] = new Style({
+    image: new RegularShape({
+        points: 4,
+        fill: new Fill({
+            color: values[i],
+        }),
+        radius: 7,
+        stroke: defaultStyle.stroke,
+    }),
+  });    
+}
 var style = {
   'Point': new Style({
     image: new CircleStyle({
       fill: new Fill({
-        color: 'rgba(255,255,0,0.4)',
+        color: 'rgba(255,255,0,0.5)',
       }),
       radius: 5,
       stroke: new Stroke({
@@ -75,7 +123,7 @@ var style = {
   'MultiPoint': new Style({
     image: new CircleStyle({
       fill: new Fill({
-        color: 'rgba(255,255,0,0.4)',
+        color: 'rgba(255,255,0,0.5)',
       }),
       radius: 5,
       stroke: new Stroke({
@@ -130,7 +178,53 @@ var styleFunction = function (feature) {
 var styleFunction2 = function(feature){
   return style2[feature.getGeometry().getType()];
 };
+// Devuelve el estilo correspondiente para cada franja de ruido
+var styleNoise = function(feature, resolution) {
+  // Obtenemos el value de la feature
+  var value = feature.get('value');
+  // Asignamos estilo a valor
+  if (!value) {
+      return [defaultStyle];
+  }else{
+      if (value >= 100){
+          return [styleListNoise[0]];
+      }else if (value<100 && value >= 70){ 
+          return [styleListNoise[1]];
+      }else if (value<70 && value >= 65){
+          return [styleListNoise[2]];
+      }else if (value<65 && value >= 60){
+          return [styleListNoise[3]];
+      }else if (value<60 && value >= 50){
+          return [styleListNoise[4]];
+      }else{
+          return [styleListNoise[5]];
+      }
+  }
+}
 
+// Devuelve el estilo correspondiente para cada franja de polución
+var styleAir = function(feature, resolution) {
+  // Obtenemos el value de la feature
+  var value = feature.get('value');
+  // Asignamos estilo a valor
+  if (!value) {
+      return [defaultStyle];
+  }else{
+      if (value >= 250){
+          return [styleListAir[0]];
+      }else if (value<250 && value >= 120){
+          return [styleListAir[1]];
+      }else if (value<120 && value >= 90){
+          return [styleListAir[2]];
+      }else if (value<90 && value >= 60){
+          return [styleListAir[3]];
+      }else if (value<60 && value >= 30){
+          return [styleListAir[4]];
+      }else{
+          return [styleListAir[5]];
+      }
+  }
+}
 // ###### FIN Estilo de pintado de Features ######
 
 
@@ -201,13 +295,13 @@ var vAir = new VectorLayer({
   title: 'cont. atmosférica',
   visible: false,
   source: sourceGJAir,
-  style: styleFunction,
+  style: styleAir,
 });
 var vNoise = new VectorLayer({
   title: 'cont. acústica',
-  visible: false,
+  visible: true,
   source: sourceGJNoise,
-  style: styleFunction,
+  style: styleNoise,
 });
 
 var blur = 30;
@@ -217,6 +311,7 @@ var radius = 4;
 // Source = Point[]
 var hmTracks = new HeatMapLayer({
   title: 'heatmap_tracks',
+  visible: false,
   source: sourceGJTracks,
   blur: blur,
   radius: radius,
@@ -273,7 +368,7 @@ var displayFeatureInfo = function (pixel) {
   });
   if (features.length > 0) {
     var info = [];
-    var i, ii;
+
     for (i = 0, ii = features.length; i < ii; ++i) {
       info.push(features[i].get('name'));
     }
@@ -319,13 +414,12 @@ map.on('click', function (evt) {
 
 botonDebug.onclick = function(){
 // Zona DEBUGGING y PRUEBAS
-  console.log("Mapa preparado para mostrar contaminación acústica & atmosférica")
+  console.log("111 Deberíamos de ver colores")
 };
 
 botonCenter.onclick = function(){
   // Centramos mapa
   CenterMap(centerLon, centerLat);
 };
-  
 
 // ###### FIN BOTONES ######

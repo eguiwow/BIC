@@ -94,7 +94,7 @@ var style = {
   }),
   'MultiLineString': new Style({
     stroke: new Stroke({
-      color: '#0f0', // GREEN
+      color: 'rgba(0, 255, 0, 0.5)', // GREEN
       width: 3,
     }),
   }),
@@ -118,7 +118,7 @@ var style2 = {
   }),
   'MultiLineString': new Style({
     stroke: new Stroke({
-      color: '#f00', //RED
+      color: 'rgba(255, 0, 0, 0.5)', //RED
       width: 3,
     }),
   }),
