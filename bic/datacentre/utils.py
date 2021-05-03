@@ -49,11 +49,12 @@ def tracklist_to_geojson(tracks, geom_name):
             else:
                 print("ERROR IN PASSING 2nd parameter <geom_name>")
         
-            # PROPERTIES (length)
-            gj_tracks.append(",")  
-            length = track.distance
-            prop_dict = { 'length' : str(length) }
-            gj_tracks = addProperties(gj_tracks, prop_dict)
+            if geom_name != "point":
+                # PROPERTIES (length)
+                gj_tracks.append(",")  
+                length = track.distance
+                prop_dict = { 'length' : str(length) }
+                gj_tracks = addProperties(gj_tracks, prop_dict)
 
             # Cerramos el Feature (track) 
             gj_tracks.append("},")
@@ -74,6 +75,42 @@ def tracklist_to_geojson(tracks, geom_name):
     
     return formatted_geojson
 
+def measurements_to_geojson(measurements):
+    gj_measurements = []
+    gj_measurements.append("{\"type\": \"FeatureCollection\",\"features\": [")
+    if measurements:
+        for measurement in measurements:
+            #Inicio de una Feature
+            gj_measurements.append("{\"type\": \"Feature\",\"geometry\": ") 
+            
+            #Añadimos a la lista el geojson pertinente
+            gj_measurements.append(GEOSGeometry(measurement.point, srid=4326).geojson) 
+            # PROPERTIES ()
+            gj_measurements.append(",")  
+            value = measurement.value
+            units = measurement.units
+            prop_dict = { 'value' : str(value), 'units' : units }
+            gj_measurements = addProperties(gj_measurements, prop_dict)
+
+            # Cerramos el Feature (track) 
+            gj_measurements.append("},")
+        
+        # Quitamos la coma para el último track
+        if len(gj_measurements) > 1:
+            gj_measurements = gj_measurements[:-1]
+        
+        # Cerramos el GeoJSON 
+        gj_measurements.append("}]}")
+        # Lo unimos en un único String
+        formatted_geojson = ''.join(gj_measurements)
+
+    # Si la lista de tracks está vacía, devolvemos un GeoJSON vacío
+    else:
+        formatted_geojson = empty_geojson()
+        print("The tracklist is empty")
+    
+    return formatted_geojson    
+
 # Applies ST_Difference() between a list of tracks and polys (diff = track - poly [mlstring])
 # Returns multilinestring[] with properties[dtour_length, ratio dtour/track]
 def get_dtours(tracks, polys):
@@ -86,8 +123,6 @@ def get_dtours(tracks, polys):
         for t in tracks:
             if t.distance:
                 track_length = t.distance # length del track en m
-                print(t.name)
-                print("track length:" + str(track_length))
             track = GEOSGeometry(t.mlstring, srid=4326)
             for i in polys: # sacamos cada poly de la lista
                 if track.intersects(i):# if they intersect --> then do the .difference()
@@ -107,8 +142,6 @@ def get_dtours(tracks, polys):
                 # dtour_length = dtour.length
                 #dtour_length = dtour_geos.length # Length del dtour
                 ratio_dtour_to_track = (dtour_length/track_length)*100
-                print("Dtour Length:" + str(dtour_length))
-                print("RATIO:" + str(ratio_dtour_to_track) + "\n")
                 
                 # PROPERTIES
                 prop_dict = { 'length' : str(dtour_length), 'ratio' : str(ratio_dtour_to_track) }

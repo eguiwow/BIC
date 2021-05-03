@@ -1,6 +1,6 @@
 from django.contrib.gis import admin
 from django.contrib.gis.admin import OSMGeoAdmin
-from .models import GPX_file, GPX_track, KML_lstring, KML_file, SCK_device
+from .models import GPX_file, GPX_track, KML_lstring, KML_file, SCK_device, Measurement
 
 @admin.register(GPX_track)
 class GPXtrackAdmin(OSMGeoAdmin):
@@ -10,7 +10,7 @@ class GPXtrackAdmin(OSMGeoAdmin):
 class KMLlstringAdmin(OSMGeoAdmin):
     list_display = ('name', 'lstring')
 
-
 admin.site.register(GPX_file)
 admin.site.register(KML_file)
 admin.site.register(SCK_device)
+admin.site.register(Measurement)

@@ -5,8 +5,8 @@ from django.contrib.gis.geos import Point, Polygon, GEOSGeometry # For lazy geom
 from django.utils import timezone
 
 from .forms import DateTimeRangeBBoxForm
-from .models import GPX_file, GPX_track, KML_lstring
-from .utils import tracklist_to_geojson, empty_geojson, get_dtours, get_lista_puntos
+from .models import GPX_file, GPX_track, KML_lstring, Measurement, Sensor
+from .utils import tracklist_to_geojson, empty_geojson, get_dtours, get_lista_puntos, measurements_to_geojson
 from .sck_api import check_devices
 
 import datetime
@@ -145,9 +145,22 @@ def analisis(request):
     kml_tracks = KML_lstring.objects.all() 
     bidegorris = tracklist_to_geojson(kml_tracks, "poly") # Buffered Bidegorris   
     gj_points = tracklist_to_geojson(gpx_tracks, "point") # Puntos de los tracks para Heatmap
+    
+    # TODO filtrar por tiempo y espacio tb
+    # Parte de get datos cont. acústica y atmosférica
+    sensor_air = Sensor.objects.get(name= "PMS5003_AVG-PM1") # Sensor PM 2.5
+    sensor_noise = Sensor.objects.get(name= "ICS43432 - Noise") # Sensor Noise (dBA)
+    measurements_air = Measurement.objects.filter(sensor=sensor_air)
+    measurements_noise = Measurement.objects.filter(sensor=sensor_noise)
 
-    gj_vacio = empty_geojson()
+    gj_vacio = empty_geojson() # TODO ver si enviar los dtours o no
+    
+    gj_air = measurements_to_geojson(measurements_air)
+    gj_noise = measurements_to_geojson(measurements_noise)
+
+    
     context = { "gj_tracks": gj_points,"gj_dtours": gj_vacio, "gj_bidegorris": bidegorris,\
+    "gj_air": gj_air,"gj_noise": gj_noise,\
     'center': [-2.9456500000716574, 43.270200001993764],'zoom':13} # TODO pasar zoom y center como parámetro
 
     return render(request, 'analisis.html', context)

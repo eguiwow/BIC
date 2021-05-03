@@ -68,7 +68,7 @@ class Measurement(models.Model):
     point = models.PointField()
     
     def __str__(self):
-        return self.name
+        return self.units
 
 ########################################
 ################ GPX ###################

@@ -21,6 +21,16 @@
   <var id="json_tracks" hidden> {{gj_tracks}} </var>
   <var id="json_dtours" hidden> {{gj_dtours}} </var>
   <var id="json_bidegorris" hidden> {{gj_bidegorris}} </var>
+  {% if gj_air %}
+  <var id="json_air" hidden> {{gj_air}} </var>
+  {% else %}
+    <p> NO se han pasado los datos de aire </p>     
+  {% endif %}
+  {% if gj_noise %}
+  <var id="json_noise" hidden> {{gj_noise}} </var>
+  {% else %}
+    <p> NO se han pasado los datos de ruido </p>     
+  {% endif %}
 
   <!-- /Zona Variables ocultas -->
   <!-- Zona archivos -->

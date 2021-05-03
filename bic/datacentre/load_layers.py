@@ -91,7 +91,7 @@ def load_kml(verbose=True):
                         name = property['name'],
                         distance = dist,
                         lstring = lstring,
-                        # ST_Buffer() --> Poligonizamos los bidegorris a una anchura de 0.00009 grados aproximadamente 10m
+                        # ST_Buffer() --> Poligonizamos los bidegorris a una anchura de 10m
                         # https://www.usna.edu/Users/oceano/pguth/md_help/html/approx_equivalents.htm#:~:text=0.00001%C2%B0%20%3D%201.11%20m 
                         poly = lstring.buffer(10,quadsegs=8)                    
                     )

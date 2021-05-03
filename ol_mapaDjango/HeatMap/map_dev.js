@@ -138,9 +138,14 @@ var styleFunction2 = function(feature){
 var json_tracks = document.getElementById("json_tracks")
 var json_dtours = document.getElementById("json_dtours")
 var json_bidegorris = document.getElementById("json_bidegorris")
-var gj_tracks = new GeoJSON().readFeatures(JSON.parse(json_tracks.innerText))
+var json_air = document.getElementById("json_air")
+var json_noise = document.getElementById("json_noise")
+// TODO - por qué había que hacer la dataProjection y featureProjection en sourceGJTracks? 
+// var gj_tracks = new GeoJSON().readFeatures(JSON.parse(json_tracks.innerText))
 var gj_dtours = new GeoJSON().readFeatures(JSON.parse(json_dtours.innerText))
 var gj_bidegorris = new GeoJSON().readFeatures(JSON.parse(json_bidegorris.innerText))
+var gj_air = new GeoJSON().readFeatures(JSON.parse(json_air.innerText))
+var gj_noise = new GeoJSON().readFeatures(JSON.parse(json_noise.innerText))
 var botonDebug = document.getElementById("debugButton")
 var botonCenter = document.getElementById("centerButton")
 // Center & Zoom [From Zaratamap]
@@ -165,6 +170,14 @@ var sourceGJBidegorris = new VectorSource({
   wrapX:false,
   features: gj_bidegorris
 });
+var sourceGJAir = new VectorSource({
+  wrapX:false,
+  features: gj_air
+});
+var sourceGJNoise = new VectorSource({
+  wrapX:false,
+  features: gj_noise
+});
 
 var vTracks = new VectorLayer({
   title: 'tracks',
@@ -182,6 +195,18 @@ var vBidegorris = new VectorLayer({
   title: 'bidegorris',
   visible: false,
   source: sourceGJBidegorris,
+  style: styleFunction,
+});
+var vAir = new VectorLayer({
+  title: 'cont. atmosférica',
+  visible: false,
+  source: sourceGJAir,
+  style: styleFunction,
+});
+var vNoise = new VectorLayer({
+  title: 'cont. acústica',
+  visible: false,
+  source: sourceGJNoise,
   style: styleFunction,
 });
 
@@ -209,17 +234,10 @@ var hmTracks = new HeatMapLayer({
 // --> VectorSource()
 // ###### FIN Layers tipo KML ######
 
-// ###### Layers tipo GPX ######
-// var sourceGPX = new VectorSource({
-//   url: 'diego.gpx',
-//   format: new GPX(),
-// });
-
-// var vector_gpx = new VectorLayer({
-//   source: sourceGPX,
-//     style: styleFunction,
-// });
-// ###### FIN Layers tipo GPX ######
+var grupoPolucion = new LayerGroup({
+  title: 'Polución',
+  layers: [vAir, vNoise],  
+})
 
 // Grupo de Layers para LayerSwitcher
 var grupoVectores = new LayerGroup({
@@ -231,7 +249,7 @@ var layerSwitcher = new LayerSwitcher();
 
 // Mapa
 var map = new Map({
-  layers: [osm_tiles, hmTracks, grupoVectores], // Capas de información geoespacial
+  layers: [osm_tiles, hmTracks, grupoVectores, grupoPolucion], // Capas de información geoespacial
   target: document.getElementById('map'), // Elemento HTML donde va situado el mapa
   view: new View({ // Configuración de la vista (centro, proyección del mapa)
     // Esta función es para cuando la proyección usada sea Mercator
@@ -301,7 +319,7 @@ map.on('click', function (evt) {
 
 botonDebug.onclick = function(){
 // Zona DEBUGGING y PRUEBAS
-  console.log("YAHORA")
+  console.log("Mapa preparado para mostrar contaminación acústica & atmosférica")
 };
 
 botonCenter.onclick = function(){
