@@ -4,7 +4,7 @@ from requests.auth import HTTPBasicAuth
 
 # Pruebas sobre la API https://developer.smartcitizen.me/?shell#summary
 
-# ID Kit de Ander = 13535
+# ID Kit de Ander = 13971
 # UUID de Ander = b4b060cb-b4bd-48f6-b60b-ac09799133db
 # ID Kit de Diego = 13524
 # UUID de Diego = 829e7acd-7f7a-4f19-9197-2e590561e741
