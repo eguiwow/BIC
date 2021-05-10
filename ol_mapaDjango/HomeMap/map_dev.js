@@ -137,6 +137,7 @@ var styleFunction2 = function(feature){
 
 
 // ###### Variables dinámicas ######
+var botonVentana = document.getElementById('menu-toggle');
 var json_tracks = document.getElementById("json_tracks")
 var json_dtours = document.getElementById("json_dtours")
 var json_bidegorris = document.getElementById("json_bidegorris")
@@ -336,6 +337,11 @@ function CenterMap(long, lati) {
   map.getView().setZoom(13);
 }
 
+botonVentana.onclick = function() {
+  setTimeout( function() { map.updateSize();}, 200);
+  console.log("AUI");
+};
+
 // ###### FIN Funciones ######
 
 // ###### EVENTOS del mapa ######
@@ -359,7 +365,7 @@ map.on('click', function (evt) {
 botonDebug.onclick = function(){
 // Zona DEBUGGING y PRUEBAS
   var i, ii;
-  console.log("A5");
+  console.log("JUJU5");
   console.log(ratio);
   console.log(length);   
 };

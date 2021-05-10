@@ -229,6 +229,7 @@ var styleAir = function(feature, resolution) {
 
 
 // ###### Variables dinámicas ######
+var botonVentana = document.getElementById('menu-toggle');
 var json_tracks = document.getElementById("json_tracks")
 var json_dtours = document.getElementById("json_dtours")
 var json_bidegorris = document.getElementById("json_bidegorris")
@@ -408,6 +409,12 @@ map.on('click', function (evt) {
   // No sé por qué con el heatmap parece que no funciona
   displayFeatureInfo(evt.pixel);
 });
+
+botonVentana.onclick = function() {
+  setTimeout( function() { map.updateSize();}, 200);
+  console.log("AUI");
+};
+
 // ###### FIN EVENTOS del mapa ######
 
 // ###### BOTONES ######
