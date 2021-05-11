@@ -6,8 +6,8 @@ from django.utils.translation import ugettext_lazy as _
 
 class DateInput(forms.DateTimeInput):
     # Esta línea comentada hace que salga en formato HTML5 pero sin valor por defecto!
-    # input_type = 'datetime-local'
-    input_type = 'datetime'
+    input_type = 'datetime-local'
+    #input_type = 'datetime'
 
 # Formulario para Consulta de tracks
 class DateTimeRangeBBoxForm(forms.Form):

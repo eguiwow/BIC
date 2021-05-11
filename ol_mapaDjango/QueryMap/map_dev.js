@@ -349,7 +349,6 @@ map.on('click', function (evt) {
 
 botonVentana.onclick = function() {
   setTimeout( function() { map.updateSize();}, 200);
-  console.log("AUI");
 };
 
 // FIN EVENTOSmapa 

@@ -3,16 +3,14 @@
 
   {% block title %}
   <title>Bike Intelligence Centre</title>
-  <style>#map {
-      width: 100%;
-      height: 500px; /*TODO poner la altura en porcentaje (ahora si cambiamos peta) */
-    }</style>
   {% endblock %}
+  {% block section_title %} <h2>Mapa de calor de rutas</h2> {% endblock %}
   {% block content %}
-  <h1> Mapa de calor de rutas </h1>  
   {% endblock %}
   {% block map %}
-  <div id="map"></div>
+  <div id="map" style="width: 100%; height: 80%"></div>
+  {% endblock %}
+  {% block aftermap %}
   <!-- Info de Features -->
   <div id="info">&nbsp;</div>
   <!-- Zona Variables ocultas -->
@@ -38,7 +36,7 @@
     <button class="botonDebug" id="debugButton"> Debug </button>
     <button class="botonCentrar" id="centerButton"> Centrar </button>
   </div>
-  <div class="archivos"></div>
+  <div class="archivos">
    <!-- <h3> Nombres archivos geojson</h3>
     {% if gj_tracks %}
     {{ gj_tracks }}
@@ -50,7 +48,5 @@
   </div>
   <!-- /Zona archivos -->
   <script src="{% static 'js/heatmap.js' %}"></script>        
-  {% endblock %}
-  {% block aftermap %}
   {% endblock %}
 

@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="max-height: 2000px">
 
 <head>
 
@@ -43,10 +43,13 @@
 	  <!-- Top Nav Bar --> 
       <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">	
         <button class="btn btn-primary" id="menu-toggle"> <img src="{% static 'images/toggle.png' %}" alt=""></button>
-
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
+        <img src="{% static 'images/bicicleta.png' %}" class="pl-4" style="max-height:70px;max-width:70px ;" alt="bici_logo">
+        <div class="pl-4">
+          {% block section_title %}{% endblock %}
+        </div>
 
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <ul class="navbar-nav ml-auto mt-2 mt-lg-0">
@@ -62,22 +65,20 @@
           </ul>
         </div>
       </nav>
-	  <!-- /#top-nav-bar -->
-	
-      <div class="container-fluid">
-    <!-- CONTENT -->
-    {% block content %}{% endblock %}
-    <!-- /CONTENT-->
-    <!-- MAP area --> 
-    {% block map %}{% endblock %}
-    <!-- /#MAP area -->
-    <!-- After Map --> 
-    {% block aftermap %}{% endblock %}  
-    <!-- /#After Map-->
+      <!-- /#top-nav-bar -->	
+      <div class="container-fluid" style="height:75%">
+        <!-- CONTENT -->
+        {% block content %}{% endblock %}
+        <!-- /CONTENT-->
+        <!-- MAP area --> 
+        {% block map %}{% endblock %}
+        <!-- /#MAP area -->
+        <!-- After Map --> 
+        {% block aftermap %}{% endblock %}  
+        <!-- /#After Map-->
       </div>
     </div>
-    <!-- /#page-content-wrapper -->
-
+  <!-- /#page-content-wrapper -->
   </div>
   <!-- /#wrapper -->
 
