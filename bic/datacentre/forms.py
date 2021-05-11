@@ -29,6 +29,8 @@ class DateTimeRangeBBoxForm(forms.Form):
         else:
             # Check if date2 is not in the future.
             if date2 > timezone.now():
+                print(date2)
+                print(timezone.now())
                 raise ValidationError(_('Fecha inválida - rango temporal en tiempo futuro'))
                 
         dates = [date1, date2]

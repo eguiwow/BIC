@@ -10,6 +10,8 @@ import View from 'ol/View';
 import {Circle as CircleStyle, RegularShape, Fill, Stroke, Style} from 'ol/style';
 import {Tile as TileLayer, Vector as VectorLayer, Group as LayerGroup, Heatmap as HeatMapLayer} from 'ol/layer';
 import LayerSwitcher from 'ol-layerswitcher';
+import Overlay from 'ol/Overlay';
+import {toStringHDMS} from 'ol/coordinate';
 
 import Feature from 'ol/Feature';
 import {useGeographic, transform, fromLonLat} from 'ol/proj'
@@ -247,6 +249,13 @@ var botonCenter = document.getElementById("centerButton")
 var centerLon = JSON.parse(document.getElementById("center").innerText)[0]
 var centerLat = JSON.parse(document.getElementById("center").innerText)[1]
 var zoom = document.getElementById("zoom").innerText
+// Vars features
+var ratio;
+var ratioChanged = false;
+var length = 0;
+var units;
+var value;
+var isSensor = false;
 // ###### FIN Variables dinámicas ######
 
 // ###### Layers tipo JSON ######
@@ -359,30 +368,102 @@ var map = new Map({
 // Añadimos LayerSwitcher
 map.addControl(layerSwitcher);
 
+// Popup que se va a generar en el html
+var popup = new Overlay({
+  element: document.getElementById('popup'),
+});
+map.addOverlay(popup);
+
+
 // ###### Funciones ######
 // Display Feature Info --> example OpenLayers 
-// TODO - esta función será la que tendrá que sacar información de los puntos de las rutas
-var displayFeatureInfo = function (pixel) {
+var displayFeatureInfo = function (pixel, coords) {
+  $(element).popover('dispose');
+  // Parte recogida features
   var features = [];
+  var i, ii;
+  // Recogemos todas las features del pixel seleccionado
   map.forEachFeatureAtPixel(pixel, function (feature) {
     features.push(feature);
   });
+  // Guardamos 'length' y 'ratio' cuando haya
   if (features.length > 0) {
     var info = [];
-
     for (i = 0, ii = features.length; i < ii; ++i) {
-      info.push(features[i].get('name'));
+      if (features[i].get('length')){
+        isSensor = false;
+        length = parseFloat(features[i].get('length')); // Sacamos length track    
+        info.push(length.toFixed(2));
+        if (features[i].get('ratio')){
+          length = parseFloat(features[i].get('length')); // Sacamos length de Dtour 
+          ratio = parseFloat(features[i].get('ratio')); // Sacamos ratio en Dtours
+          info.push(ratio.toFixed(2));
+          ratioChanged = true;
+        }
+      }else if(features[i].get('value')){ // Parte de puntos sensórica
+        isSensor = true;
+        value = parseFloat(features[i].get('value')); // Sacamos value
+        info.push(length.toFixed(2));
+        units = features[i].get('units'); // Sacamos units 
+        info.push(units);
+      }
     }
-    document.getElementById('info').innerHTML = info.join(', ') || '(unknown)';
+    // Parte de info
+    document.getElementById('info').innerHTML = 'FeatureName' + info.join(', ') || '(unknown)';
     map.getTarget().style.cursor = 'pointer';
+    // Parte de PopUp
+    var element = popup.getElement();
+    var hdms = toStringHDMS(coords);
+
+    popup.setPosition(coords);
+    if(isSensor){
+      $(element).popover("dispose").popover({
+        container: element,
+        placement: 'top',
+        animation: false,
+        html: true,
+        style: 'min-width:200',
+        content: 
+        '<p>Value: ' + value.toFixed(2) + units + '</p>'+
+        '<p>Location: ' + coords[0].toFixed(4) + 'º lon, '+ coords[1].toFixed(4) + 'º lat</p>',
+      });      
+    }else{
+      if (ratioChanged){
+        ratioChanged = false;
+        $(element).popover("dispose").popover({
+          container: element,
+          placement: 'top',
+          animation: false,
+          html: true,
+          style: 'min-width:200',
+          content: 
+          '<p>Dtour\'s length: ' + length.toFixed(2) + 'm</p>'+
+          '<p>Ratio dtour/track: '+ ratio.toFixed(2) + '%</p>' +
+          '<p>Location: ' + coords[0].toFixed(4) + 'º lon, '+ coords[1].toFixed(4) + 'º lat</p>',
+        });
+      }else{
+        $(element).popover("dispose").popover({
+          container: element,
+          placement: 'top',
+          animation: false,
+          html: true,
+          content: 
+          '<p>Track\'s length: ' + length.toFixed(2) + 'm</p>'+
+          '<p>Location: ' + coords[0].toFixed(4) + 'º lon, '+ coords[1].toFixed(4) + 'º lat</p>',
+        });
+      }
+    }  
+    $(element).popover('show');
+
   } else {
     document.getElementById('info').innerHTML = '&nbsp;';
     map.getTarget().style.cursor = '';
   }
-  var loc = window.location.pathname;
-  console.log(loc);
+  // saca la ruta de la URL
+  // var loc = window.location.pathname;
+  // console.log(loc);
+  
 };
-
 // Centrar Mapa 
 // src: https://gis.stackexchange.com/questions/112892/change-openlayers-3-view-center
 function CenterMap(long, lati) {
@@ -400,14 +481,12 @@ map.on('pointermove', function (evt) {
   if (evt.dragging) {
     return;
   }
-  // var pixel = map.getEventPixel(evt.originalEvent);
-  // displayFeatureInfo(pixel);
 });
 
 // Click
 map.on('click', function (evt) {
   // No sé por qué con el heatmap parece que no funciona
-  displayFeatureInfo(evt.pixel);
+  displayFeatureInfo(evt.pixel, evt.coordinate);
 });
 
 botonVentana.onclick = function() {
@@ -421,7 +500,9 @@ botonVentana.onclick = function() {
 
 botonDebug.onclick = function(){
 // Zona DEBUGGING y PRUEBAS
-  console.log("111 Deberíamos de ver colores")
+  console.log("Ahhh");
+  console.log(value);
+  console.log(units);
 };
 
 botonCenter.onclick = function(){

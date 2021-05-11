@@ -73,6 +73,18 @@
         <!-- MAP area --> 
         {% block map %}{% endblock %}
         <!-- /#MAP area -->
+        <!-- Info de Features -->
+        <div id="info">&nbsp;</div>
+        <!-- Popups -->
+        <!-- https://openlayers.org/en/latest/examples/overlay.html --> 
+        <div style="display: none;">
+          <!-- Clickable label for Bilbao -->
+          <a class="overlay" id="bilbao" target="_blank" href="http://en.wikipedia.org/wiki/Bilbao">Bilbao</a>
+          <div id="marker" title="Marker"></div>
+          <!-- Popup -->
+          <div id="popup" style="min-width: 280;" title="Información Feature"></div>
+        </div>
+        <!-- /Popups-->
         <!-- After Map --> 
         {% block aftermap %}{% endblock %}  
         <!-- /#After Map-->
@@ -107,43 +119,21 @@
                   <a href="mailto:ander.eguiluz@opendeusto.es"><i id="social-em" class="fa fa-envelope-square fa-2x social"></i></a>
             </div>
           </div>
-          <div class="col-xs-12 col-sm-6 col-md-2 footers-two">
-              <h5>Essentials </h5>
-              <ul class="list-unstyled">
-            <li><a href="maintenance.html">Search</a></li>
-            <li><a href="contact.html">Sell your Car</a></li>
-            <li><a href="about.html">Advertise with us</a></li>
-            <li><a href="about.html">Dealers Portal</a></li>
-            <li><a href="about.html">Post Requirements</a></li>
-            </ul>
-          </div>
-          <div class="col-xs-12 col-sm-6 col-md-2 footers-three">
-              <h5>Information </h5>
-              <ul class="list-unstyled">
-            <li><a href="maintenance.html">Register Now</a></li>
-            <li><a href="contact.html">Advice</a></li>
-            <li><a href="about.html">Videos</a></li>
-            <li><a href="about.html">Blog</a></li>
-            <li><a href="about.html">Services</a></li>
-            </ul>
-          </div>
           <div class="col-xs-12 col-sm-6 col-md-2 footers-four">
-              <h5>Explore </h5>
-              <ul class="list-unstyled">
-            <li><a href="maintenance.html">News</a></li>
-            <li><a href="contact.html">Sitemap</a></li>
-            <li><a href="about.html">Testimonials</a></li>
-            <li><a href="about.html">Feedbacks</a></li>
-            <li><a href="about.html">User Agreement</a></li>
+            <h5>GH Repos </h5>
+            <ul class="list-unstyled">
+              <li><a href="https://github.com/eguiwow/BIC/">BIC</a></li>
+              <li><a href="https://github.com/fablabbcn/smartcitizen-kit-21">Smart Citizen Kit 2.1</a></li>
+              <li><a href="https://github.com/openlayers/openlayers">OpenLayers</a></li>
             </ul>
           </div>
           <div class="col-xs-12 col-sm-6 col-md-2 footers-five">
-              <h5>Tools </h5>
-              <ul class="list-unstyled">
-            <li><a href="https://docs.djangoproject.com/en/3.2/ref/contrib/gis/">GeoDjango</a></li>
-            <li><a href="https://postgis.net/">Postgres-PostGIS</a></li>
-            <li><a href="https://openlayers.org/">OpenLayers</a></li>
-            <li><a href="https://www.python.org/">Python</a></li>
+            <h5>Tools </h5>
+            <ul class="list-unstyled">
+              <li><a href="https://docs.djangoproject.com/en/3.2/ref/contrib/gis/">GeoDjango</a></li>
+              <li><a href="https://postgis.net/">Postgres-PostGIS</a></li>
+              <li><a href="https://openlayers.org/">OpenLayers</a></li>
+              <li><a href="https://www.python.org/">Python</a></li>
             </ul>
           </div>
           

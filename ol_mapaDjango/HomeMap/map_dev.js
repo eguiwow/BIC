@@ -150,6 +150,10 @@ var botonCenter = document.getElementById("centerButton")
 var centerLon = JSON.parse(document.getElementById("center").innerText)[0]
 var centerLat = JSON.parse(document.getElementById("center").innerText)[1]
 var zoom = document.getElementById("zoom").innerText
+// Vars features
+var ratio;
+var ratioChanged = false;
+var length = 0;
 // ###### FIN Variables dinámicas ######
 
 // ###### Layers tipo JSON ######
@@ -181,13 +185,6 @@ var vBidegorris = new VectorLayer({
   source: sourceGJBidegorris,
   style: styleFunction,
 });
-
-var blur = 30;
-var radius = 4;
-
-var ratio;
-var ratioChanged = false;
-var length = 0;
 
 // ###### FIN Layers tipo JSON ######
 
@@ -263,7 +260,6 @@ map.on('click', function (evt) {
 
 // ###### Funciones ######
 // Display Feature Info --> example OpenLayers 
-// TODO - esta función será la que tendrá que sacar información de los puntos de las rutas
 var displayFeatureInfo = function (pixel, coords) {
   $(element).popover('dispose');
   // Parte recogida features
@@ -304,7 +300,7 @@ var displayFeatureInfo = function (pixel, coords) {
         content: 
         '<p>Dtour\'s length: ' + length.toFixed(2) + 'm</p>'+
         '<p>Ratio dtour/track: '+ ratio.toFixed(2) + '%</p>' +
-        '<p>Location:</p><code>' + hdms + '</code>',
+        '<p>Location: ' + coords[0].toFixed(4) + 'º lon, '+ coords[1].toFixed(4) + 'º lat</p>',
       });
     }else{
       $(element).popover("dispose").popover({
@@ -314,20 +310,14 @@ var displayFeatureInfo = function (pixel, coords) {
         html: true,
         content: 
         '<p>Track\'s length: ' + length.toFixed(2) + 'm</p>'+
-        '<p>Location:</p><code>' + hdms + '</code>',
+        '<p>Location: ' + coords[0].toFixed(4) + 'º lon, '+ coords[1].toFixed(4) + 'º lat</p>',
       });
     }
     $(element).popover('show');
-
-
   } else {
     document.getElementById('info').innerHTML = '&nbsp;';
     map.getTarget().style.cursor = '';
   }
-  // saca la ruta de la URL
-  // var loc = window.location.pathname;
-  // console.log(loc);
-  
 };
 
 // Centrar Mapa - https://gis.stackexchange.com/questions/112892/change-openlayers-3-view-center

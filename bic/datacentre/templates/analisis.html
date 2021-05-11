@@ -8,7 +8,7 @@
   {% block content %}
   {% endblock %}
   {% block map %}
-  <div id="map" style="width: 100%; height: 80%"></div>
+  <div id="map" style="width: 100%; height: 100%"></div>
   {% endblock %}
   {% block aftermap %}
   <!-- Info de Features -->
@@ -32,9 +32,9 @@
 
   <!-- /Zona Variables ocultas -->
   <!-- Zona archivos -->
-  <div class="botonesRapidos">
+  <div class="col text-center">
+    <button class="btn btn-primary" id="centerButton"> Centrar </button>
     <button class="botonDebug" id="debugButton"> Debug </button>
-    <button class="botonCentrar" id="centerButton"> Centrar </button>
   </div>
   <div class="archivos">
    <!-- <h3> Nombres archivos geojson</h3>
@@ -43,8 +43,8 @@
     {% else %}
       <p> NO se han pasado los GeoJSON </p>     
     {% endif %} -->
-    {{gj_air}}
-    {{gj_noise}}
+    <!-- {{gj_air}}
+    {{gj_noise}} -->
   </div>
   <!-- /Zona archivos -->
   <script src="{% static 'js/heatmap.js' %}"></script>        
