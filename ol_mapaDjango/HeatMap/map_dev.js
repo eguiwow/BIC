@@ -231,31 +231,40 @@ var styleAir = function(feature, resolution) {
 
 
 // ###### Variables dinámicas ######
-var botonVentana = document.getElementById('menu-toggle');
 var json_tracks = document.getElementById("json_tracks")
 var json_dtours = document.getElementById("json_dtours")
 var json_bidegorris = document.getElementById("json_bidegorris")
 var json_air = document.getElementById("json_air")
 var json_noise = document.getElementById("json_noise")
+var json_temp = document.getElementById("json_temp")
 // TODO - por qué había que hacer la dataProjection y featureProjection en sourceGJTracks? 
 // var gj_tracks = new GeoJSON().readFeatures(JSON.parse(json_tracks.innerText))
 var gj_dtours = new GeoJSON().readFeatures(JSON.parse(json_dtours.innerText))
 var gj_bidegorris = new GeoJSON().readFeatures(JSON.parse(json_bidegorris.innerText))
 var gj_air = new GeoJSON().readFeatures(JSON.parse(json_air.innerText))
 var gj_noise = new GeoJSON().readFeatures(JSON.parse(json_noise.innerText))
+var gj_temp = new GeoJSON().readFeatures(JSON.parse(json_temp.innerText))
+// Buttons
 var botonDebug = document.getElementById("debugButton")
 var botonCenter = document.getElementById("centerButton")
+var botonVentana = document.getElementById("menu-toggle")
+var switchHM = document.getElementById("switchHM")
 // Center & Zoom [From Zaratamap]
 var centerLon = JSON.parse(document.getElementById("center").innerText)[0]
 var centerLat = JSON.parse(document.getElementById("center").innerText)[1]
 var zoom = document.getElementById("zoom").innerText
 // Vars features
 var ratio;
-var ratioChanged = false;
 var length = 0;
 var units;
 var value;
+var timestamp;
+var ratioChanged = false;
 var isSensor = false;
+var isTrack = false;
+// Vars heatmap
+var blur = 30;
+var radius = 4;
 // ###### FIN Variables dinámicas ######
 
 // ###### Layers tipo JSON ######
@@ -281,6 +290,10 @@ var sourceGJAir = new VectorSource({
 var sourceGJNoise = new VectorSource({
   wrapX:false,
   features: gj_noise
+});
+var sourceGJTemp = new VectorSource({
+  wrapX:false,
+  features: gj_temp
 });
 
 var vTracks = new VectorLayer({
@@ -313,9 +326,12 @@ var vNoise = new VectorLayer({
   source: sourceGJNoise,
   style: styleNoise,
 });
-
-var blur = 30;
-var radius = 4;
+var vTemp = new VectorLayer({
+  title: 'temperatura',
+  visible: true,
+  source: sourceGJTemp,
+  style: styleNoise, // TODO - hacer style de Temperatura, de momento igual que noise
+});
 
 // HeatMap - https://openlayers.org/en/latest/apidoc/module-ol_layer_Heatmap-Heatmap.html 
 // Source = Point[]
@@ -332,12 +348,20 @@ var hmTracks = new HeatMapLayer({
     return 1;
   },
 })
+var hmTemp = new HeatMapLayer({
+  title: 'heatmap_temperatura',
+  visible: false,
+  source: sourceGJTemp,
+  blur: blur,
+  radius: radius,
+  weight: function (feature) {
+    // Either extract value from feature or do other thing
+    var value = parseFloat(feature.get('value'));
+    // return value;
+    return value;
+  },
+})
 // ###### FIN Layers tipo JSON ######
-
-// ###### Layers tipo KML ######
-// TODO - probar bidegorris.kml desde url de Bizkaia 
-// --> VectorSource()
-// ###### FIN Layers tipo KML ######
 
 var grupoPolucion = new LayerGroup({
   title: 'Polución',
@@ -354,7 +378,7 @@ var layerSwitcher = new LayerSwitcher();
 
 // Mapa
 var map = new Map({
-  layers: [osm_tiles, hmTracks, grupoVectores, grupoPolucion], // Capas de información geoespacial
+  layers: [osm_tiles, hmTracks, grupoVectores, grupoPolucion, vTemp], // Capas de información geoespacial
   target: document.getElementById('map'), // Elemento HTML donde va situado el mapa
   view: new View({ // Configuración de la vista (centro, proyección del mapa)
     // Esta función es para cuando la proyección usada sea Mercator
@@ -379,33 +403,38 @@ map.addOverlay(popup);
 // Display Feature Info --> example OpenLayers 
 var displayFeatureInfo = function (pixel, coords) {
   $(element).popover('dispose');
-  // Parte recogida features
   var features = [];
   var i, ii;
   // Recogemos todas las features del pixel seleccionado
   map.forEachFeatureAtPixel(pixel, function (feature) {
     features.push(feature);
   });
-  // Guardamos 'length' y 'ratio' cuando haya
+  // Guardamos properties dependiendo del tipo de geojson
   if (features.length > 0) {
     var info = [];
     for (i = 0, ii = features.length; i < ii; ++i) {
       if (features[i].get('length')){
-        isSensor = false;
         length = parseFloat(features[i].get('length')); // Sacamos length track    
         info.push(length.toFixed(2));
-        if (features[i].get('ratio')){
+        if (features[i].get('ratio')){ // Es Dtour
           length = parseFloat(features[i].get('length')); // Sacamos length de Dtour 
           ratio = parseFloat(features[i].get('ratio')); // Sacamos ratio en Dtours
           info.push(ratio.toFixed(2));
           ratioChanged = true;
         }
-      }else if(features[i].get('value')){ // Parte de puntos sensórica
+        if (features[i].get('time')){ // Es Track
+          timestamp = features[i].get('time'); // Sacamos time en track
+          info.push(timestamp);
+          isTrack = true;
+        }
+      }else if(features[i].get('value')){ // Es Measurement
         isSensor = true;
         value = parseFloat(features[i].get('value')); // Sacamos value
         info.push(length.toFixed(2));
         units = features[i].get('units'); // Sacamos units 
         info.push(units);
+        timestamp = features[i].get('time'); // Sacamos timestamp
+        info.push(timestamp);
       }
     }
     // Parte de info
@@ -416,7 +445,8 @@ var displayFeatureInfo = function (pixel, coords) {
     var hdms = toStringHDMS(coords);
 
     popup.setPosition(coords);
-    if(isSensor){
+    if(isSensor){ // Measurement
+      isSensor = false;
       $(element).popover("dispose").popover({
         container: element,
         placement: 'top',
@@ -425,10 +455,11 @@ var displayFeatureInfo = function (pixel, coords) {
         style: 'min-width:200',
         content: 
         '<p>Value: ' + value.toFixed(2) + units + '</p>'+
-        '<p>Location: ' + coords[0].toFixed(4) + 'º lon, '+ coords[1].toFixed(4) + 'º lat</p>',
+        '<p>Location: ' + coords[0].toFixed(4) + 'º lon, '+ coords[1].toFixed(4) + 'º lat</p>'+
+        '<p>Time: ' + timestamp.substring(0,19) + '</p>',
       });      
-    }else{
-      if (ratioChanged){
+    }else{ 
+      if (ratioChanged){ // Dtour
         ratioChanged = false;
         $(element).popover("dispose").popover({
           container: element,
@@ -442,15 +473,29 @@ var displayFeatureInfo = function (pixel, coords) {
           '<p>Location: ' + coords[0].toFixed(4) + 'º lon, '+ coords[1].toFixed(4) + 'º lat</p>',
         });
       }else{
-        $(element).popover("dispose").popover({
-          container: element,
-          placement: 'top',
-          animation: false,
-          html: true,
-          content: 
-          '<p>Track\'s length: ' + length.toFixed(2) + 'm</p>'+
-          '<p>Location: ' + coords[0].toFixed(4) + 'º lon, '+ coords[1].toFixed(4) + 'º lat</p>',
-        });
+        if (isTrack){ // Track
+          isTrack = false;
+          $(element).popover("dispose").popover({
+            container: element,
+            placement: 'top',
+            animation: false,
+            html: true,
+            content: 
+            '<p>Track\'s length: ' + length.toFixed(2) + 'm</p>'+
+            '<p>Location: ' + coords[0].toFixed(4) + 'º lon, '+ coords[1].toFixed(4) + 'º lat</p>'+
+            '<p>Time: ' + timestamp.substring(0,19) + '</p>',
+          });
+        }else{ // Bidegorri
+          $(element).popover("dispose").popover({
+            container: element,
+            placement: 'top',
+            animation: false,
+            html: true,
+            content: 
+            '<p>Track\'s length: ' + length.toFixed(2) + 'm</p>'+
+            '<p>Location: ' + coords[0].toFixed(4) + 'º lon, '+ coords[1].toFixed(4) + 'º lat</p>',
+          });
+        }
       }
     }  
     $(element).popover('show');
@@ -473,6 +518,21 @@ function CenterMap(long, lati) {
   map.getView().setZoom(13);
 }
 
+// Cambio entre Temperatura Heatmap y temperatura puntos
+function normalToHeatmapTemp(){
+  if (switchHM.checked){
+    map.getLayers().getArray()
+      .filter(layer => layer.get('title') === 'temperatura')
+      .forEach(layer => map.removeLayer(layer));
+    map.addLayer(hmTemp);
+  }else{
+    map.getLayers().getArray()
+      .filter(layer => layer.get('title') === 'heatmap_temperatura')
+      .forEach(layer => map.removeLayer(layer));
+      map.addLayer(vTemp);
+  }
+  
+}
 // ###### FIN Funciones ######
 
 // ###### EVENTOS del mapa ######
@@ -491,7 +551,6 @@ map.on('click', function (evt) {
 
 botonVentana.onclick = function() {
   setTimeout( function() { map.updateSize();}, 200);
-  console.log("AUI");
 };
 
 // ###### FIN EVENTOS del mapa ######
@@ -500,14 +559,16 @@ botonVentana.onclick = function() {
 
 botonDebug.onclick = function(){
 // Zona DEBUGGING y PRUEBAS
-  console.log("Ahhh");
-  console.log(value);
-  console.log(units);
+  console.log(switchHM.checked)
 };
 
 botonCenter.onclick = function(){
   // Centramos mapa
   CenterMap(centerLon, centerLat);
 };
+
+switchHM.onchange = function(){
+  normalToHeatmapTemp();
+}
 
 // ###### FIN BOTONES ######

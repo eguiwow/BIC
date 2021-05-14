@@ -29,13 +29,28 @@
   {% else %}
     <p> NO se han pasado los datos de ruido </p>     
   {% endif %}
+  {% if gj_temp %}
+  <var id="json_temp" hidden> {{gj_temp}} </var>
+  {% else %}
+    <p> NO se han pasado los datos de temperatura </p>     
+  {% endif %}
 
   <!-- /Zona Variables ocultas -->
   <!-- Zona archivos -->
-  <div class="col text-center">
-    <button class="btn btn-primary" id="centerButton"> Centrar </button>
-    <button class="botonDebug" id="debugButton"> Debug </button>
+  <div class="form-row">
+    <div class="col"></div>
+    <div class="col">
+      <button class="btn btn-primary" id="centerButton"> Centrar </button>
+      <button class="botonDebug" id="debugButton"> Debug </button> 
+    </div>
+    <div class="col">
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" id="switchHM" />
+        <label class="form-check-label" for="switchHM">Modo Heatmap</label>
+      </div>    
+    </div>
   </div>
+  
   <div class="archivos">
    <!-- <h3> Nombres archivos geojson</h3>
     {% if gj_tracks %}

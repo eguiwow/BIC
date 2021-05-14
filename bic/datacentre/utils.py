@@ -53,7 +53,11 @@ def tracklist_to_geojson(tracks, geom_name):
                 # PROPERTIES (length)
                 gj_tracks.append(",")  
                 length = track.distance
-                prop_dict = { 'length' : str(length) }
+                if geom_name == "mlstring": # Si es bidegorri no metemos el tiempo en PROPERTIES
+                    timestamp = track.end_time
+                    prop_dict = { 'length' : str(length), 'time' : str(timestamp) }
+                else:
+                    prop_dict = { 'length' : str(length) }
                 gj_tracks = addProperties(gj_tracks, prop_dict)
 
             # Cerramos el Feature (track) 
@@ -89,7 +93,8 @@ def measurements_to_geojson(measurements):
             gj_measurements.append(",")  
             value = measurement.value
             units = measurement.units
-            prop_dict = { 'value' : str(value), 'units' : units }
+            timestamp = measurement.time 
+            prop_dict = { 'value' : str(value), 'units' : units, 'time' : str(timestamp) }
             gj_measurements = addProperties(gj_measurements, prop_dict)
 
             # Cerramos el Feature (track) 
@@ -258,7 +263,7 @@ def parse_gpx(track):
 
     except gpxpy.gpx.GPXException as e:
         logger.error("Valid GPX file: %s" % e)
-        raise ValidationError(u"Vadný GPX soubor: %s" % e)
+        raise ValidationError(u"Valid GPX file: %s" % e)
 # Returns gpx_file from filefield
 def parse_gpx_filefield(filefield):
     if filefield.name.endswith(".gz"):

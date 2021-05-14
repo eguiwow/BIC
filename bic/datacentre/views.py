@@ -25,8 +25,6 @@ import subprocess # For running bash scripts from python
 # VISTA PRINCIPAL: mapa de rutas por capas + acceso a datos #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 def index(request):
-    # Refresh Sensors' Values
-    # check_devices()
 
     # Retrieve the GPX_file
     gpx_tracks = GPX_track.objects.all()
@@ -74,13 +72,16 @@ def consulta(request):
         polys.append(track.poly)         
     sensor_air = Sensor.objects.get(name= "PMS5003_AVG-PM1") # Sensor PM 2.5
     sensor_noise = Sensor.objects.get(name= "ICS43432 - Noise") # Sensor Noise (dBA)
-    sensor_temp = Sensor.objects.get(name= "DHT22 - Temperature") # Sensor Temperatura (ºC)
+    sensor_temp = Sensor.objects.get(name= "SHT31 - Temperature") # Sensor Temperatura (ºC)
 
 
     # If this is a POST request then process the Form data
     # Sacamos los tracks correspondientes de la consulta 
     if request.method == 'POST':
 
+        # Refresh Sensors' Values
+        # check_devices()
+        
         # Create a form instance and populate it with data from the request (binding):
         form = DateTimeRangeBBoxForm(request.POST)
 
@@ -163,7 +164,7 @@ def analisis(request):
     # Parte de get datos cont. acústica y atmosférica
     sensor_air = Sensor.objects.get(name= "PMS5003_AVG-PM1") # Sensor PM 2.5
     sensor_noise = Sensor.objects.get(name= "ICS43432 - Noise") # Sensor Noise (dBA)
-    sensor_temp = Sensor.objects.get(name= "DHT22 - Temperature") # Sensor Temperatura (ºC)
+    sensor_temp = Sensor.objects.get(name= "SHT31 - Temperature") # Sensor Temperatura (ºC)
     measurements_air = Measurement.objects.filter(sensor=sensor_air)
     measurements_noise = Measurement.objects.filter(sensor=sensor_noise)
     measurements_temp = Measurement.objects.filter(sensor=sensor_temp)
