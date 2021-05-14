@@ -71,8 +71,12 @@ def consulta(request):
     consulta_vacia = 0 # para alerta por consulta vacía
     polys = []
     for track in kml_tracks:
-        polys.append(track.poly)     
-    
+        polys.append(track.poly)         
+    sensor_air = Sensor.objects.get(name= "PMS5003_AVG-PM1") # Sensor PM 2.5
+    sensor_noise = Sensor.objects.get(name= "ICS43432 - Noise") # Sensor Noise (dBA)
+    sensor_temp = Sensor.objects.get(name= "DHT22 - Temperature") # Sensor Temperatura (ºC)
+
+
     # If this is a POST request then process the Form data
     # Sacamos los tracks correspondientes de la consulta 
     if request.method == 'POST':
@@ -101,9 +105,17 @@ def consulta(request):
             geom = Polygon.from_bbox(bbox) # (xmin, ymin, xmax, ymax)
             
             # Filtro de rango de tiempo + Filtro espacial (BBox)
-            # Ahora mismo, el bbox tiene que contener enteramente el track para mostrarlo (pensar si es así la mejor manera)
+            # INFO: Ahora mismo, el bbox tiene que contener enteramente el track para mostrarlo (pensar si es así la mejor manera)
             tracks = GPX_track.objects.filter(end_time__range=[dates[0], dates[1]]).filter(mlstring__contained=geom)
-            gj_tracks = tracklist_to_geojson(tracks,"mlstring")
+            gj_tracks = tracklist_to_geojson(tracks,"mlstring")            
+            measurements_air = Measurement.objects.filter(sensor=sensor_air).filter(time__range=[dates[0], dates[1]]).filter(point__contained=geom)
+            measurements_noise = Measurement.objects.filter(sensor=sensor_noise).filter(time__range=[dates[0], dates[1]]).filter(point__contained=geom)
+            measurements_temp = Measurement.objects.filter(sensor=sensor_temp).filter(time__range=[dates[0], dates[1]]).filter(point__contained=geom)
+            gj_air = measurements_to_geojson(measurements_air)
+            gj_noise = measurements_to_geojson(measurements_noise)
+            gj_temp = measurements_to_geojson(measurements_temp)
+
+
             if not tracks:
                 gj_dtours = empty_geojson()
                 consulta_vacia = 1
@@ -113,6 +125,7 @@ def consulta(request):
 
             context = { 'form': form, 'consulta_vacia': consulta_vacia,\
             'gj_tracks': gj_tracks, "gj_dtours": gj_dtours, "gj_bidegorris": bidegorris,\
+            "gj_air": gj_air,"gj_noise": gj_noise, "gj_temp": gj_temp,\
             'center': [-2.9456500000716574, 43.270200001993764],'zoom':13} 
 
             return render(request, 'consulta.html', context)
@@ -132,6 +145,7 @@ def consulta(request):
     gj_vacio = empty_geojson()
     context = { 'form': form,\
     'gj_tracks': gj_vacio, "gj_dtours": gj_vacio, "gj_bidegorris": gj_vacio,\
+    "gj_air": gj_vacio,"gj_noise": gj_vacio, "gj_temp": gj_vacio,\
     'center': [-2.9456500000716574, 43.270200001993764],'zoom':13 }
 
     return render(request, 'consulta.html', context)    
@@ -146,21 +160,23 @@ def analisis(request):
     bidegorris = tracklist_to_geojson(kml_tracks, "poly") # Buffered Bidegorris   
     gj_points = tracklist_to_geojson(gpx_tracks, "point") # Puntos de los tracks para Heatmap
     
-    # TODO filtrar por tiempo y espacio tb
     # Parte de get datos cont. acústica y atmosférica
     sensor_air = Sensor.objects.get(name= "PMS5003_AVG-PM1") # Sensor PM 2.5
     sensor_noise = Sensor.objects.get(name= "ICS43432 - Noise") # Sensor Noise (dBA)
+    sensor_temp = Sensor.objects.get(name= "DHT22 - Temperature") # Sensor Temperatura (ºC)
     measurements_air = Measurement.objects.filter(sensor=sensor_air)
     measurements_noise = Measurement.objects.filter(sensor=sensor_noise)
+    measurements_temp = Measurement.objects.filter(sensor=sensor_temp)
 
     gj_vacio = empty_geojson() # TODO ver si enviar los dtours o no
     
     gj_air = measurements_to_geojson(measurements_air)
     gj_noise = measurements_to_geojson(measurements_noise)
+    gj_temp = measurements_to_geojson(measurements_temp)
 
     
     context = { "gj_tracks": gj_points,"gj_dtours": gj_vacio, "gj_bidegorris": bidegorris,\
-    "gj_air": gj_air,"gj_noise": gj_noise,\
+    "gj_air": gj_air,"gj_noise": gj_noise, "gj_temp": gj_temp,\
     'center': [-2.9456500000716574, 43.270200001993764],'zoom':13} # TODO pasar zoom y center como parámetro
 
     return render(request, 'analisis.html', context)

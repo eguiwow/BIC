@@ -7,7 +7,7 @@ import Map from 'ol/Map';
 import VectorSource from 'ol/source/Vector';
 import {XYZ, OSM, Stamen} from 'ol/source';
 import View from 'ol/View';
-import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style';
+import {Circle as CircleStyle, RegularShape, Fill, Stroke, Style} from 'ol/style';
 import {Tile as TileLayer, Vector as VectorLayer, Group as LayerGroup, Heatmap as HeatMapLayer} from 'ol/layer';
 import LayerSwitcher from 'ol-layerswitcher';
 import Draw, {createBox} from 'ol/interaction/Draw';
@@ -60,7 +60,54 @@ var osm_tiles = new TileLayer({
 });
 
 // ###### Estilo de pintado de Features ######
-// TODO: customizarlo al gusto
+// Estilo por defecto
+var defaultStyle = new Style({
+  image: new CircleStyle({
+      fill: new Fill({
+          color: 'rgba(165,165,165,0.4)', // GRAY
+      }),
+      radius: 5,
+      stroke: new Stroke({
+          color: '#A5A4A4', 
+          width: 0.2,
+      }),
+  }),        
+});
+// Style de Ruido y Polución
+var dangerous = [0,0,0,0.5];    // BLACK > 100dB / 250 PM2.5
+var high = [255,0,0,0.5];       // RED: 70-100dB / 120-250 PM2.5
+var mid_high = [255,166,0,0.5]  // ORANGE: 65-70 dB / 90-120 PM2.5
+var mid = [255,255,0,0.5];      // YELLOW: 60-65 dB / 60-90 PM2.5
+var low = [0,255,0,0.5];        // GREEN: 50-60 dB / 30-60 PM2.5
+var very_low = [255,255,255,0.9]; // WHITE < 50 dB / 30 PM2.5
+// Creamos lista de estilos en función de valor
+var styleListNoise = [];
+var styleListAir = [];
+var values = [dangerous, high, mid_high, mid, low, very_low] // high income
+var i, ii;
+for (i = 0; i < values.length; i++){
+  // Circle for Noise
+  styleListNoise[i] = new Style({
+    image: new CircleStyle({
+        fill: new Fill({
+            color: values[i],
+        }),
+        radius: 7,
+        stroke: defaultStyle.stroke,
+    }),
+  });
+  // Rhombus for Air
+  styleListAir[i] = new Style({
+    image: new RegularShape({
+        points: 4,
+        fill: new Fill({
+            color: values[i],
+        }),
+        radius: 7,
+        stroke: defaultStyle.stroke,
+    }),
+  });    
+}
 var style = {
   'Point': new Style({
     image: new CircleStyle({
@@ -132,6 +179,53 @@ var styleFunction = function (feature) {
 var styleFunction2 = function(feature){
   return style2[feature.getGeometry().getType()];
 };
+// Devuelve el estilo correspondiente para cada franja de ruido
+var styleNoise = function(feature, resolution) {
+  // Obtenemos el value de la feature
+  var value = feature.get('value');
+  // Asignamos estilo a valor
+  if (!value) {
+      return [defaultStyle];
+  }else{
+      if (value >= 100){
+          return [styleListNoise[0]];
+      }else if (value<100 && value >= 70){ 
+          return [styleListNoise[1]];
+      }else if (value<70 && value >= 65){
+          return [styleListNoise[2]];
+      }else if (value<65 && value >= 60){
+          return [styleListNoise[3]];
+      }else if (value<60 && value >= 50){
+          return [styleListNoise[4]];
+      }else{
+          return [styleListNoise[5]];
+      }
+  }
+}
+
+// Devuelve el estilo correspondiente para cada franja de polución
+var styleAir = function(feature, resolution) {
+  // Obtenemos el value de la feature
+  var value = feature.get('value');
+  // Asignamos estilo a valor
+  if (!value) {
+      return [defaultStyle];
+  }else{
+      if (value >= 250){
+          return [styleListAir[0]];
+      }else if (value<250 && value >= 120){
+          return [styleListAir[1]];
+      }else if (value<120 && value >= 90){
+          return [styleListAir[2]];
+      }else if (value<90 && value >= 60){
+          return [styleListAir[3]];
+      }else if (value<60 && value >= 30){
+          return [styleListAir[4]];
+      }else{
+          return [styleListAir[5]];
+      }
+  }
+}
 
 // ###### FIN Estilo de pintado de Features ######
 
@@ -141,8 +235,13 @@ var botonVentana = document.getElementById('menu-toggle');
 var json_tracks = document.getElementById("json_tracks")
 var json_dtours = document.getElementById("json_dtours")
 var json_bidegorris = document.getElementById("json_bidegorris")
+var json_air = document.getElementById("json_air")
+var json_noise = document.getElementById("json_noise")
 var gj_tracks = new GeoJSON().readFeatures(JSON.parse(json_tracks.innerText))
 var gj_dtours = new GeoJSON().readFeatures(JSON.parse(json_dtours.innerText))
+var gj_air = new GeoJSON().readFeatures(JSON.parse(json_air.innerText))
+var gj_noise = new GeoJSON().readFeatures(JSON.parse(json_noise.innerText))
+// TODO meter temperatura
 var gj_bidegorris = new GeoJSON().readFeatures(JSON.parse(json_bidegorris.innerText))
 // Botones
 var botonDebug = document.getElementById("debugButton")
@@ -174,6 +273,14 @@ var sourceGJBidegorris = new VectorSource({
   wrapX:false,
   features: gj_bidegorris
 });
+var sourceGJAir = new VectorSource({
+  wrapX:false,
+  features: gj_air
+});
+var sourceGJNoise = new VectorSource({
+  wrapX:false,
+  features: gj_noise
+});
 
 var vTracks = new VectorLayer({
   title: 'tracks',
@@ -193,6 +300,18 @@ var vBidegorris = new VectorLayer({
   source: sourceGJBidegorris,
   style: styleFunction,
 });
+var vAir = new VectorLayer({
+  title: 'cont. atmosférica',
+  visible: false,
+  source: sourceGJAir,
+  style: styleAir,
+});
+var vNoise = new VectorLayer({
+  title: 'cont. acústica',
+  visible: true,
+  source: sourceGJNoise,
+  style: styleNoise,
+});
 
 // Capa para Draw
 var srcDraw = new VectorSource({wrapX: false});
@@ -200,6 +319,11 @@ var vDraw = new VectorLayer({source: srcDraw,});
 
 // Número de tracks
 var tracksLength = vTracks.getSource().getFeatures().length;
+
+var grupoSensorica = new LayerGroup({
+  title: 'Polución',
+  layers: [vAir, vNoise],  
+})
 
 // Grupo de Layers para LayerSwitcher
 var grupoVectores = new LayerGroup({
@@ -211,7 +335,7 @@ var layerSwitcher = new LayerSwitcher();
 var typeSelect = 'None';
 // Mapa
 var map = new Map({
-  layers: [osm_tiles, grupoVectores, vDraw], // Capas de información geoespacial
+  layers: [osm_tiles, grupoVectores, grupoSensorica, vDraw], // Capas de información geoespacial
   target: document.getElementById('map'), // Elemento HTML donde va situado el mapa
   view: new View({ // Configuración de la vista (centro, proyección del mapa)
     // Esta función es para cuando la proyección usada sea Mercator
@@ -357,8 +481,7 @@ botonVentana.onclick = function() {
 // Botón DEBUG
 botonDebug.onclick = function(){
 // Zona DEBUGGING y PRUEBAS
-  console.log(typeSelect)
-  
+  console.log("Jejeejjeje");  
 
 };
 // Botón CENTER
