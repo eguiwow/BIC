@@ -130,8 +130,6 @@ class GPX_trackpoint(models.Model):
     name = models.CharField(max_length=50, null=True)
 
     track_id = models.ForeignKey(GPX_track, on_delete=models.CASCADE)
-    # TODO Decidir si implementar segments 
-    # track_seg_id = models.ForeignKey(GPX_seg, on_delete=models.CASCADE)
     lon = models.FloatField()
     lat = models.FloatField()
     ele = models.FloatField(null=True)
@@ -148,6 +146,7 @@ class GPX_trackpoint(models.Model):
 class Config(models.Model):
     name = models.CharField(max_length=50, null=True)
     lon = models.FloatField()
+
     lat = models.FloatField()
     zoom = models.FloatField()
     devices = models.ManyToManyField(SCK_device)

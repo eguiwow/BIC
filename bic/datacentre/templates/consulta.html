@@ -61,11 +61,12 @@
       <div class="col"></div>
     </div>
   </form>
-    <!-- TODO que estos botones estén separados -->
   
   {% endblock %}
   {% block map %}
   <div id="map" class="pt-3" style="width: 100%; height: 600px; max-height: 1000px;"></div>
+  <a id="export-png" class="btn btn-default"><i class="fa fa-download"></i> Download PNG</a>
+  <a id="image-download" download="map.png"></a>
   {% endblock %}
   {% block aftermap %}  
   <!-- Info de Features -->

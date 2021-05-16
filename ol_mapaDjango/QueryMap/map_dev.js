@@ -247,6 +247,7 @@ var gj_bidegorris = new GeoJSON().readFeatures(JSON.parse(json_bidegorris.innerT
 var botonDebug = document.getElementById("debugButton")
 var botonCenter = document.getElementById("centerButton")
 var botonSelectArea = document.getElementById("selectAreaButton")
+var botonDownload = document.getElementById('export-png')
 // BBox boundaries form
 var ne_lon = document.getElementById("id_NE_lon").value;
 var ne_lat = document.getElementById("id_NE_lat").value;
@@ -375,7 +376,6 @@ function addInteraction() {
 // ###### Funciones ######
 // Display Feature Info - https://openlayers.org/en/latest/examples/gpx.html 
 // Esta función saca información de las features al pinchar (ahora mismo el 'name')
-// TODO - 
 var displayFeatureInfo = function (pixel) {
   var features = [];
   map.forEachFeatureAtPixel(pixel, function (feature) {
@@ -435,7 +435,6 @@ var primerclick = true;
 // Click
 map.on('click', function (evt) {  
   // evt.coordinate guarda las coordenadas del evento de click
-  // TODO - cambiar dónde se recoge las coordenadas, debería de hacerse en una función aparte yo creo
   if (typeSelect == 'Box'){
     if (primerclick == true){ // Primer click --> borramos y empezamos BBox
       if (draw) srcDraw.clear()
@@ -501,6 +500,49 @@ botonSelectArea.onclick = function(){
   map.removeInteraction(draw);
   addInteraction();
 }
+
+// Botón exportar como PNG
+// https://openlayers.org/en/latest/examples/export-map.html
+botonDownload.onclick = function(){
+  map.once('rendercomplete', function () {
+    var mapCanvas = document.createElement('canvas');
+    var size = map.getSize();
+    mapCanvas.width = size[0];
+    mapCanvas.height = size[1];
+    var mapContext = mapCanvas.getContext('2d');
+    Array.prototype.forEach.call(
+      document.querySelectorAll('.ol-layer canvas'),
+      function (canvas) {
+        if (canvas.width > 0) {
+          var opacity = canvas.parentNode.style.opacity;
+          mapContext.globalAlpha = opacity === '' ? 1 : Number(opacity);
+          var transform = canvas.style.transform;
+          // Get the transform parameters from the style's transform matrix
+          var matrix = transform
+            .match(/^matrix\(([^\(]*)\)$/)[1]
+            .split(',')
+            .map(Number);
+          // Apply the transform to the export map context
+          CanvasRenderingContext2D.prototype.setTransform.apply(
+            mapContext,
+            matrix
+          );
+          mapContext.drawImage(canvas, 0, 0);
+        }
+      }
+    );
+    if (navigator.msSaveBlob) {
+      // link download attribuute does not work on MS browsers
+      navigator.msSaveBlob(mapCanvas.msToBlob(), 'map.png');
+    } else {
+      var link = document.getElementById('image-download');
+      link.href = mapCanvas.toDataURL();
+      link.click();
+    }
+  });
+  map.renderSync();
+};
+
 // FIN EVENTOS botones
 addInteraction();
 // ###### FIN EVENTOS ######

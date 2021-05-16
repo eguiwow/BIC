@@ -224,8 +224,8 @@ def parse_segment(segment):
     return track_list_of_points
 # Returns multiline, start&end_times from tracks[]
 # Método adaptado para coger tiempo inicio y fin 
-# TODO que devuelva una lista de data porque son varios tracks los que se pasan
-# aunque normalmente solo hay un track en cada gpx
+# Aunque normalmente solo hay un track en cada gpx, en caso de que hubiera más habría que modificar este método
+# devolviendo una lista de data
 def parse_tracks(tracks):
     data = []
     multiline = []

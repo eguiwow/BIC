@@ -25,7 +25,7 @@ gpx_track_mapping = {
 
 # Recorre la carpeta datacentre/data/gpx e introduce en la BD los tracks de los GPX 
 # hace uso de LayerMapping
-# TODO load no solo tracks sino trackpts, wpts, etc.
+# Solo carga tracks, si queremos trackpts, wpts, etc. hay que cambiar el método
 def load_gpx_lm(verbose=True):
     # LayerMapping --> Docs en https://docs.djangoproject.com/en/3.1/ref/contrib/gis/layermapping/
     dir_gpx_data = Path("/home/eguiwow/github/BIC/bic/datacentre/data/gpx") # Directorio donde están de momento guardados los GPXs
@@ -36,7 +36,7 @@ def load_gpx_lm(verbose=True):
 
 # Recorre la carpeta datacentre/data/gpx e introduce en la BD los tracks de los GPX 
 # Sin usar LayerMapping
-# TODO load no solo tracks sino trackpts, wpts, etc.
+# Solo carga tracks, si queremos trackpts, wpts, etc. hay que cambiar el método
 def load_gpx(verbose=True):
     # gpx may be a track or segment.
     # start_time, end_time = gpx.get_time_bounds()
