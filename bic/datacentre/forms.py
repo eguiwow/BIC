@@ -3,11 +3,11 @@ from django.utils import timezone
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
+from .models import SCK_device
 
 class DateInput(forms.DateTimeInput):
     # Esta línea comentada hace que salga en formato HTML5 pero sin valor por defecto!
     input_type = 'datetime-local'
-    #input_type = 'datetime'
 
 # Formulario para Consulta de tracks
 class DateTimeRangeBBoxForm(forms.Form):
@@ -35,3 +35,33 @@ class DateTimeRangeBBoxForm(forms.Form):
                 
         dates = [date1, date2]
         return dates
+
+# Formulario para Consulta de tracks
+class ConfigForm(forms.Form):
+    center_lon = forms.DecimalField(help_text=_("Centro del mapa (Longitud [-180 a 180])"))
+    center_lat = forms.DecimalField(help_text=_("Centro del mapa (Latitud)[-90 a 90]"))
+    center_zoom = forms.IntegerField(help_text=_("Centro del mapa (Zoom)"))
+
+    def clean_range_center(self):
+        lon = self.cleaned_data['center_lon']
+        lat = self.cleaned_data['center_lat']
+        zoom = self.cleaned_data['center_zoom']
+        print(lon)
+        print(lat)
+        # TODO peta no sé por qué al hacer la comprobación
+        # Check lon between 180 & -180; lat between 90 & -90; zoom between 0 & 20
+        # if lon > 180 or lon < -180:
+        #     raise ValidationError(_('Longitud inválida - Tiene que estar entre -180º y 180º'))
+        # if lat > 90 or lat < -90:
+        #     raise ValidationError(_('Longitud inválida - Tiene que estar entre -180º y 180º'))
+        # if zoom > 20 or lon < 0:
+        #     raise ValidationError(_('Longitud inválida - Tiene que estar entre -180º y 180º'))
+
+        center = [lon, lat, zoom]
+        return center
+
+
+class ConfigDevicesForm(forms.Form):
+    # TODO sacar lista de devices - deberíamos de meter aquí queryset de devices que no están ya en config
+    # devices = forms.ModelChoiceField(queryset=<queryset con devices - los que están ya en config>)
+    device_id = forms.IntegerField(help_text=_("ID de device"))

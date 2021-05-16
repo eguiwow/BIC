@@ -6,12 +6,15 @@ from rest_framework import routers
 router = routers.DefaultRouter()
 router.register(r'gpx_tracks', views.GPX_trackViewSet)
 router.register(r'kml_tracks', views.KML_lstringViewSet)
+router.register(r'measurements', views.MeasurementViewSet)
 
 urlpatterns = [
     path('datacentre', views.index , name='index'),
     path('bic_project', views.project, name= 'project'),
     path('query', views.consulta, name= 'consulta'),
     path('analisis', views.analisis, name= 'analisis'),
+    path('config', views.config, name= 'config'),
+    path('config', views.check_devices, name= 'check_devices'),
     # Wire up our API using automatic URL routing.
     # Additionally, we include login URLs for the browsable API.
     path('api/', include(router.urls)),

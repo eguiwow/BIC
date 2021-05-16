@@ -143,3 +143,11 @@ class GPX_trackpoint(models.Model):
     # Returns the string representation of the model.
     def __str__(self):
         return self.name
+
+# Configuración de la página
+class Config(models.Model):
+    name = models.CharField(max_length=50, null=True)
+    lon = models.FloatField()
+    lat = models.FloatField()
+    zoom = models.FloatField()
+    devices = models.ManyToManyField(SCK_device)

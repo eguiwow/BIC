@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load static %} 
+
+  {% block title %}
+  <title>Bike Intelligence Centre</title>
+  {% endblock %}
+  {% block section_title %} <h2 class="pt-2">Configuración</h2> {% endblock %}
+  {% block aftermap %}
+  <div class="float-right p-2"><p><strong><i>Parámetros y dispositivos de la plataforma</i></strong></div>
+  <h3 class="pt-2">Centro del mapa</h3>
+  <form action="" method="post">
+    {% csrf_token %}
+    <div class="pt-2">
+      {{form.as_ul}}
+    </div>
+    <div class="form-row">
+      <div class="pl-3 pt-2 text-center">
+        <input type="submit" name="center" class="btn btn-primary" value="Cambiar centro">
+      </div>
+    </div>
+  </form>
+  <div class="pt-4">
+    <p><i><strong>INFO proyección:</strong> la proyección actual con la que se han calculado los datos de la longitud de las rutas es la proyección europea (EPSG:3035). En caso de necesitar implementar este proyecto en una zona diferente, contactar con el soporte técnico a través de ander.eguiluz@opendeusto.es</i></p>
+  </div>
+  <h3 class="pt-2">BIDs desplegados (IDs)</h3>
+  <div class="pt-2 pl-2">
+    {% if kits %}
+      {% for k in kits %}
+        <li><strong>{{ k }}</strong></li>
+      {% endfor %}
+    {% endif %}
+    <div class="row pl-3 pt-3">
+      <!--TODO modificar lista de devices-->
+    </div>
+    <form action="" method="post">
+      {% csrf_token %}
+      <div class="pt-3">
+        <input type="submit" name="refresh_devices" class="btn btn-primary" value="Refrescar info kits">
+      </div>
+    </form>
+  </div>  
+  {% endblock %}
+

@@ -4,8 +4,8 @@ from django.core.files import File
 from django.contrib.gis.geos import Point, Polygon, GEOSGeometry # For lazy geometries
 from django.utils import timezone
 
-from .forms import DateTimeRangeBBoxForm
-from .models import GPX_file, GPX_track, KML_lstring, Measurement, Sensor
+from .forms import DateTimeRangeBBoxForm, ConfigForm
+from .models import GPX_file, GPX_track, KML_lstring, Measurement, Sensor, Config
 from .utils import tracklist_to_geojson, empty_geojson, get_dtours, get_lista_puntos, measurements_to_geojson
 from .sck_api import check_devices
 
@@ -15,25 +15,26 @@ import time
 
 # REST
 from rest_framework import viewsets
-from .serializers import GPX_trackSerializer, KML_lstringSerializer
+from .serializers import GPX_trackSerializer, KML_lstringSerializer, MeasurementSerializer
 
-# TODO Revisar si estas de abajo hacen falta ya
-from gpx_converter import Converter
-import subprocess # For running bash scripts from python
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # VISTA PRINCIPAL: mapa de rutas por capas + acceso a datos #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 def index(request):
+    # Retrieve config
+    config = Config.objects.get(name="base_config")
 
-    # Retrieve the GPX_file
+    # Retrieve the tracks
     gpx_tracks = GPX_track.objects.all()
     kml_tracks = KML_lstring.objects.all() 
     polys = [] # lista para guardar los polys con los q hacer el ST_Diff
-    
     # RETRIEVE already buffered BIDEGORRIS
     bidegorris = tracklist_to_geojson(kml_tracks, "poly")    
     
+    # Retrieve config
+    config = Config.objects.get(name="base_config")
+
     # Llenamos la lista de bidegorris poligonizados
     for track in kml_tracks:
         polys.append(track.poly)
@@ -48,7 +49,7 @@ def index(request):
     # -- coords bilbao en lon/lat --
     # -- [ 43.270200001993764,-2.9456500000716574] --> Cambiadas al pasarlas como parámetros --
     context = { "gj_tracks": gj_tracks,"gj_dtours": dtours, "gj_bidegorris": bidegorris,\
-    'center': [-2.9456500000716574, 43.270200001993764],'zoom':13} # TODO pasar zoom y center como parámetro
+    'center': [config.lon, config.lat],'zoom':config.zoom}
     return render(request, 'index.html', context)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -58,11 +59,62 @@ def index(request):
 def project(request):
     return render(request, 'project.html')
 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# Vista de CONFIGURACIÓN: Configurar center mapa y más  #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+def config(request):
+    # Retrieve config
+    config = Config.objects.get(name="base_config")
+    kits = config.devices.all()
+    kit_ids = []
+    for k in kits:
+        kit_ids.append(k.sck_id)
+    
+    # If this is a POST request then process the Form data
+    if request.method == 'POST':
+        form = ConfigForm(request.POST)
+        if 'center' in request.POST:        
+            # Check if the form is valid:
+            if form.is_valid():
+                # Obtenemos la info del formulario
+                
+                center = form.clean_range_center()
+                # Guardamos la nueva configuración
+                config.lon = center[0]
+                config.lat = center[1]
+                config.zoom = center[2]
+                config.save()
+
+                form = ConfigForm(initial={'center_zoom': center[2],
+                'center_lon':center[0],'center_lat': center[1]})
+                context = { 'form': form, 'kits': kit_ids} 
+
+                return render(request, 'config.html', context)
+        
+        elif 'refresh_devices' in request.POST:
+            check_devices()
+            form = ConfigForm(initial={'center_zoom': config.zoom,
+            'center_lon':config.lon,'center_lat': config.lat})
+            context = { 'form': form, 'kits': kit_ids} 
+
+            return render(request, 'config.html', context)
+    # Display de form y mapa vacíos 
+    # If this is a GET (or any other method) create the default form.
+    else:
+        form = ConfigForm(initial={'center_zoom': config.zoom,
+        'center_lon':config.lon,'center_lat': config.lat})
+
+    context = { 'form': form, 'kits': kit_ids}
+
+    return render(request, 'config.html', context)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Vista de CONSULTA: Seleccionar los datos que quieren ser vistos #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 def consulta(request):
+    # Retrieve config
+    config = Config.objects.get(name="base_config")
+
     # Gestionar Bidegorris    
     kml_tracks = KML_lstring.objects.all()
     bidegorris = tracklist_to_geojson(kml_tracks, "poly")
@@ -81,7 +133,7 @@ def consulta(request):
 
         # Refresh Sensors' Values
         # check_devices()
-        
+
         # Create a form instance and populate it with data from the request (binding):
         form = DateTimeRangeBBoxForm(request.POST)
 
@@ -127,7 +179,7 @@ def consulta(request):
             context = { 'form': form, 'consulta_vacia': consulta_vacia,\
             'gj_tracks': gj_tracks, "gj_dtours": gj_dtours, "gj_bidegorris": bidegorris,\
             "gj_air": gj_air,"gj_noise": gj_noise, "gj_temp": gj_temp,\
-            'center': [-2.9456500000716574, 43.270200001993764],'zoom':13} 
+            'center': [config.lon, config.lat],'zoom':config.zoom} 
 
             return render(request, 'consulta.html', context)
     
@@ -147,7 +199,7 @@ def consulta(request):
     context = { 'form': form,\
     'gj_tracks': gj_vacio, "gj_dtours": gj_vacio, "gj_bidegorris": gj_vacio,\
     "gj_air": gj_vacio,"gj_noise": gj_vacio, "gj_temp": gj_vacio,\
-    'center': [-2.9456500000716574, 43.270200001993764],'zoom':13 }
+    'center': [config.lon, config.lat],'zoom':config.zoom}  
 
     return render(request, 'consulta.html', context)    
 
@@ -156,6 +208,9 @@ def consulta(request):
 # Vista de PRUEBAS: FUTURA VISTA ANÁLISIS #
 # # # # # # # # # # # # # # # # # # # # # # 
 def analisis(request):
+    # Retrieve config
+    config = Config.objects.get(name="base_config")
+
     gpx_tracks = GPX_track.objects.all()
     kml_tracks = KML_lstring.objects.all() 
     bidegorris = tracklist_to_geojson(kml_tracks, "poly") # Buffered Bidegorris   
@@ -178,7 +233,7 @@ def analisis(request):
     
     context = { "gj_tracks": gj_points,"gj_dtours": gj_vacio, "gj_bidegorris": bidegorris,\
     "gj_air": gj_air,"gj_noise": gj_noise, "gj_temp": gj_temp,\
-    'center': [-2.9456500000716574, 43.270200001993764],'zoom':13} # TODO pasar zoom y center como parámetro
+    'center': [config.lon, config.lat],'zoom':config.zoom}
 
     return render(request, 'analisis.html', context)
 
@@ -196,3 +251,7 @@ class GPX_trackViewSet(viewsets.ModelViewSet):
 class KML_lstringViewSet(viewsets.ModelViewSet):
     queryset = KML_lstring.objects.all().order_by('distance')
     serializer_class = KML_lstringSerializer 
+
+class MeasurementViewSet(viewsets.ModelViewSet):
+    queryset = Measurement.objects.all().order_by('time')
+    serializer_class = MeasurementSerializer 
