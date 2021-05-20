@@ -14,7 +14,7 @@ urlpatterns = [
     path('query', views.consulta, name= 'consulta'),
     path('analisis', views.analisis, name= 'analisis'),
     path('config', views.config, name= 'config'),
-    path('config', views.check_devices, name= 'check_devices'),
+    path('config-list', views.config_list, name= 'config_list'),
     # Wire up our API using automatic URL routing.
     # Additionally, we include login URLs for the browsable API.
     path('api/', include(router.urls)),

@@ -4,8 +4,8 @@ from django.core.files import File
 from django.contrib.gis.geos import Point, Polygon, GEOSGeometry # For lazy geometries
 from django.utils import timezone
 
-from .forms import DateTimeRangeBBoxForm, ConfigForm
-from .models import GPX_file, GPX_track, KML_lstring, Measurement, Sensor, Config
+from .forms import DateTimeRangeBBoxForm, ConfigForm, ConfigDevicesForm
+from .models import GPX_file, GPX_track, KML_lstring, Measurement, Sensor, Config, SCK_device
 from .utils import tracklist_to_geojson, empty_geojson, get_dtours, get_lista_puntos, measurements_to_geojson
 from .sck_api import check_devices
 
@@ -98,6 +98,13 @@ def config(request):
             context = { 'form': form, 'kits': kit_ids} 
 
             return render(request, 'config.html', context)
+
+        elif 'edit_list' in request.POST:
+            form = ConfigDevicesForm(initial={'center_zoom': config.zoom,
+            'center_lon':config.lon,'center_lat': config.lat})
+            context = { 'form': form, 'kits': kit_ids} 
+
+            return render(request, 'config_list.html', context)
     # Display de form y mapa vacíos 
     # If this is a GET (or any other method) create the default form.
     else:
@@ -107,6 +114,55 @@ def config(request):
     context = { 'form': form, 'kits': kit_ids}
 
     return render(request, 'config.html', context)
+
+def config_list(request):
+    # Retrieve config
+    config = Config.objects.get(name="base_config")
+    kits = config.devices.all()
+    kit_ids = []
+    for k in kits:
+        kit_ids.append(k.sck_id)
+    
+    # If this is a POST request then process the Form data
+    if request.method == 'POST':
+        form = ConfigDevicesForm(request.POST)
+        if 'anyadir_device' in request.POST:        
+            # Check if the form is valid:
+            if form.is_valid():
+                # Obtenemos la info del formulario
+
+                new_id = form.clean_add_id(kit_ids)
+                device = SCK_device(sck_id=new_id).save()
+                config.devices.add(SCK_device.objects.get(sck_id=new_id))
+                kit_ids.append(new_id)
+
+                form = ConfigDevicesForm()
+                context = { 'form': form, 'kits': kit_ids} 
+
+                return render(request, 'config_list.html', context)
+
+        elif 'eliminar_device' in request.POST:   
+            if form.is_valid():
+                # Obtenemos la info del formulario
+                delete_id = form.clean_delete_id(kit_ids)
+                config.devices.remove(SCK_device.objects.get(sck_id=delete_id))
+                device = SCK_device.objects.get(sck_id=delete_id).delete()
+                kit_ids.remove(delete_id)
+
+                form = ConfigDevicesForm()
+                context = { 'form': form, 'kits': kit_ids} 
+
+                return render(request, 'config_list.html', context)
+
+    # If this is a GET (or any other method) create the default form.
+    else:
+        form = ConfigDevicesForm()
+
+    context = { 'form': form, 'kits': kit_ids}
+
+    return render(request, 'config_list.html', context)
+
+
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Vista de CONSULTA: Seleccionar los datos que quieren ser vistos #

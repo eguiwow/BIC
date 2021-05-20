@@ -453,7 +453,6 @@ var displayFeatureInfo = function (pixel, coords) {
         placement: 'top',
         animation: false,
         html: true,
-        style: 'min-width:200',
         content: 
         '<p>Value: ' + value.toFixed(2) + units + '</p>'+
         '<p>Location: ' + coords[0].toFixed(4) + 'º lon, '+ coords[1].toFixed(4) + 'º lat</p>'+
@@ -467,7 +466,6 @@ var displayFeatureInfo = function (pixel, coords) {
           placement: 'top',
           animation: false,
           html: true,
-          style: 'min-width:200',
           content: 
           '<p>Dtour\'s length: ' + length.toFixed(2) + 'm</p>'+
           '<p>Ratio dtour/track: '+ ratio.toFixed(2) + '%</p>' +
@@ -560,7 +558,7 @@ botonVentana.onclick = function() {
 
 botonDebug.onclick = function(){
 // Zona DEBUGGING y PRUEBAS
-  console.log(switchHM.checked)
+  console.log("Hirule")
 };
 
 botonCenter.onclick = function(){

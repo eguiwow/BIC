@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load static %} 
+
+  {% block title %}
+  <title>Bike Intelligence Centre</title>
+  {% endblock %}
+  {% block section_title %} <h2 class="pt-2">Configuración</h2> {% endblock %}
+  {% block aftermap %}
+  <div class="float-right p-2"><p><strong><i>Editar lista kits</i></strong></div>
+  <h3 class="pt-2">BIDs desplegados (IDs)</h3>
+  <div class="pt-2 pl-2">
+    {% if kits %}
+      {% for k in kits %}
+        <li><strong>{{ k }}</strong></li>
+      {% endfor %}
+    {% endif %}
+    <div class="row pl-3 pt-3">
+      <form action="{% url 'config_list' %}" method="post">
+        {% csrf_token %}
+        <div class="pt-2">
+          {{form.as_p}}
+        </div>    
+        <div class="pt-3">
+          <input type="submit" name="anyadir_device" class="btn btn-primary" value="Añadir Device">
+          <input type="submit" name="eliminar_device" class="btn btn-primary" value="Eliminar Device">
+        </div>
+      </form>
+      </div>
+  </div>  
+  {% endblock %}
+
+  

@@ -3,7 +3,7 @@ from django.utils import timezone
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
-from .models import SCK_device
+from .models import Config
 
 class DateInput(forms.DateTimeInput):
     # Esta línea comentada hace que salga en formato HTML5 pero sin valor por defecto!
@@ -62,6 +62,15 @@ class ConfigForm(forms.Form):
 
 
 class ConfigDevicesForm(forms.Form):
-    # TODO sacar lista de devices - deberíamos de meter aquí queryset de devices que no están ya en config
-    # devices = forms.ModelChoiceField(queryset=<queryset con devices - los que están ya en config>)
-    device_id = forms.IntegerField(help_text=_("ID de device"))
+    device_id = forms.IntegerField()
+    def clean_add_id(self, kit_ids):
+        new_id = self.cleaned_data['device_id']
+        if new_id in kit_ids:
+            raise ValidationError(_('ID ya en uso'))
+        return new_id
+
+    def clean_delete_id(self, kit_ids):
+        delete_id = self.cleaned_data['device_id']
+        if delete_id not in kit_ids:
+            raise ValidationError(_('ID no registrado'))
+        return delete_id

@@ -32,9 +32,18 @@
     <div class="row pl-3 pt-3">
       <!--TODO modificar lista de devices-->
     </div>
+    <form action="{% url 'config_list' %}" method="post">
+      {% csrf_token %}
+      <div>
+        <input type="submit" name="edit_list" class="btn btn-primary" value="Editar Lista Kits">
+      </div>
+    </form>
+    <div class="pt-5">
+      <p><i><strong>Refresh data:</strong></i></p>
+    </div>  
     <form action="" method="post">
       {% csrf_token %}
-      <div class="pt-3">
+      <div>
         <input type="submit" name="refresh_devices" class="btn btn-primary" value="Refrescar info kits">
       </div>
     </form>

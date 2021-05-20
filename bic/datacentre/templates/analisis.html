@@ -3,12 +3,18 @@
 
   {% block title %}
   <title>Bike Intelligence Centre</title>
+  <style>
+    .popover-body {
+      min-width: 276px;
+    }
+  </style>
   {% endblock %}
   {% block section_title %} <h2>Mapa de calor de rutas</h2> {% endblock %}
   {% block content %}
   {% endblock %}
   {% block map %}
   <div id="map" style="width: 100%; height: 80%"></div>
+  
   <a id="export-png" class="btn btn-default"><i class="fa fa-download"></i> Download PNG</a>
   <a id="image-download" download="map.png"></a>
   {% endblock %}

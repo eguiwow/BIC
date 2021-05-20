@@ -37,16 +37,17 @@ def check_devices():
                     new_sensor.save()   
                 # Sacamos los datos para efectuar la nueva medida (Measurement)            
                 measurements = Measurement.objects.filter(sensor=Sensor.objects.get(pk=id_sensor)).filter(device=device).filter(time=timestamp) # Si es measurement nuevo --> creamos nuevo registro
-                if not measurements:# Si no es measurement nuevo no hacemos nada
+                if not measurements: # Si es measurement nuevo --> guardamos
                     new_meas = Measurement(sensor = Sensor.objects.get(pk=id_sensor), device=device, units=unit, value=value, point=sensor_point, time=timestamp)
                     new_meas.save()
-                else:
+                    print(readings)
+                else: # Si no es measurement nuevo no hacemos nada
                     print("NO HAY MEASUREMENTS NUEVOS") # TODO que esto se indique en la GUI
                 reading = {timestamp, id_sensor, sensor_name, value}
                 readings.append(reading)
         else:
             print("NOT a 200 answer code") #TODO handle this exception better
 
-        print(readings)
+        
         
 
