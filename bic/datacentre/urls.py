@@ -7,6 +7,7 @@ router = routers.DefaultRouter()
 router.register(r'gpx_tracks', views.GPX_trackViewSet)
 router.register(r'kml_tracks', views.KML_lstringViewSet)
 router.register(r'measurements', views.MeasurementViewSet)
+router.register(r'dtours', views.DtourViewSet)
 
 urlpatterns = [
     path('datacentre', views.index , name='index'),

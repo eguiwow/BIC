@@ -48,6 +48,7 @@ def check_devices():
         else:
             print("NOT a 200 answer code") #TODO handle this exception better
 
-        
-        
+# generar los tracks con la info de la API SC        
+def generate_tracks():
+    return ""
 

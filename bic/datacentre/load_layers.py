@@ -10,7 +10,7 @@ from django.contrib.gis.geos import GEOSGeometry, LineString, WKTWriter
 from django.contrib.gis.gdal import DataSource
 from django.contrib.gis.measure import D, Distance
 from django.contrib.gis.db.models.functions import Length
-from .models import GPX_track, GPX_trackpoint , GPX_waypoint, KML_lstring
+from .models import GPX_track, GPX_trackpoint , GPX_waypoint, KML_lstring, Dtour
 from .utils import parse_gpx
 
 
@@ -39,6 +39,12 @@ def load_gpx_lm(verbose=True):
 # Solo carga tracks, si queremos trackpts, wpts, etc. hay que cambiar el método
 def load_gpx(verbose=True):
     # gpx may be a track or segment.
+    kml_tracks = KML_lstring.objects.all()
+    polys = [] # lista para guardar los polys con los q hacer el ST_Diff
+    for track in kml_tracks:
+        polys.append(track.poly)
+    intersected = False
+
     # start_time, end_time = gpx.get_time_bounds()
     dir_gpx_data = Path("/home/eguiwow/github/BIC/bic/datacentre/data/gpx") # Directorio donde están de momento guardados los GPXs
     for filepath in dir_gpx_data.glob( '*.gpx' ):
@@ -52,6 +58,29 @@ def load_gpx(verbose=True):
         distance = lstring.length
         new_track = GPX_track(name=filepath.name, start_time=data[0], end_time=data[1], distance=distance, mlstring=data[2])
         new_track.save()
+        mltrack = GEOSGeometry(data[2], srid=4326)
+        # Generar Dtours
+        # LSTRING (TRACK), POLYS(BIDEGORRIS), lstring.length
+        if polys:
+            for i in polys: # sacamos cada poly de la lista
+                if mltrack.intersects(i):# if they intersect --> then do the .difference()
+                    intersected = True
+                    mltrack = mltrack.difference(i) # Guardamos el resultante como nuevo track y guardamos solo al final
+            if intersected:                
+                dtour = mltrack # Difference = Track - Poly                
+                
+                # Calcular distancia dtours
+                dtour.transform(3035)
+                dtour_length = 0
+                for lstring in dtour:
+                    dtour_length += lstring.length
+                ratio_dtour_to_track = (dtour_length/distance)*100
+                dtour = Dtour(track= new_track, mlstring = dtour, distance=dtour_length, ratio=ratio_dtour_to_track).save()
+                pr_update = "Uploading DTOURs associated to..." + str(new_track)
+                print(pr_update)
+                intersected = False
+
+
 
 
 # # # # # # #

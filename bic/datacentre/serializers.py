@@ -2,7 +2,7 @@
 # https://medium.com/swlh/build-your-first-rest-api-with-django-rest-framework-e394e39a482c 
 
 from rest_framework import serializers
-from .models import GPX_track, KML_lstring, Measurement
+from .models import GPX_track, KML_lstring, Measurement, Dtour
 
 class GPX_trackSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -18,3 +18,8 @@ class MeasurementSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Measurement
         fields = ('value', 'units', 'point', 'time', 'sensor_id', 'device_id')
+
+class DtourSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Dtour
+        fields = ('mlstring', 'ratio', 'distance')

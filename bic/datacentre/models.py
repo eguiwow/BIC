@@ -1,7 +1,5 @@
 from django.contrib.gis.db import models
 
-
-
 ########################################
 ################ KML ###################
 ########################################
@@ -141,6 +139,16 @@ class GPX_trackpoint(models.Model):
     # Returns the string representation of the model.
     def __str__(self):
         return self.name
+
+# Dtours Tracks-Bidegorris
+class Dtour(models.Model):
+    track = models.ForeignKey(GPX_track, on_delete=models.CASCADE, null=True)
+    distance = models.FloatField(null=True)
+    ratio = models.FloatField(null=True)
+
+    # GeoDjango-field <-> (MultiLineString)
+    mlstring = models.MultiLineStringField()
+
 
 # Configuración de la página
 class Config(models.Model):

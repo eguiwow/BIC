@@ -5,7 +5,7 @@ from django.contrib.gis.geos import Point, Polygon, GEOSGeometry # For lazy geom
 from django.utils import timezone
 
 from .forms import DateTimeRangeBBoxForm, ConfigForm, ConfigDevicesForm
-from .models import GPX_file, GPX_track, KML_lstring, Measurement, Sensor, Config, SCK_device
+from .models import GPX_file, GPX_track, KML_lstring, Measurement, Sensor, Config, SCK_device, Dtour
 from .utils import tracklist_to_geojson, empty_geojson, get_dtours, get_lista_puntos, measurements_to_geojson
 from .sck_api import check_devices
 
@@ -15,7 +15,7 @@ import time
 
 # REST
 from rest_framework import viewsets
-from .serializers import GPX_trackSerializer, KML_lstringSerializer, MeasurementSerializer
+from .serializers import GPX_trackSerializer, KML_lstringSerializer, MeasurementSerializer, DtourSerializer
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -28,27 +28,20 @@ def index(request):
     # Retrieve the tracks
     gpx_tracks = GPX_track.objects.all()
     kml_tracks = KML_lstring.objects.all() 
-    polys = [] # lista para guardar los polys con los q hacer el ST_Diff
-    # RETRIEVE already buffered BIDEGORRIS
-    bidegorris = tracklist_to_geojson(kml_tracks, "poly")    
+    dtour_tracks = Dtour.objects.all()
     
     # Retrieve config
     config = Config.objects.get(name="base_config")
-
-    # Llenamos la lista de bidegorris poligonizados
-    for track in kml_tracks:
-        polys.append(track.poly)
-
-    # Calculamos dtours con los bidegorris = difference from track and bidegorri (mlstrings)
-    dtours = get_dtours(gpx_tracks, polys)
-
-    # RETRIEVE ALL tracks = stored GPX tracks (mlstrings)
+    
+    # RETRIEVE tracks
+    gj_bidegorris = tracklist_to_geojson(kml_tracks, "poly")    
     gj_tracks = tracklist_to_geojson(gpx_tracks, "mlstring")
+    gj_dtours = tracklist_to_geojson(dtour_tracks, "mlstring_d")
 
     # ~| Center & Zoom from Zaratamap |~
     # -- coords bilbao en lon/lat --
     # -- [ 43.270200001993764,-2.9456500000716574] --> Cambiadas al pasarlas como parámetros --
-    context = { "gj_tracks": gj_tracks,"gj_dtours": dtours, "gj_bidegorris": bidegorris,\
+    context = { "gj_tracks": gj_tracks,"gj_dtours": gj_dtours, "gj_bidegorris": gj_bidegorris,\
     'center': [config.lon, config.lat],'zoom':config.zoom}
     return render(request, 'index.html', context)
 
@@ -175,9 +168,7 @@ def consulta(request):
     kml_tracks = KML_lstring.objects.all()
     bidegorris = tracklist_to_geojson(kml_tracks, "poly")
     consulta_vacia = 0 # para alerta por consulta vacía
-    polys = []
-    for track in kml_tracks:
-        polys.append(track.poly)         
+    dtour_l = []
     sensor_air = Sensor.objects.get(name= "PMS5003_AVG-PM1") # Sensor PM 2.5
     sensor_noise = Sensor.objects.get(name= "ICS43432 - Noise") # Sensor Noise (dBA)
     sensor_temp = Sensor.objects.get(name= "SHT31 - Temperature") # Sensor Temperatura (ºC)
@@ -186,9 +177,6 @@ def consulta(request):
     # If this is a POST request then process the Form data
     # Sacamos los tracks correspondientes de la consulta 
     if request.method == 'POST':
-
-        # Refresh Sensors' Values
-        # check_devices()
 
         # Create a form instance and populate it with data from the request (binding):
         form = DateTimeRangeBBoxForm(request.POST)
@@ -216,7 +204,14 @@ def consulta(request):
             # Filtro de rango de tiempo + Filtro espacial (BBox)
             # INFO: Ahora mismo, el bbox tiene que contener enteramente el track para mostrarlo (pensar si es así la mejor manera)
             tracks = GPX_track.objects.filter(end_time__range=[dates[0], dates[1]]).filter(mlstring__contained=geom)
-            gj_tracks = tracklist_to_geojson(tracks,"mlstring")            
+            for t in tracks:
+                dtour_qs = Dtour.objects.filter(track=t)
+                if dtour_qs:
+                    for d in dtour_qs:
+                        dtour_l.append(d)
+            gj_dtours = tracklist_to_geojson(dtour_l, "mlstring_d")
+            gj_tracks = tracklist_to_geojson(tracks,"mlstring")     
+
             measurements_air = Measurement.objects.filter(sensor=sensor_air).filter(time__range=[dates[0], dates[1]]).filter(point__contained=geom)
             measurements_noise = Measurement.objects.filter(sensor=sensor_noise).filter(time__range=[dates[0], dates[1]]).filter(point__contained=geom)
             measurements_temp = Measurement.objects.filter(sensor=sensor_temp).filter(time__range=[dates[0], dates[1]]).filter(point__contained=geom)
@@ -224,12 +219,9 @@ def consulta(request):
             gj_noise = measurements_to_geojson(measurements_noise)
             gj_temp = measurements_to_geojson(measurements_temp)
 
-
             if not tracks:
-                gj_dtours = empty_geojson()
                 consulta_vacia = 1
             else:
-                gj_dtours = get_dtours(tracks, polys)
                 consulta_vacia = 0
 
             context = { 'form': form, 'consulta_vacia': consulta_vacia,\
@@ -268,9 +260,12 @@ def analisis(request):
     config = Config.objects.get(name="base_config")
 
     gpx_tracks = GPX_track.objects.all()
-    kml_tracks = KML_lstring.objects.all() 
+    kml_tracks = KML_lstring.objects.all()
+    dtour_tracks = Dtour.objects.all()
+ 
     bidegorris = tracklist_to_geojson(kml_tracks, "poly") # Buffered Bidegorris   
     gj_points = tracklist_to_geojson(gpx_tracks, "point") # Puntos de los tracks para Heatmap
+    gj_dtours = tracklist_to_geojson(dtour_tracks, "mlstring_d")
     
     # Parte de get datos cont. acústica y atmosférica
     sensor_air = Sensor.objects.get(name= "PMS5003_AVG-PM1") # Sensor PM 2.5
@@ -287,7 +282,7 @@ def analisis(request):
     gj_temp = measurements_to_geojson(measurements_temp)
 
     
-    context = { "gj_tracks": gj_points,"gj_dtours": gj_vacio, "gj_bidegorris": bidegorris,\
+    context = { "gj_tracks": gj_points,"gj_dtours": gj_dtours, "gj_bidegorris": bidegorris,\
     "gj_air": gj_air,"gj_noise": gj_noise, "gj_temp": gj_temp,\
     'center': [config.lon, config.lat],'zoom':config.zoom}
 
@@ -311,3 +306,7 @@ class KML_lstringViewSet(viewsets.ModelViewSet):
 class MeasurementViewSet(viewsets.ModelViewSet):
     queryset = Measurement.objects.all().order_by('time')
     serializer_class = MeasurementSerializer 
+
+class DtourViewSet(viewsets.ModelViewSet):
+    queryset = Dtour.objects.all().order_by('distance')
+    serializer_class = DtourSerializer 

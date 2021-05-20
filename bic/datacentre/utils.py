@@ -1,8 +1,7 @@
-from django.contrib.gis.geos import GEOSGeometry # For lazy geometries
 from django.core.exceptions import ValidationError
-from django.contrib.gis.geos import LineString, MultiLineString, Point, MultiPoint
-from django.contrib.gis.db.models.functions import Length
+from django.contrib.gis.geos import GEOSGeometry, LineString, MultiLineString, Point, MultiPoint
 from django.contrib.gis.measure import D, Distance
+from django.contrib.gis.db.models.functions import Length
 from .models import KML_lstring
 import gpxpy
 
@@ -29,7 +28,7 @@ def tracklist_to_geojson(tracks, geom_name):
             #Añadimos a la lista el geojson pertinente
             if geom_name == "poly":
                 gj_tracks.append(GEOSGeometry(track.poly, srid=4326).geojson) 
-            elif geom_name == "mlstring":
+            elif geom_name == "mlstring" or geom_name == "mlstring_d":
                 gj_tracks.append(GEOSGeometry(track.mlstring, srid=4326).geojson) 
             elif geom_name == "lstring":
                 gj_tracks.append(GEOSGeometry(track.lstring, srid=4326).geojson)
@@ -56,6 +55,9 @@ def tracklist_to_geojson(tracks, geom_name):
                 if geom_name == "mlstring": # Si es bidegorri no metemos el tiempo en PROPERTIES
                     timestamp = track.end_time
                     prop_dict = { 'length' : str(length), 'time' : str(timestamp) }
+                elif geom_name == "mlstring_d":
+                    ratio = track.ratio
+                    prop_dict = { 'length' : str(length), 'ratio' : str(ratio) }
                 else:
                     prop_dict = { 'length' : str(length) }
                 gj_tracks = addProperties(gj_tracks, prop_dict)
@@ -139,16 +141,14 @@ def get_dtours(tracks, polys):
                 gj_dtours.append("\"geometry\": " + dtour.geojson)
                 gj_dtours.append(",")
                 
+                # PROPERTIES
                 # Calcular distancia dtours
                 dtour.transform(3035)
                 dtour_length = 0
                 for lstring in dtour:
                     dtour_length += lstring.length
-                # dtour_length = dtour.length
-                #dtour_length = dtour_geos.length # Length del dtour
                 ratio_dtour_to_track = (dtour_length/track_length)*100
                 
-                # PROPERTIES
                 prop_dict = { 'length' : str(dtour_length), 'ratio' : str(ratio_dtour_to_track) }
                 gj_dtours = addProperties(gj_dtours, prop_dict)                
 
