@@ -4,8 +4,8 @@ from rest_framework import routers
 # API routing
 # https://medium.com/swlh/build-your-first-rest-api-with-django-rest-framework-e394e39a482c 
 router = routers.DefaultRouter()
-router.register(r'gpx_tracks', views.GPX_trackViewSet)
-router.register(r'kml_tracks', views.KML_lstringViewSet)
+router.register(r'tracks', views.TrackViewSet)
+router.register(r'bikelanes', views.BikeLaneViewSet)
 router.register(r'measurements', views.MeasurementViewSet)
 router.register(r'dtours', views.DtourViewSet)
 

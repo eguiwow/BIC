@@ -2,7 +2,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.gis.geos import GEOSGeometry, LineString, MultiLineString, Point, MultiPoint
 from django.contrib.gis.measure import D, Distance
 from django.contrib.gis.db.models.functions import Length
-from .models import KML_lstring
+from .models import BikeLane, Dtour, Trackpoint
 import gpxpy
 
 # Returns an empty but formatted GeoJSON
@@ -12,7 +12,7 @@ def empty_geojson():
     formatted_geojson = ''.join(gj_tracks) 
     return formatted_geojson
 
-# Given a list of tracks and a geom_name --> returns a formatted GeoJSON containing those tracks
+# Given a list of tracks and its definition --> returns a formatted GeoJSON containing those tracks
 # with the corresponding Feature for the geom_name
 # mlstring --> MULTILINESTRING
 # lstring --> LINESTRING
@@ -26,16 +26,22 @@ def tracklist_to_geojson(tracks, geom_name):
             #Inicio de una Feature
             gj_tracks.append("{\"type\": \"Feature\",\"geometry\": ") 
             #Añadimos a la lista el geojson pertinente
-            if geom_name == "poly":
+            if geom_name == "bidegorris":
                 gj_tracks.append(GEOSGeometry(track.poly, srid=4326).geojson) 
-            elif geom_name == "mlstring" or geom_name == "mlstring_d":
-                gj_tracks.append(GEOSGeometry(track.mlstring, srid=4326).geojson) 
-            elif geom_name == "lstring":
+            elif geom_name == "tracks" or geom_name == "dtours":
+                if track.mlstring:
+                    gj_tracks.append(GEOSGeometry(track.mlstring, srid=4326).geojson) 
+                else:
+                    gj_tracks.append(GEOSGeometry(track.lstring, srid=4326).geojson) 
+            elif geom_name == "bidegorris_lstring":
                 gj_tracks.append(GEOSGeometry(track.lstring, srid=4326).geojson)
-            elif geom_name == "point":
+            elif geom_name == "points":
                 del gj_tracks[-1:]
                 cont = 0
-                puntos_track = get_lista_puntos(track) # Devolver Multipoints
+                if track.device != None:
+                    puntos_track = get_trkpts(track)
+                else:
+                    puntos_track = get_lista_puntos(track) # Devolver Multipoints
                 for punto in puntos_track:
                     if cont == 1: # quitamos la mitad de los puntos
                         gj_tracks.append("{\"type\": \"Feature\",\"geometry\": ") 
@@ -94,7 +100,7 @@ def measurements_to_geojson(measurements):
             # PROPERTIES ()
             gj_measurements.append(",")  
             value = measurement.value
-            units = measurement.units
+            units = measurement.sensor.units
             timestamp = measurement.time 
             prop_dict = { 'value' : str(value), 'units' : units, 'time' : str(timestamp) }
             gj_measurements = addProperties(gj_measurements, prop_dict)
@@ -167,7 +173,7 @@ def get_dtours(tracks, polys):
     return geojson_d
 
 def get_polygonized_bidegorris():
-    kml_tracks = KML_lstring.objects.all() 
+    kml_tracks = BikeLane.objects.all() 
     polys = []
 
     # Llenamos la lista de bidegorris poligonizados
@@ -175,6 +181,13 @@ def get_polygonized_bidegorris():
         polys.append(track.poly)
     
     return polys
+
+def get_trkpts(track):
+    lista_puntos = []
+    trackpoints = Trackpoint.objects.filter(track=track)
+    for trackpoint in trackpoints:
+        lista_puntos.append(trackpoint.point)
+    return lista_puntos
 
 # Given a list of geojson strs and a properties {}, adds the properties to the geojson list
 def addProperties(geojson, properties):
@@ -188,6 +201,28 @@ def addProperties(geojson, properties):
     props_str = ''.join(props)
     geojson.append(props_str)
     return geojson
+
+# Given a list of polys, a mlstring and , new_track --> calc dtours from that track
+def calc_dtours(polys, geom, new_track):
+    geom.transform(4326)
+    intersected = False
+    if polys:
+        for i in polys: # sacamos cada poly de la lista
+            if geom.intersects(i):# if they intersect --> then do the .difference()
+                intersected = True
+                geom = geom.difference(i) # Guardamos el resultante como nuevo track y guardamos solo al final
+        if intersected:                
+            dtour = geom # Difference = Track - Poly                
+            dtour.transform(3035)
+            dtour_length = 0
+            for lstring in dtour:
+                dtour_length += lstring.length
+            ratio_dtour_to_track = (dtour_length/geom.length)*100
+            dtour = Dtour(track= new_track, mlstring = dtour, distance=dtour_length, ratio=ratio_dtour_to_track).save()
+            pr_update = "Uploading DTOURs associated to..." + str(new_track)
+            print(pr_update)
+            intersected = False
+
 
 # def get_multipoint_from_track(gpx):
 #     # gpx es una instancia de GPX_track

@@ -2,16 +2,16 @@
 # https://medium.com/swlh/build-your-first-rest-api-with-django-rest-framework-e394e39a482c 
 
 from rest_framework import serializers
-from .models import GPX_track, KML_lstring, Measurement, Dtour
+from .models import Track, BikeLane, Measurement, Dtour
 
-class GPX_trackSerializer(serializers.HyperlinkedModelSerializer):
+class TrackSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = GPX_track
+        model = Track
         fields = ('name', 'mlstring', 'start_time', 'end_time', 'distance')
 
-class KML_lstringSerializer(serializers.HyperlinkedModelSerializer):
+class BikeLaneSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = KML_lstring
+        model = BikeLane
         fields = ('name', 'lstring', 'distance')
 
 class MeasurementSerializer(serializers.HyperlinkedModelSerializer):

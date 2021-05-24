@@ -1,7 +1,7 @@
 from django.contrib.gis.db import models
 
 ########################################
-################ KML ###################
+############### KML/GPX ################
 ########################################
 
 # Fichero KML fuente
@@ -17,60 +17,6 @@ class KML_file(models.Model):
     )
     def __str__(self):
         return self.gpx_name
-
-# Componentes LineString del KML
-class KML_lstring(models.Model):
-    # Django fields corresponding to 
-    # layer [3D LineString] of kml
-    name = models.CharField(max_length=50, null=True)
-    distance = models.FloatField(null=True)
-    #time = models.DateTimeField()
-
-    # GeoDjango-field <-> (LineString) + Polygon (for buffered bidegorri)
-    lstring = models.LineStringField()
-    poly = models.PolygonField(null=True)
-
-
-    # Returns the string representation of the model.
-    def __str__(self):
-        return self.name
-
-
-########################################
-############## SENSORS #################
-########################################
-
-class SCK_device(models.Model):
-    sck_id = models.IntegerField(primary_key=True) # ID provided by SCPlatform
-    name = models.CharField(max_length=50, null=True)
-    # TODO cómo meter tracks de dispositivo -> GPX_track u otro modelo    
-    def __str__(self):
-        return self.name
-
-# Modelo que recoge los sensores de SCK + los que queramos meter en un futuro
-# Hay que proveer un ID diferente al que da SCK para sensores nuevos    
-class Sensor(models.Model):    
-    sensor_id = models.IntegerField(primary_key=True) # ID provided by SCPlatform
-    name = models.CharField(max_length=50)
-    description = models.CharField(max_length=140)
-
-    def __str__(self):
-        return self.name
-
-class Measurement(models.Model):
-    sensor = models.ForeignKey(Sensor, on_delete=models.CASCADE)
-    device = models.ForeignKey(SCK_device, on_delete=models.CASCADE)
-    time  = models.DateTimeField(null=True)
-    value = models.FloatField(null=True)
-    units = models.CharField(max_length=50)
-    point = models.PointField()
-    
-    def __str__(self):
-        return self.units
-
-########################################
-################ GPX ###################
-########################################
 
 # Fichero GPX fuente
 # desde https://github.com/jedie/django-for-runners/blob/master/src/for_runners/models/gpx.py
@@ -88,24 +34,34 @@ class GPX_file(models.Model):
         return self.gpx_name
 
 
-# Para punto INICIAL y FINAL del track
-class GPX_waypoint(models.Model):
-    # Django fields corresponding to 
-    # layer [waypoints] of gpx
+########################################
+############## SENSORS #################
+########################################
+
+class SCK_device(models.Model):
+    sck_id = models.IntegerField(primary_key=True) # ID provided by SCPlatform
     name = models.CharField(max_length=50, null=True)
-    time = models.DateTimeField(null=True)
-    lon = models.FloatField(null=True)
-    lat = models.FloatField(null=True)
-
-    # GeoDjango-field <-> (Point)
-    point = models.PointField()
-
-    # Returns the string representation of the model.
+    # TODO cómo meter tracks de dispositivo -> Track u otro modelo    
     def __str__(self):
         return self.name
 
+# Modelo que recoge los sensores de SCK + los que queramos meter en un futuro
+# Hay que proveer un ID diferente al que da SCK para sensores nuevos    
+class Sensor(models.Model):    
+    sensor_id = models.IntegerField(primary_key=True) # ID provided by SCPlatform
+    name = models.CharField(max_length=50)
+    description = models.CharField(max_length=140)
+    units = models.CharField(max_length=50, null=True)
+
+    def __str__(self):
+        return self.name
+
+########################################
+############### Tracks #################
+########################################
+
 # Colección de <trkpt>
-class GPX_track(models.Model):
+class Track(models.Model):
     # Django fields corresponding to 
     # layer [tracks] of gpx
     name = models.CharField(max_length=50, null=True)
@@ -114,25 +70,36 @@ class GPX_track(models.Model):
     distance = models.FloatField(null=True)
     device = models.ForeignKey(SCK_device, on_delete=models.CASCADE, null=True)
 
-    # GeoDjango-field <-> (MultiLineString)
-    mlstring = models.MultiLineStringField()
-    
+    # GeoDjango-field <-> (MultiLineString or LineString) 
+    mlstring = models.MultiLineStringField(null=True)
+    lstring = models.LineStringField(null=True)
+
     # Returns the string representation of the model.
     def __str__(self):
         return self.name
 
-# Points dentro de un track: <trkpt>
-class GPX_trackpoint(models.Model):
+# Componentes LineString del KML
+class BikeLane(models.Model):
     # Django fields corresponding to 
-    # layer [trackpoints] of gpx
+    # layer [3D LineString] of kml
     name = models.CharField(max_length=50, null=True)
+    distance = models.FloatField(null=True)
+    #time = models.DateTimeField()
 
-    track_id = models.ForeignKey(GPX_track, on_delete=models.CASCADE)
-    lon = models.FloatField()
-    lat = models.FloatField()
-    ele = models.FloatField(null=True)
-    time = models.DateTimeField(null=True)
+    # GeoDjango-field <-> (MultiLineString or LineString) + Polygon (for buffered bidegorri)
+    mlstring = models.MultiLineStringField(null=True)
+    lstring = models.LineStringField(null=True)
+    poly = models.PolygonField(null=True)
 
+    # Returns the string representation of the model.
+    def __str__(self):
+        return self.name
+
+
+# Points dentro de un track: <trkpt>
+class Trackpoint(models.Model):
+    track = models.ForeignKey(Track, on_delete=models.CASCADE)
+    time = models.DateTimeField(null=True) 
     # GeoDjango-field <-> (Point)
     point = models.PointField()
 
@@ -142,13 +109,28 @@ class GPX_trackpoint(models.Model):
 
 # Dtours Tracks-Bidegorris
 class Dtour(models.Model):
-    track = models.ForeignKey(GPX_track, on_delete=models.CASCADE, null=True)
+    track = models.ForeignKey(Track, on_delete=models.CASCADE, null=True)
     distance = models.FloatField(null=True)
     ratio = models.FloatField(null=True)
 
     # GeoDjango-field <-> (MultiLineString)
     mlstring = models.MultiLineStringField()
 
+########################################
+############### Others #################
+########################################
+
+
+class Measurement(models.Model):
+    sensor = models.ForeignKey(Sensor, on_delete=models.CASCADE)
+    device = models.ForeignKey(SCK_device, on_delete=models.CASCADE)
+    trkpoint = models.ForeignKey(Trackpoint, on_delete=models.CASCADE, null=True)
+    time  = models.DateTimeField(null=True)
+    value = models.FloatField(null=True)
+    point = models.PointField()
+    
+    def __str__(self):
+        return self.units
 
 # Configuración de la página
 class Config(models.Model):
@@ -158,3 +140,7 @@ class Config(models.Model):
     lat = models.FloatField()
     zoom = models.FloatField()
     devices = models.ManyToManyField(SCK_device)
+
+    def __str__(self):
+        return self.name
+    

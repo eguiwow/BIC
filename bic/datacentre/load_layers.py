@@ -10,8 +10,8 @@ from django.contrib.gis.geos import GEOSGeometry, LineString, WKTWriter
 from django.contrib.gis.gdal import DataSource
 from django.contrib.gis.measure import D, Distance
 from django.contrib.gis.db.models.functions import Length
-from .models import GPX_track, GPX_trackpoint , GPX_waypoint, KML_lstring, Dtour
-from .utils import parse_gpx
+from .models import Track, BikeLane, Dtour
+from .utils import parse_gpx, calc_dtours
 
 
 # # # # # # #
@@ -19,7 +19,7 @@ from .utils import parse_gpx
 # # # # # # #
 
 # Mapear atributos modelo Django contra fields del layer del DataSource 
-gpx_track_mapping = {
+track_mapping = {
     'mlstring':'MultiLineString',
 }
 
@@ -31,54 +31,33 @@ def load_gpx_lm(verbose=True):
     dir_gpx_data = Path("/home/eguiwow/github/BIC/bic/datacentre/data/gpx") # Directorio donde están de momento guardados los GPXs
     for filepath in dir_gpx_data.glob( '*.gpx' ):
         print(filepath)
-        lm = LayerMapping(GPX_track, str(filepath), gpx_track_mapping, layer=2, transform=False) # Layer = 2 -> Layer = track de un GPX
+        lm = LayerMapping(Track, str(filepath), track_mapping, layer=2, transform=False) # Layer = 2 -> Layer = track de un GPX
         lm.save(strict=False, verbose = verbose) # strict = True antes. Esto lo que hace es que si hay un fallo para la ejecución
 
 # Recorre la carpeta datacentre/data/gpx e introduce en la BD los tracks de los GPX 
 # Sin usar LayerMapping
 # Solo carga tracks, si queremos trackpts, wpts, etc. hay que cambiar el método
 def load_gpx(verbose=True):
-    # gpx may be a track or segment.
-    kml_tracks = KML_lstring.objects.all()
-    polys = [] # lista para guardar los polys con los q hacer el ST_Diff
+
+    kml_tracks = BikeLane.objects.all()
+    polys = [] 
     for track in kml_tracks:
         polys.append(track.poly)
-    intersected = False
 
     # start_time, end_time = gpx.get_time_bounds()
     dir_gpx_data = Path("/home/eguiwow/github/BIC/bic/datacentre/data/gpx") # Directorio donde están de momento guardados los GPXs
     for filepath in dir_gpx_data.glob( '*.gpx' ):
-        print(filepath)
         gpx_file = open(filepath, 'r')
         data = parse_gpx(gpx_file)
-        # Alternativa a .length
-        # distance = Length(data[2])
         lstring = GEOSGeometry(data[2], srid=4326)
         lstring.transform(3035) # Proyección europea EPSG:3035 https://epsg.io/3035 
-        distance = lstring.length
-        new_track = GPX_track(name=filepath.name, start_time=data[0], end_time=data[1], distance=distance, mlstring=data[2])
+        lstring.length
+        new_track = Track(name=filepath.name, start_time=data[0], end_time=data[1], distance=lstring.length, mlstring=data[2])
         new_track.save()
-        mltrack = GEOSGeometry(data[2], srid=4326)
-        # Generar Dtours
-        # LSTRING (TRACK), POLYS(BIDEGORRIS), lstring.length
-        if polys:
-            for i in polys: # sacamos cada poly de la lista
-                if mltrack.intersects(i):# if they intersect --> then do the .difference()
-                    intersected = True
-                    mltrack = mltrack.difference(i) # Guardamos el resultante como nuevo track y guardamos solo al final
-            if intersected:                
-                dtour = mltrack # Difference = Track - Poly                
-                
-                # Calcular distancia dtours
-                dtour.transform(3035)
-                dtour_length = 0
-                for lstring in dtour:
-                    dtour_length += lstring.length
-                ratio_dtour_to_track = (dtour_length/distance)*100
-                dtour = Dtour(track= new_track, mlstring = dtour, distance=dtour_length, ratio=ratio_dtour_to_track).save()
-                pr_update = "Uploading DTOURs associated to..." + str(new_track)
-                print(pr_update)
-                intersected = False
+        pr_update = "Uploading TRACK ..." + str(new_track)
+        print(pr_update)
+
+        calc_dtours(polys, lstring, new_track)
 
 
 
@@ -97,7 +76,7 @@ def get_feat_property(feat):
 # Dada una ruta a un archivo KML --> introduce en la BD los linestrings de los KML 
 # https://medium.com/@kitcharoenpoolperm/geodjango-import-data-from-kml-file-de110dba1f60 
 def load_kml(verbose=True):
-    # Ruta al archivo que queremos introducir en la BD KML_lstrings
+    # Ruta al archivo que queremos introducir en la BD BikeLanes
     kml_file = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data', 'kml', 'bidegorris.kml'),)
     # Reading Data by DataSource
     ds = DataSource(kml_file)
@@ -116,7 +95,7 @@ def load_kml(verbose=True):
                     lstring = GEOSGeometry(wkt_w.write(geom.geos), srid=4326)
                     lstring.transform(3035)
                     dist = lstring.length
-                    line = KML_lstring.objects.create(
+                    line = BikeLane.objects.create(
                         name = property['name'],
                         distance = dist,
                         lstring = lstring,
