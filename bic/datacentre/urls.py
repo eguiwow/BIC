@@ -10,9 +10,10 @@ router.register(r'measurements', views.MeasurementViewSet)
 router.register(r'dtours', views.DtourViewSet)
 
 urlpatterns = [
-    path('datacentre', views.index , name='index'),
-    path('bic_project', views.project, name= 'project'),
-    path('query', views.consulta, name= 'consulta'),
+    path('datacentre', views.datacentre , name='datacentre'),
+    path('movilidad', views.movilidad , name='movilidad'),
+    path('bic_proyecto', views.proyecto, name= 'proyecto'),
+    path('consulta', views.consulta, name= 'consulta'),
     path('analisis', views.analisis, name= 'analisis'),
     path('config', views.config, name= 'config'),
     path('config-list', views.config_list, name= 'config_list'),

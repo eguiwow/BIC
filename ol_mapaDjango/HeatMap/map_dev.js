@@ -438,8 +438,6 @@ var displayFeatureInfo = function (pixel, coords) {
         info.push(timestamp);
       }
     }
-    // Parte de info
-    document.getElementById('info').innerHTML = 'FeatureName' + info.join(', ') || '(unknown)';
     map.getTarget().style.cursor = 'pointer';
     // Parte de PopUp
     var element = popup.getElement();
@@ -500,7 +498,6 @@ var displayFeatureInfo = function (pixel, coords) {
     $(element).popover('show');
 
   } else {
-    document.getElementById('info').innerHTML = '&nbsp;';
     map.getTarget().style.cursor = '';
   }
   // saca la ruta de la URL

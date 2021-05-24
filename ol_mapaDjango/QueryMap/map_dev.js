@@ -387,10 +387,8 @@ var displayFeatureInfo = function (pixel) {
     for (i = 0, ii = features.length; i < ii; ++i) {
       info.push(features[i].get('name'));
     }
-    document.getElementById('info').innerHTML = info.join(', ') || '(unknown)';
     map.getTarget().style.cursor = 'pointer';
   } else {
-    document.getElementById('info').innerHTML = '&nbsp;';
     map.getTarget().style.cursor = '';
   }
   var loc = window.location.pathname;

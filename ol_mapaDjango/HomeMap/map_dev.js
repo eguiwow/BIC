@@ -283,8 +283,6 @@ var displayFeatureInfo = function (pixel, coords) {
         ratioChanged = true;
       }
     }
-    // Parte de info
-    document.getElementById('info').innerHTML = 'FeatureName' + info.join(', ') || '(unknown)';
     map.getTarget().style.cursor = 'pointer';
     // Parte de PopUp
     var element = popup.getElement();
@@ -315,8 +313,7 @@ var displayFeatureInfo = function (pixel, coords) {
       });
     }
     $(element).popover('show');
-  } else {
-    document.getElementById('info').innerHTML = '&nbsp;';
+  } else { // No hay info en las features
     map.getTarget().style.cursor = '';
   }
 };

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load static %} 
+
+  {% block section_title %} <h2 class="pt-2">Proyecto</h2> {% endblock %}
+  {% block content %}
+  <div class="container">
+    <div clas="row">
+      <div class="col-5">
+        <h4> Bike Intelligence Centre [BIC] </h4>
+        <p> {Qué es} </p>
+        <p> {De dónde viene (dipu)} </p>
+        <p> {Necesidad movilidad sostenible --> Next Generation EU} </p>
+      </div>
+      <div class="col">
+        <img  src="{% static 'images/bicicleta.png' %}" style="max-height:70px;max-width:70px ;" alt="bici_logo">
+      </div>
+    </div>
+    <div>
+      <h3> Bike Intelligence Device [BID] </h3>
+      <p> {Qué es} </p>
+      <p> {SCK -> fablabBCN} </p>
+    </div>
+    <div>
+      <h3> ¿Cómo funciona? </h3>
+      <p> {breve explicación} </p>
+      <p> {SCK -> fablabBCN} </p>
+    </div>
+    <div>
+      <h3> Compromiso open-source </h3>
+      <p> {Fundamentos código abierto proyecto} </p>
+      <p> {ciencia ciudadana} </p>
+      <p> {herramientas os usadas + repo} </p>
+    </div>
+  </div>
+  {% endblock %}
+

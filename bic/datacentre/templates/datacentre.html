@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load static %} 
+
+  {% block section_title %} <h2 class="pt-2">Bike Intelligence Centre</h2> {% endblock %}
+  {% block content %}
+  <div class="pt-5 pl-5 row">
+    <div class="col">
+      <a href="{% url 'movilidad' %}"> 
+      <img  src="{% static 'images/bicicleta.png' %}" class="pl-4" style="max-height:70px;max-width:70px ;" alt="bici_logo">
+      </a>
+      <p>Movilidad</p>
+      <i><small>Bidegorris, desvíos, tramos frecuentes...</small></i>
+    </div>
+    <div class="col">
+      <a href="{% url 'analisis' %}"> 
+        <img  src="{% static 'images/bicicleta.png' %}" class="pl-4" style="max-height:70px;max-width:70px ;" alt="bici_logo">
+      </a>
+      <p>Calidad ambiental</p>
+      <i><small>Contaminación atmosférica y acústica, temperatura...</small></i>
+    </div>
+    <div class="col">
+      <a href="{% url 'consulta' %}"> 
+        <img  src="{% static 'images/bicicleta.png' %}" class="pl-4" style="max-height:70px;max-width:70px ;" alt="bici_logo">
+      </a>
+      <p>Consulta</p>
+      <i><small>Consulta la actividad en Bizkaia</small></i>
+    </div>
+  </div>
+  <div class="pt-5 pl-5 row">
+    <div class="col">
+      <a href="{% url 'proyecto' %}"> 
+        <img  src="{% static 'images/bicicleta.png' %}" class="pl-4" style="max-height:70px;max-width:70px ;" alt="bici_logo">
+      </a>
+      <p>Proyecto</p>
+      <i><small>Conoce más sobre el proyecto</small></i>
+    </div>
+    <div class="col">
+      <a href="api"> 
+        <img  src="{% static 'images/bicicleta.png' %}" class="pl-4" style="max-height:70px;max-width:70px ;" alt="bici_logo">
+      </a>
+      <p>API</p>
+      <i><small>Visita y prueba nuestra API</small></i>
+    </div>
+    <div class="col">
+      <a href="{% url 'config' %}"> 
+        <img  src="{% static 'images/bicicleta.png' %}" class="pl-4" style="max-height:70px;max-width:70px ;" alt="bici_logo">
+      </a>
+      <p>Configuración</p>
+      <i><small>Configuración de parámetros del datacentre</small></i>
+    </div>
+  </div>
+  {% endblock %}
+  {% block aftermap %}
+
+  <!-- Zona Variables ocultas -->
+  <var id="zoom" hidden> {{zoom}} </var>
+  <var id="center" hidden> {{center}} </var>
+  <var id="json_tracks" hidden> {{gj_tracks}} </var>
+  <var id="json_dtours" hidden> {{gj_dtours}} </var>
+  <var id="json_bidegorris" hidden> {{gj_bidegorris}} </var>
+  <!-- /Zona Variables ocultas -->
+  <div class="col text-center">
+
+  </div>
+  <script src="{% static 'js/map.js' %}"></script>        
+  {% endblock %}

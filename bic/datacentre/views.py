@@ -21,7 +21,11 @@ from .serializers import TrackSerializer, BikeLaneSerializer, MeasurementSeriali
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # VISTA PRINCIPAL: mapa de rutas por capas + acceso a datos #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-def index(request):
+def datacentre(request):
+    return render(request, 'datacentre.html')
+
+
+def movilidad(request):
     # Retrieve config
     config = Config.objects.get(name="base_config")
 
@@ -43,14 +47,14 @@ def index(request):
     # -- [ 43.270200001993764,-2.9456500000716574] --> Cambiadas al pasarlas como parámetros --
     context = { "gj_tracks": gj_tracks,"gj_dtours": gj_dtours, "gj_bidegorris": gj_bidegorris,\
     'center': [config.lon, config.lat],'zoom':config.zoom}
-    return render(request, 'index.html', context)
+    return render(request, 'movilidad.html', context)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Vista del PROYECTO: En qué consiste? De dónde surge? Cuál es su propósito?  #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 # TODO implementar 
-def project(request):
-    return render(request, 'project.html')
+def proyecto(request):
+    return render(request, 'proyecto.html')
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Vista de CONFIGURACIÓN: Configurar center mapa y más  #
@@ -169,9 +173,9 @@ def consulta(request):
     bidegorris = tracklist_to_geojson(kml_tracks, "bidegorris")
     consulta_vacia = 0 # para alerta por consulta vacía
     dtour_l = []
-    sensor_air = Sensor.objects.get(name= "PMS5003_AVG-PM1") # Sensor PM 2.5
-    sensor_noise = Sensor.objects.get(name= "ICS43432 - Noise") # Sensor Noise (dBA)
-    sensor_temp = Sensor.objects.get(name= "SHT31 - Temperature") # Sensor Temperatura (ºC)
+    sensor_air = Sensor.objects.get(sensor_id= 87) # Sensor PM 2.5
+    sensor_noise = Sensor.objects.get(sensor_id= 53) # Sensor Noise (dBA)
+    sensor_temp = Sensor.objects.get(sensor_id= 55) # Sensor Temperatura (ºC)
 
 
     # If this is a POST request then process the Form data
