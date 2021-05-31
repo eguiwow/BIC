@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 {% load static %} 
+{% load i18n %}
 
-  {% block section_title %} <h2 class="pt-2">Configuración</h2> {% endblock %}
+  {% block section_title %} <h2 class="pt-2">{% translate 'Configuración' %}</h2> {% endblock %}
   {% block aftermap %}
-  <div class="float-right p-2"><p><strong><i>Editar lista kits</i></strong></div>
-  <h3 class="pt-2">BIDs desplegados (IDs)</h3>
+  <div class="float-right p-2"><p><strong><i>{% translate 'Editar lista kits' %}</i></strong></div>
+  <h3 class="pt-2">{% translate 'BIDs desplegados (IDs)' %}</h3>
   <div class="pt-2 pl-2">
     {% if kits %}
       {% for k in kits %}
@@ -18,8 +19,8 @@
           {{form.as_p}}
         </div>    
         <div class="pt-3">
-          <input type="submit" name="anyadir_device" class="btn btn-primary" value="Añadir Device">
-          <input type="submit" name="eliminar_device" class="btn btn-primary" value="Eliminar Device">
+          <input type="submit" name="anyadir_device" class="btn btn-primary" value="{% translate 'Añadir Device' %}">
+          <input type="submit" name="eliminar_device" class="btn btn-primary" value="{% translate 'Eliminar Device' %}">
         </div>
       </form>
       </div>

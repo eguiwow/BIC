@@ -6,10 +6,9 @@ from django.utils.translation import ugettext_lazy as _
 from .models import Config
 
 class DateInput(forms.DateTimeInput):
-    # Esta línea comentada hace que salga en formato HTML5 pero sin valor por defecto!
     input_type = 'datetime-local'
 
-# Formulario para Consulta de tracks
+# Formulario para Consulta espaciotemporal de tracks
 class DateTimeRangeBBoxForm(forms.Form):
     since_datetime = forms.DateTimeField(widget=DateInput, help_text=_("Desde cuándo"))
     until_datetime = forms.DateTimeField(widget=DateInput, help_text=_("Hasta cuándo"))
@@ -36,7 +35,7 @@ class DateTimeRangeBBoxForm(forms.Form):
         dates = [date1, date2]
         return dates
 
-# Formulario para Consulta de tracks
+# Formulario para cambio de centro mapa
 class ConfigForm(forms.Form):
     center_lon = forms.DecimalField(help_text=_("Centro del mapa (Longitud [-180 a 180])"))
     center_lat = forms.DecimalField(help_text=_("Centro del mapa (Latitud)[-90 a 90]"))
@@ -48,6 +47,7 @@ class ConfigForm(forms.Form):
         zoom = self.cleaned_data['center_zoom']
         print(lon)
         print(lat)
+        print(zoom)
         # TODO peta no sé por qué al hacer la comprobación
         # Check lon between 180 & -180; lat between 90 & -90; zoom between 0 & 20
         # if lon > 180 or lon < -180:

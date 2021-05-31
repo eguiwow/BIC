@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %} 
+{% load i18n %}
 
   {% block style %}
   <style>
@@ -23,7 +24,7 @@
     }
   </style>
   {% endblock %}
-  {% block section_title %} <h2 class="pt-2">BIC - Movilidad en Bizkaia</h2> {% endblock %}
+  {% block section_title %} <h2 class="pt-2">BIC - {% translate 'Movilidad' %} </h2> {% endblock %}
   {% block content %}
   {% endblock %}
   {% block map %}
@@ -37,15 +38,23 @@
   <var id="zoom" hidden> {{zoom}} </var>
   <var id="center" hidden> {{center}} </var>
   <var id="json_tracks" hidden> {{gj_tracks}} </var>
+  <var id="json_points" hidden> {{gj_points}} </var>
   <var id="json_dtours" hidden> {{gj_dtours}} </var>
   <var id="json_bidegorris" hidden> {{gj_bidegorris}} </var>
-
   <!-- /Zona Variables ocultas -->
   <!-- Zona archivos -->
-  <div class="col text-center">
-    <button class="btn btn-primary" id="centerButton"> Centrar </button>
-    <!-- Quitar este botón en producción -->
-    <button class="botonDebug" id="debugButton"> Debug </button>
+  <div class="form-row">
+    <div class="col"></div>
+    <div class="col">
+      <button class="btn btn-primary" id="centerButton"> {% translate 'Centrar' %} </button>
+      <button class="botonDebug" id="debugButton"> Debug </button> 
+    </div>
+    <div class="col">
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" id="switchHM" />
+        <label class="form-check-label" for="switchHM"> {% translate 'Modo Heatmap' %} </label>
+      </div>    
+    </div>
   </div>
   <div class="archivos">
    <!-- <h3> Nombres archivos geojson</h3> -->

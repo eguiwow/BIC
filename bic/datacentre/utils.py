@@ -58,10 +58,10 @@ def tracklist_to_geojson(tracks, geom_name):
                 # PROPERTIES (length)
                 gj_tracks.append(",")  
                 length = track.distance
-                if geom_name == "mlstring": # Si es bidegorri no metemos el tiempo en PROPERTIES
+                if geom_name == "tracks": # Si es bidegorri no metemos el tiempo en PROPERTIES
                     timestamp = track.end_time
                     prop_dict = { 'length' : str(length), 'time' : str(timestamp) }
-                elif geom_name == "mlstring_d":
+                elif geom_name == "dtours":
                     ratio = track.ratio
                     prop_dict = { 'length' : str(length), 'ratio' : str(ratio) }
                 else:
@@ -204,6 +204,7 @@ def addProperties(geojson, properties):
 
 # Given a list of polys, a mlstring and , new_track --> calc dtours from that track
 def calc_dtours(polys, geom, new_track):
+    track_length = geom.length
     geom.transform(4326)
     intersected = False
     if polys:
@@ -217,7 +218,7 @@ def calc_dtours(polys, geom, new_track):
             dtour_length = 0
             for lstring in dtour:
                 dtour_length += lstring.length
-            ratio_dtour_to_track = (dtour_length/geom.length)*100
+            ratio_dtour_to_track = (dtour_length/track_length)*100
             dtour = Dtour(track= new_track, mlstring = dtour, distance=dtour_length, ratio=ratio_dtour_to_track).save()
             pr_update = "Uploading DTOURs associated to..." + str(new_track)
             print(pr_update)

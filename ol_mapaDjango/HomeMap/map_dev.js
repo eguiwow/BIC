@@ -8,7 +8,7 @@ import VectorSource from 'ol/source/Vector';
 import {XYZ, OSM, Stamen} from 'ol/source';
 import View from 'ol/View';
 import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style';
-import {Tile as TileLayer, Vector as VectorLayer, Group as LayerGroup} from 'ol/layer';
+import {Tile as TileLayer, Vector as VectorLayer, Group as LayerGroup, Heatmap as HeatMapLayer} from 'ol/layer';
 import LayerSwitcher from 'ol-layerswitcher';
 import Overlay from 'ol/Overlay';
 import {toStringHDMS} from 'ol/coordinate';
@@ -60,7 +60,6 @@ var osm_tiles = new TileLayer({
 });
 
 // ###### Estilo de pintado de Features ######
-// TODO: customizarlo al gusto
 var style = {
   'Point': new Style({
     image: new CircleStyle({
@@ -94,7 +93,7 @@ var style = {
   }),
   'MultiLineString': new Style({
     stroke: new Stroke({
-      color: 'rgba(0, 255, 0, 0.5)', // GREEN
+      color: 'rgba(0, 170, 60, 0.7)', // GREEN
       width: 3,
     }),
   }),
@@ -105,7 +104,7 @@ var style = {
       width: 3,
     }),
     fill: new Fill({
-      color: 'rgba(0, 0, 255, 0.1)',
+      color: 'rgba(0, 0, 255, 0.1)', // BLUE
     }),
   }),
 };
@@ -118,7 +117,7 @@ var style2 = {
   }),
   'MultiLineString': new Style({
     stroke: new Stroke({
-      color: 'rgba(255, 0, 0, 0.5)', //RED
+      color: 'rgba(255, 0, 0, 0.7)', //RED
       width: 3,
     }),
   }),
@@ -139,28 +138,44 @@ var styleFunction2 = function(feature){
 // ###### Variables dinámicas ######
 var botonVentana = document.getElementById('menu-toggle');
 var json_tracks = document.getElementById("json_tracks")
+var json_points = document.getElementById("json_points")
 var json_dtours = document.getElementById("json_dtours")
 var json_bidegorris = document.getElementById("json_bidegorris")
 var gj_tracks = new GeoJSON().readFeatures(JSON.parse(json_tracks.innerText))
+//var gj_points = new GeoJSON().readFeatures(JSON.parse(json_points.innerText))
 var gj_dtours = new GeoJSON().readFeatures(JSON.parse(json_dtours.innerText))
 var gj_bidegorris = new GeoJSON().readFeatures(JSON.parse(json_bidegorris.innerText))
 var botonDebug = document.getElementById("debugButton")
 var botonCenter = document.getElementById("centerButton")
 var botonDownload = document.getElementById('export-png')
+var switchHM = document.getElementById("switchHM")
 // Center & Zoom [From Zaratamap]
 var centerLon = JSON.parse(document.getElementById("center").innerText)[0]
 var centerLat = JSON.parse(document.getElementById("center").innerText)[1]
-var zoom = document.getElementById("zoom").innerText
+var zoom = parseInt(document.getElementById("zoom").innerText)
 // Vars features
 var ratio;
 var ratioChanged = false;
 var length = 0;
+var isTrack = false;
+var timestamp;
+// Vars heatmap
+var blur = 30;
+var radius = 4;
+
 // ###### FIN Variables dinámicas ######
 
 // ###### Layers tipo JSON ######
 var sourceGJTracks = new VectorSource({
   wrapX: false,
   features: gj_tracks
+});
+var sourceGJTrackpoints = new VectorSource({
+  wrapX: false,
+  features: new GeoJSON().readFeatures(json_points.innerText, {
+    dataProjection: "EPSG:4326",
+    featureProjection: "EPSG:4326"
+  })
 });
 var sourceGJDtours = new VectorSource({
   wrapX: false,
@@ -172,12 +187,12 @@ var sourceGJBidegorris = new VectorSource({
 });
 
 var vTracks = new VectorLayer({
-  title: 'tracks',
+  title: 'rutas',
   source: sourceGJTracks,
   style: styleFunction,
 });
 var vDtours = new VectorLayer({
-  title: 'dtours',
+  title: 'desvíos',
   source: sourceGJDtours,
   style: styleFunction2,
 });
@@ -187,36 +202,26 @@ var vBidegorris = new VectorLayer({
   style: styleFunction,
 });
 
-// ###### FIN Layers tipo JSON ######
-
-// ###### Layers tipo KML ######
-// TODO - probar bidegorris.kml desde url de Bizkaia 
-// --> VectorSource()
-// ###### FIN Layers tipo KML ######
-
-// ###### Layers tipo GPX ######
-// var sourceGPX = new VectorSource({
-//   url: 'diego.gpx',
-//   format: new GPX(),
-// });
-
-// var vector_gpx = new VectorLayer({
-//   source: sourceGPX,
-//     style: styleFunction,
-// });
-// ###### FIN Layers tipo GPX ######
-
-// Grupo de Layers para LayerSwitcher
-var grupoVectores = new LayerGroup({
-  title: 'Capas',
-  layers: [vTracks, vDtours, vBidegorris],
+var hmTracks = new HeatMapLayer({
+  title: 'heatmap_rutas',
+  visible: false,
+  source: sourceGJTrackpoints,
+  blur: blur,
+  radius: radius,
+  weight: function (feature) {
+    // Either extract value from feature or do other thing
+    // var name = feature.get('name');
+    // var magnitude = parseFloat(name.substr(2));
+    return 1;
+  },
 })
+
 // LayerSwitcher (para cambiar entre capas) - https://github.com/walkermatt/ol-layerswitcher 
 var layerSwitcher = new LayerSwitcher();
 
 // Mapa
 var map = new Map({
-  layers: [osm_tiles, grupoVectores], // Capas de información geoespacial
+  layers: [osm_tiles, vDtours, vBidegorris, vTracks], // Capas de información geoespacial
   target: document.getElementById('map'), // Elemento HTML donde va situado el mapa
   view: new View({ // Configuración de la vista (centro, proyección del mapa)
     // Esta función es para cuando la proyección usada sea Mercator
@@ -231,33 +236,31 @@ var map = new Map({
 map.addControl(layerSwitcher);
 
 // VARIABLES OVERLAY
-// LonLat de Bilbao
-var pos = [centerLon, centerLat];
+
 // Popup que se va a generar en el html
 var popup = new Overlay({
   element: document.getElementById('popup'),
 });
 map.addOverlay(popup);
 
-// Bilbao marker
-var marker = new Overlay({
-  position: pos,
-  positioning: 'center-center',
-  element: document.getElementById('marker'),
-  stopEvent: false,
-});
-map.addOverlay(marker);
+// // LonLat de Bilbao
+// var pos = [centerLon, centerLat];
+// // Bilbao marker
+// var marker = new Overlay({
+//   position: pos,
+//   positioning: 'center-center',
+//   element: document.getElementById('marker'),
+//   stopEvent: false,
+// });
+// map.addOverlay(marker);
 
-// Bilbao label
-var bilbao = new Overlay({
-  position: pos,
-  element: document.getElementById('bilbao'),
-});
-map.addOverlay(bilbao);
+// // Bilbao label
+// var bilbao = new Overlay({
+//   position: pos,
+//   element: document.getElementById('bilbao'),
+// });
+// map.addOverlay(bilbao);
 
-map.on('click', function (evt) {
-
-});
 
 // ###### Funciones ######
 // Display Feature Info --> example OpenLayers 
@@ -270,17 +273,23 @@ var displayFeatureInfo = function (pixel, coords) {
   map.forEachFeatureAtPixel(pixel, function (feature) {
     features.push(feature);
   });
-  // Guardamos 'length' y 'ratio' cuando haya
-  if (features.length > 0) {
+  if (features.length > 0) { // Hay Features, recogemos los datos
     var info = [];
     for (i = 0, ii = features.length; i < ii; ++i) {
-      length = parseFloat(features[i].get('length')); // Sacamos length track    
-      info.push(length.toFixed(2));
-      if (features[i].get('ratio')){
-        length = parseFloat(features[i].get('length')); // Sacamos length de Dtour 
-        ratio = parseFloat(features[i].get('ratio')); // Sacamos ratio en Dtours
-        info.push(ratio.toFixed(2));
-        ratioChanged = true;
+      if (features[i].get('length')){
+        length = parseFloat(features[i].get('length')); // Sacamos length track / bidegorri / dtour  
+        info.push(length.toFixed(2));
+        if (features[i].get('ratio')){ // Es Dtour
+          length = parseFloat(features[i].get('length')); // Sacamos length de Dtour 
+          ratio = parseFloat(features[i].get('ratio')); // Sacamos ratio en Dtours
+          info.push(ratio.toFixed(2));
+          ratioChanged = true;
+        }
+        if (features[i].get('time')){ // Es Track
+          timestamp = features[i].get('time'); // Sacamos time en track
+          info.push(timestamp);
+          isTrack = true;
+        }
       }
     }
     map.getTarget().style.cursor = 'pointer';
@@ -289,7 +298,7 @@ var displayFeatureInfo = function (pixel, coords) {
     var hdms = toStringHDMS(coords);
 
     popup.setPosition(coords);
-    if (ratioChanged){
+    if (ratioChanged){ // Dtour
       ratioChanged = false;
       $(element).popover("dispose").popover({
         container: element,
@@ -302,15 +311,29 @@ var displayFeatureInfo = function (pixel, coords) {
         '<p>Location: ' + coords[0].toFixed(4) + 'º lon, '+ coords[1].toFixed(4) + 'º lat</p>',
       });
     }else{
-      $(element).popover("dispose").popover({
-        container: element,
-        placement: 'top',
-        animation: false,
-        html: true,
-        content: 
-        '<p>Track\'s length: ' + length.toFixed(2) + 'm</p>'+
-        '<p>Location: ' + coords[0].toFixed(4) + 'º lon, '+ coords[1].toFixed(4) + 'º lat</p>',
-      });
+      if (isTrack){ // Track
+        isTrack = false;
+        $(element).popover("dispose").popover({
+          container: element,
+          placement: 'top',
+          animation: false,
+          html: true,
+          content: 
+          '<p>Track\'s length: ' + length.toFixed(2) + 'm</p>'+
+          '<p>Location: ' + coords[0].toFixed(4) + 'º lon, '+ coords[1].toFixed(4) + 'º lat</p>'+
+          '<p>Date & Time: ' + timestamp.substring(0,19) + '</p>',
+        });
+      }else{ // Bidegorri
+        $(element).popover("dispose").popover({
+          container: element,
+          placement: 'top',
+          animation: false,
+          html: true,
+          content: 
+          '<p>Track\'s length: ' + length.toFixed(2) + 'm</p>'+
+          '<p>Location: ' + coords[0].toFixed(4) + 'º lon, '+ coords[1].toFixed(4) + 'º lat</p>',
+        });
+      }
     }
     $(element).popover('show');
   } else { // No hay info en las features
@@ -322,14 +345,27 @@ var displayFeatureInfo = function (pixel, coords) {
 function CenterMap(long, lati) {
   // map.getView().setCenter(fromLonLat([long, lati]));
   map.getView().setCenter([long, lati]);
-  map.getView().setZoom(13);
+  map.getView().setZoom(zoom);
 }
 
 botonVentana.onclick = function() {
   setTimeout( function() { map.updateSize();}, 200);
-  console.log("AUI");
 };
 
+// Cambio entre Temperatura Heatmap y temperatura puntos
+function normalToHeatmapTracks(){
+  if (switchHM.checked){
+    map.getLayers().getArray()
+      .filter(layer => layer.get('title') === 'rutas')
+      .forEach(layer => map.removeLayer(layer));
+    map.addLayer(hmTracks);
+  }else{
+    map.getLayers().getArray()
+      .filter(layer => layer.get('title') === 'heatmap_rutas')
+      .forEach(layer => map.removeLayer(layer));
+      map.addLayer(vTracks);
+  }
+}
 // ###### FIN Funciones ######
 
 // ###### EVENTOS del mapa ######
@@ -353,14 +389,18 @@ map.on('click', function (evt) {
 // Botón DEBUGGING y PRUEBAS
 botonDebug.onclick = function(){
   var i, ii;
-  console.log("JUJU5");
-  console.log(ratio);
-  console.log(length);   
+  console.log("A");
+  console.log(centerLon)   
+  console.log(centerLat)
+  console.log(zoom)
 };
 // Botón centrar mapa
 botonCenter.onclick = function(){
   CenterMap(centerLon, centerLat);
 };
+switchHM.onchange = function(){
+  normalToHeatmapTracks();
+}
   
 // Botón exportar como PNG
 // https://openlayers.org/en/latest/examples/export-map.html

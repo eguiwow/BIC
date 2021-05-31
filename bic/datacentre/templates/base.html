@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="en" style="max-height: 2000px">
 
@@ -32,10 +33,10 @@
     <div class="bg-light border-right" id="sidebar-wrapper">
       <div class="sidebar-heading"><a href="{% url 'datacentre' %}" class="sidebar-title">Bike Intelligence Centre</a> </div>
       <div class="list-group list-group-flush">
-        <a href="{% url 'movilidad' %}" class="list-group-item list-group-item-action bg-light">Movilidad</a>
-        <a href="{% url 'consulta' %}" class="list-group-item list-group-item-action bg-light">Consulta</a>
-        <a href="{% url 'analisis' %}" class="list-group-item list-group-item-action bg-light">Análisis</a>
-        <a href="{% url 'proyecto' %}" class="list-group-item list-group-item-action bg-light">Proyecto</a>
+        <a href="{% url 'movilidad' %}" class="list-group-item list-group-item-action bg-light">{% translate 'Movilidad' %}</a>
+        <a href="{% url 'analisis' %}" class="list-group-item list-group-item-action bg-light">{% translate 'Análisis' %}</a>
+        <a href="{% url 'consulta' %}" class="list-group-item list-group-item-action bg-light">{% translate 'Consulta' %}</a>
+        <a href="{% url 'proyecto' %}" class="list-group-item list-group-item-action bg-light">{% translate 'Proyecto' %}</a>
       </div>
     </div>
     <!-- /#sidebar-wrapper -->
@@ -56,13 +57,25 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <ul class="navbar-nav ml-auto mt-2 mt-lg-0">
             <li class="nav-item active">
-              <a class="nav-link" href="{% url 'datacentre' %}">Datacentre <span class="sr-only">(current)</span></a>
+              <a class="nav-link" href="{% url 'datacentre' %}">Datacentre </a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="api">API</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'config' %}">Configuración</a>
+              <a class="nav-link" href="{% url 'config' %}">{% translate 'Configuración' %}</a>
+            </li>
+            <li class="nav-item">
+              <strong class="navbar-text">|</strong>
+            </li>
+            <li class="nav-item">
+              <a onclick="changeLanguage(this)" name="en" class="nav-link">EN</a>
+            </li>
+            <li class="nav-item">
+              <a onclick="changeLanguage(this)" name="es" class="nav-link">ES</a>
+            </li>
+            <li class="nav-item">
+              <a onclick="changeLanguage(this)" name="eu" class="nav-link">EU</a>
             </li>
           </ul>
         </div>
@@ -170,7 +183,20 @@
       $("#wrapper").toggleClass("toggled");
     });
   </script>
-
+  <script type="text/javascript">
+    var languages = ["en", "es", "eu"]
+    function changeLanguage(element){
+      var currentURLParameters = window.location.pathname.split("/");
+      if (languages.includes(currentURLParameters[1])){
+        currentURLParameters[1] = element.name;
+        // window.location = "http://127.0.0.1:8000" + currentURLParameters.join("/")
+        window.location = currentURLParameters.join("/")
+      }else{
+        // window.location = "http://127.0.0.1:8000/" + element.name + currentURLParameters.join("/")
+        window.location = element.name + currentURLParameters.join("/")
+      }
+    }
+  </script>
 </body>
 
 </html>

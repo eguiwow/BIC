@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %} 
+{% load i18n %}
 
   {% block style %}
   <style>
@@ -8,7 +9,7 @@
     }
   </style>
   {% endblock %}
-  {% block section_title %} <h2 class="pt-2">BIC - Calidad ambiental rutas</h2> {% endblock %}
+  {% block section_title %} <h2 class="pt-2">BIC - {% translate 'Calidad ambiental rutas' %}</h2> {% endblock %}
   {% block content %}
   {% endblock %}
   {% block map %}
@@ -26,34 +27,23 @@
   <var id="json_tracks" hidden> {{gj_tracks}} </var>
   <var id="json_dtours" hidden> {{gj_dtours}} </var>
   <var id="json_bidegorris" hidden> {{gj_bidegorris}} </var>
-  {% if gj_air %}
   <var id="json_air" hidden> {{gj_air}} </var>
-  {% else %}
-    <p> NO se han pasado los datos de aire </p>     
-  {% endif %}
-  {% if gj_noise %}
   <var id="json_noise" hidden> {{gj_noise}} </var>
-  {% else %}
-    <p> NO se han pasado los datos de ruido </p>     
-  {% endif %}
-  {% if gj_temp %}
   <var id="json_temp" hidden> {{gj_temp}} </var>
-  {% else %}
-    <p> NO se han pasado los datos de temperatura </p>     
-  {% endif %}
+  
 
   <!-- /Zona Variables ocultas -->
   <!-- Zona archivos -->
   <div class="form-row">
     <div class="col"></div>
     <div class="col">
-      <button class="btn btn-primary" id="centerButton"> Centrar </button>
+      <button class="btn btn-primary" id="centerButton"> {% translate 'Centrar' %} </button>
       <button class="botonDebug" id="debugButton"> Debug </button> 
     </div>
     <div class="col">
       <div class="form-check form-switch">
         <input class="form-check-input" type="checkbox" id="switchHM" />
-        <label class="form-check-label" for="switchHM">Modo Heatmap</label>
+        <label class="form-check-label" for="switchHM"> {% translate 'Modo Heatmap' %} </label>
       </div>    
     </div>
   </div>

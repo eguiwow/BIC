@@ -17,41 +17,11 @@ import Feature from 'ol/Feature';
 import {useGeographic, transform, fromLonLat} from 'ol/proj'
 import {getAllTextContent, parse} from 'ol/xml';
 
-// Pequeña intro sobre Proyecciones en OpenLayers
-// ----------------------------------------------
-// OpenLayers trabaja por defecto con proyección EPSG:3857 (Mercator)
-// Nuestros datos (coordenadas lon;lat) están en proyección EPSG:4326 (WGS-84)
-// Tenemos que hacer la conversión en la vista (View)
-// Si nuestro mapa base (TileLayer) está en proyección Mercator se ajustará en función del cambio que se haga
-// Hay veces que al introducir una Feature puede no mostrarse. Puede tener que ver con su proyección
-
-// [EN DUDA] Esta función CAMBIA la proyección de Mercator (EPSG:3857) --> WGS-84
-// useGeographic();
-
 // ###### Variables NO dinámicas ######
-
 // Mapas y servidor de mapas cortesía de... 
 var attributions =
   '<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> ' +
   '<a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>';
-
-// TODO - reactivar server de OpenMapTiles
-// var openmap_tiles = new TileLayer({
-//   source: new XYZ({
-//     attributions: attributions,
-//     //URL correspondiente al servidor de mapas alojado en este mismo servidor
-//     url: 'http://localhost:8080/styles/klokantech-basic/{z}/{x}/{y}.png',
-//     maxZoom: 20,
-//   }),
-// });
-//
-// Tiles de Stamen
-// var raster = new TileLayer({
-//   source: new Stamen({
-//     layer: 'toner',
-//   }),
-// });
-
 
 // Tiles de OpenStreetMaps
 var osm_tiles = new TileLayer({
@@ -142,7 +112,7 @@ var style = {
   }),
   'MultiLineString': new Style({
     stroke: new Stroke({
-      color: '#0f0', // GREEN
+      color: 'rgba(0, 170, 60, 0.7)', // GREEN
       width: 3,
     }),
   }),
@@ -253,7 +223,7 @@ var switchHM = document.getElementById("switchHM")
 // Center & Zoom [From Zaratamap]
 var centerLon = JSON.parse(document.getElementById("center").innerText)[0]
 var centerLat = JSON.parse(document.getElementById("center").innerText)[1]
-var zoom = document.getElementById("zoom").innerText
+var zoom = parseInt(document.getElementById("zoom").innerText)
 // Vars features
 var ratio;
 var length = 0;
@@ -298,13 +268,13 @@ var sourceGJTemp = new VectorSource({
 });
 
 var vTracks = new VectorLayer({
-  title: 'tracks',
+  title: 'rutas',
   visible: false,
   source: sourceGJTracks,
   style: styleFunction,
 });
 var vDtours = new VectorLayer({
-  title: 'dtours',
+  title: 'desvíos',
   visible: false,
   source: sourceGJDtours,
   style: styleFunction2,
@@ -336,19 +306,7 @@ var vTemp = new VectorLayer({
 
 // HeatMap - https://openlayers.org/en/latest/apidoc/module-ol_layer_Heatmap-Heatmap.html 
 // Source = Point[]
-var hmTracks = new HeatMapLayer({
-  title: 'heatmap_tracks',
-  visible: false,
-  source: sourceGJTracks,
-  blur: blur,
-  radius: radius,
-  weight: function (feature) {
-    // Either extract value from feature or do other thing
-    // var name = feature.get('name');
-    // var magnitude = parseFloat(name.substr(2));
-    return 1;
-  },
-})
+
 var hmTemp = new HeatMapLayer({
   title: 'heatmap_temperatura',
   visible: false,
@@ -365,13 +323,13 @@ var hmTemp = new HeatMapLayer({
 // ###### FIN Layers tipo JSON ######
 
 var grupoPolucion = new LayerGroup({
-  title: 'Polución',
+  title: 'Contaminación',
   layers: [vAir, vNoise],  
 })
 
 // Grupo de Layers para LayerSwitcher
 var grupoVectores = new LayerGroup({
-  title: 'Capas',
+  title: 'Movilidad',
   layers: [vTracks, vDtours, vBidegorris],
 })
 // LayerSwitcher (para cambiar entre capas) - https://github.com/walkermatt/ol-layerswitcher 
@@ -379,7 +337,7 @@ var layerSwitcher = new LayerSwitcher();
 
 // Mapa
 var map = new Map({
-  layers: [osm_tiles, hmTracks, grupoVectores, grupoPolucion, vTemp], // Capas de información geoespacial
+  layers: [osm_tiles, grupoVectores, grupoPolucion, vTemp], // Capas de información geoespacial
   target: document.getElementById('map'), // Elemento HTML donde va situado el mapa
   view: new View({ // Configuración de la vista (centro, proyección del mapa)
     // Esta función es para cuando la proyección usada sea Mercator
@@ -454,7 +412,7 @@ var displayFeatureInfo = function (pixel, coords) {
         content: 
         '<p>Value: ' + value.toFixed(2) + units + '</p>'+
         '<p>Location: ' + coords[0].toFixed(4) + 'º lon, '+ coords[1].toFixed(4) + 'º lat</p>'+
-        '<p>Time: ' + timestamp.substring(0,19) + '</p>',
+        '<p>Date & Time: ' + timestamp.substring(0,19) + '</p>',
       });      
     }else{ 
       if (ratioChanged){ // Dtour
@@ -480,7 +438,7 @@ var displayFeatureInfo = function (pixel, coords) {
             content: 
             '<p>Track\'s length: ' + length.toFixed(2) + 'm</p>'+
             '<p>Location: ' + coords[0].toFixed(4) + 'º lon, '+ coords[1].toFixed(4) + 'º lat</p>'+
-            '<p>Time: ' + timestamp.substring(0,19) + '</p>',
+            '<p>Date & Time: ' + timestamp.substring(0,19) + '</p>',
           });
         }else{ // Bidegorri
           $(element).popover("dispose").popover({
@@ -499,19 +457,13 @@ var displayFeatureInfo = function (pixel, coords) {
 
   } else {
     map.getTarget().style.cursor = '';
-  }
-  // saca la ruta de la URL
-  // var loc = window.location.pathname;
-  // console.log(loc);
-  
+  }  
 };
 // Centrar Mapa 
 // src: https://gis.stackexchange.com/questions/112892/change-openlayers-3-view-center
 function CenterMap(long, lati) {
-  // console.log("Long: " + long + " Lat: " + lati);
-  // map.getView().setCenter(fromLonLat([long, lati]));
   map.getView().setCenter([long, lati]);
-  map.getView().setZoom(13);
+  map.getView().setZoom(zoom);
 }
 
 // Cambio entre Temperatura Heatmap y temperatura puntos
@@ -527,7 +479,6 @@ function normalToHeatmapTemp(){
       .forEach(layer => map.removeLayer(layer));
       map.addLayer(vTemp);
   }
-  
 }
 // ###### FIN Funciones ######
 

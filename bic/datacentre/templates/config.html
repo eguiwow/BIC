@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 {% load static %} 
+{% load i18n %}
 
-  {% block section_title %} <h2 class="pt-2">Configuración</h2> {% endblock %}
+  {% block section_title %} <h2 class="pt-2">{% translate 'Configuración' %}</h2> {% endblock %}
   {% block aftermap %}
-  <div class="float-right p-2"><p><strong><i>Parámetros y dispositivos de la plataforma</i></strong></div>
-  <h3 class="pt-2">Centro del mapa</h3>
+  <div class="float-right p-2"><p><strong><i>{% translate 'Parámetros y dispositivos de la plataforma' %}</i></strong></div>
+  <h3 class="pt-2">{% translate 'Centro del mapa' %}</h3>
   <form action="" method="post">
     {% csrf_token %}
     <div class="pt-2">
@@ -12,14 +13,14 @@
     </div>
     <div class="form-row">
       <div class="pl-3 pt-2 text-center">
-        <input type="submit" name="center" class="btn btn-primary" value="Cambiar centro">
+        <input type="submit" name="center" class="btn btn-primary" value="{% translate 'Cambiar centro' %}">
       </div>
     </div>
   </form>
   <div class="pt-4">
-    <p><i><strong>INFO proyección:</strong> la proyección actual con la que se han calculado los datos de la longitud de las rutas es la proyección europea (EPSG:3035). En caso de necesitar implementar este proyecto en una zona diferente, contactar con el soporte técnico a través del correo <a href="">ander.eguiluz@opendeusto.es</a></i></p>
+    <p><i><strong>{% translate 'INFO proyección:' %}</strong> {% translate 'la proyección actual con la que se han calculado los datos de la longitud de las rutas es la proyección europea (EPSG:3035). En caso de necesitar implementar este proyecto en una zona diferente, contactar con el soporte técnico a través del correo ' %}<a href="">ander.eguiluz@opendeusto.es</a></i></p>
   </div>
-  <h3 class="pt-2">BIDs desplegados (IDs)</h3>
+  <h3 class="pt-2">{% translate 'BIDs desplegados (IDs)' %}</h3>
   <div class="pt-2 pl-2">
     {% if kits %}
       {% for k in kits %}
@@ -32,16 +33,16 @@
     <form action="{% url 'config_list' %}" method="post">
       {% csrf_token %}
       <div>
-        <input type="submit" name="edit_list" class="btn btn-primary" value="Editar Lista Kits">
+        <input type="submit" name="edit_list" class="btn btn-primary" value="{% translate 'Editar Lista Kits' %}">
       </div>
     </form>
     <div class="pt-5">
-      <p><i><strong>Refresh data:</strong></i></p>
+      <p><i><strong>{% translate 'Refrescar información:' %}</strong></i></p>
     </div>  
     <form action="" method="post">
       {% csrf_token %}
       <div>
-        <input type="submit" name="refresh_devices" class="btn btn-primary" value="Refrescar info kits">
+        <input type="submit" name="refresh_devices" class="btn btn-primary" value="{% translate 'Refrescar info kits' %}">
       </div>
     </form>
   </div>  

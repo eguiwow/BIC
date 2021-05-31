@@ -1,36 +1,51 @@
 {% extends "base.html" %}
 {% load static %} 
+{% load i18n %}
 
-  {% block section_title %} <h2 class="pt-2">Proyecto</h2> {% endblock %}
+  {% block section_title %} <h2 class="pt-2">{% translate 'Proyecto' %}</h2> {% endblock %}
   {% block content %}
-  <div class="container">
-    <div clas="row">
-      <div class="col-5">
-        <h4> Bike Intelligence Centre [BIC] </h4>
-        <p> {Qué es} </p>
-        <p> {De dónde viene (dipu)} </p>
-        <p> {Necesidad movilidad sostenible --> Next Generation EU} </p>
-      </div>
-      <div class="col">
-        <img  src="{% static 'images/bicicleta.png' %}" style="max-height:70px;max-width:70px ;" alt="bici_logo">
-      </div>
+  <div class="pt-5 pl-5 row">
+    <div class="col-8">
+      <h3> Bike Intelligence Centre [BIC] </h3>
+      <p> {Qué es} </p>
+      <p> {De dónde viene (dipu)} </p>
+      <p> {Necesidad movilidad sostenible --> Next Generation EU} </p>
     </div>
-    <div>
+    <div class="col">
+      <img  src="{% static 'images/bic_foto_ejemplo.png' %}" style="max-height:200px;max-width:250px ;" alt="bic_ejemplo">
+    </div>
+  </div>  
+  <div class="pt-5 pl-5 row">
+    <div class="col-8">
       <h3> Bike Intelligence Device [BID] </h3>
       <p> {Qué es} </p>
       <p> {SCK -> fablabBCN} </p>
     </div>
-    <div>
+    <div class="col">
+      <img  src="{% static 'images/bicicleta.png' %}" style="max-height:70px;max-width:70px ;" alt="bici_logo">
+    </div>
+  </div>  
+  <div class="pt-5 pl-5 row">
+    <div class="col">
+      <img  src="{% static 'images/flujo_proyecto.png' %}" style="max-height:200px;max-width:250px ;" alt="flujo_proyecto">
+    </div>
+    <div class="col-8">
       <h3> ¿Cómo funciona? </h3>
       <p> {breve explicación} </p>
       <p> {SCK -> fablabBCN} </p>
     </div>
-    <div>
+  </div>  
+  <div class="pt-5 pl-5 row">
+    <div class="col">
+      <img  src="{% static 'images/open_source.jpeg' %}" style="max-height:200px;max-width:250px;" alt="bici_logo">
+    </div>
+    <div class="col-8">
       <h3> Compromiso open-source </h3>
       <p> {Fundamentos código abierto proyecto} </p>
       <p> {ciencia ciudadana} </p>
       <p> {herramientas os usadas + repo} </p>
     </div>
-  </div>
+  </div>  
+
   {% endblock %}
 

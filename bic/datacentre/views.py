@@ -12,11 +12,11 @@ from .sck_api import check_devices
 import datetime
 import json
 import time 
+import math
 
 # REST
 from rest_framework import viewsets
 from .serializers import TrackSerializer, BikeLaneSerializer, MeasurementSerializer, DtourSerializer
-
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # VISTA PRINCIPAL: mapa de rutas por capas + acceso a datos #
@@ -41,18 +41,20 @@ def movilidad(request):
     gj_bidegorris = tracklist_to_geojson(kml_tracks, "bidegorris")    
     gj_tracks = tracklist_to_geojson(tracks, "tracks")
     gj_dtours = tracklist_to_geojson(dtour_tracks, "dtours")
+    gj_points = tracklist_to_geojson(tracks, "points") # Puntos de los tracks para Heatmap
+
 
     # ~| Center & Zoom from Zaratamap |~
     # -- coords bilbao en lon/lat --
     # -- [ 43.270200001993764,-2.9456500000716574] --> Cambiadas al pasarlas como parámetros --
     context = { "gj_tracks": gj_tracks,"gj_dtours": gj_dtours, "gj_bidegorris": gj_bidegorris,\
+    'gj_points': gj_points,\
     'center': [config.lon, config.lat],'zoom':config.zoom}
     return render(request, 'movilidad.html', context)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Vista del PROYECTO: En qué consiste? De dónde surge? Cuál es su propósito?  #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-# TODO implementar 
 def proyecto(request):
     return render(request, 'proyecto.html')
 
@@ -204,7 +206,15 @@ def consulta(request):
             # Creamos bbox partiendo de la entrada de usuario
             bbox = (bbox_sw_lon, bbox_sw_lat, bbox_ne_lon, bbox_ne_lat)
             geom = Polygon.from_bbox(bbox) # (xmin, ymin, xmax, ymax)
+            new_center_lon = float((bbox_sw_lon + bbox_ne_lon) /2 )
+            new_center_lat = float((bbox_sw_lat + bbox_ne_lat) /2 )
             
+            dif_grados = (bbox_ne_lon - bbox_sw_lon)*10000 # diferencia en metros
+            if dif_grados>50:                
+                exponente = math.log((dif_grados/50),2)
+                new_center_zoom = 18-exponente
+            else:
+                new_center_zoom = config.zoom
             # Filtro de rango de tiempo + Filtro espacial (BBox)
             # INFO: Ahora mismo, el bbox tiene que contener enteramente el track para mostrarlo (pensar si es así la mejor manera)
             tracks = Track.objects.filter(end_time__range=[dates[0], dates[1]]).filter(mlstring__contained=geom)
@@ -231,7 +241,7 @@ def consulta(request):
             context = { 'form': form, 'consulta_vacia': consulta_vacia,\
             'gj_tracks': gj_tracks, "gj_dtours": gj_dtours, "gj_bidegorris": bidegorris,\
             "gj_air": gj_air,"gj_noise": gj_noise, "gj_temp": gj_temp,\
-            'center': [config.lon, config.lat],'zoom':config.zoom} 
+            'center': [new_center_lon, new_center_lat],'zoom':new_center_zoom} 
 
             return render(request, 'consulta.html', context)
     
@@ -268,7 +278,7 @@ def analisis(request):
     dtour_tracks = Dtour.objects.all()
  
     bidegorris = tracklist_to_geojson(kml_tracks, "bidegorris") # Buffered Bidegorris   
-    gj_points = tracklist_to_geojson(tracks, "points") # Puntos de los tracks para Heatmap
+    gj_tracks = tracklist_to_geojson(tracks, "tracks")
     gj_dtours = tracklist_to_geojson(dtour_tracks, "dtours")
     
     # Parte de get datos cont. acústica y atmosférica
@@ -278,15 +288,13 @@ def analisis(request):
     measurements_air = Measurement.objects.filter(sensor=sensor_air)
     measurements_noise = Measurement.objects.filter(sensor=sensor_noise)
     measurements_temp = Measurement.objects.filter(sensor=sensor_temp)
-
-    gj_vacio = empty_geojson() # TODO ver si enviar los dtours o no
     
     gj_air = measurements_to_geojson(measurements_air)
     gj_noise = measurements_to_geojson(measurements_noise)
     gj_temp = measurements_to_geojson(measurements_temp)
 
     
-    context = { "gj_tracks": gj_points,"gj_dtours": gj_dtours, "gj_bidegorris": bidegorris,\
+    context = { "gj_tracks": gj_tracks,"gj_dtours": gj_dtours, "gj_bidegorris": bidegorris,\
     "gj_air": gj_air,"gj_noise": gj_noise, "gj_temp": gj_temp,\
     'center': [config.lon, config.lat],'zoom':config.zoom}
 
@@ -314,3 +322,4 @@ class MeasurementViewSet(viewsets.ModelViewSet):
 class DtourViewSet(viewsets.ModelViewSet):
     queryset = Dtour.objects.all().order_by('distance')
     serializer_class = DtourSerializer 
+

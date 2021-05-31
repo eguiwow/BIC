@@ -1,0 +1,240 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-05-30 01:04+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: forms.py:13
+msgid "Desde cuándo"
+msgstr ""
+
+#: forms.py:14
+msgid "Hasta cuándo"
+msgstr ""
+
+#: forms.py:16
+msgid "Punto esquina inferior izquierda"
+msgstr ""
+
+#: forms.py:17
+msgid "Punto esquina inferior derecha"
+msgstr ""
+
+#: forms.py:18
+msgid "Punto esquina superior izquierda"
+msgstr ""
+
+#: forms.py:19
+msgid "Punto esquina superior derecha"
+msgstr ""
+
+#: forms.py:27
+msgid "Fecha inválida - la primera fecha es mayor que la segunda"
+msgstr ""
+
+#: forms.py:33
+msgid "Fecha inválida - rango temporal en tiempo futuro"
+msgstr ""
+
+#: forms.py:40
+msgid "Centro del mapa (Longitud [-180 a 180])"
+msgstr ""
+
+#: forms.py:41
+msgid "Centro del mapa (Latitud)[-90 a 90]"
+msgstr ""
+
+#: forms.py:42
+msgid "Centro del mapa (Zoom)"
+msgstr ""
+
+#: forms.py:68
+msgid "ID ya en uso"
+msgstr ""
+
+#: forms.py:74
+msgid "ID no registrado"
+msgstr ""
+
+#: templates/analisis.html:11
+msgid "Calidad ambiental rutas"
+msgstr ""
+
+#: templates/analisis.html:35 templates/consulta.html:89
+#: templates/movilidad.html:46
+msgid "Centrar"
+msgstr ""
+
+#: templates/analisis.html:41
+msgid "Modo Heatmap"
+msgstr ""
+
+#: templates/base.html:36 templates/datacentre.html:12
+#: templates/movilidad.html:26
+msgid "Movilidad"
+msgstr ""
+
+#: templates/base.html:37
+msgid "Análisis"
+msgstr ""
+
+#: templates/base.html:38 templates/datacentre.html:29
+msgid "Consulta"
+msgstr ""
+
+#: templates/base.html:39 templates/datacentre.html:38
+#: templates/proyecto.html:4
+msgid "Proyecto"
+msgstr ""
+
+#: templates/base.html:66 templates/config.html:4 templates/config_list.html:4
+#: templates/datacentre.html:52
+msgid "Configuración"
+msgstr ""
+
+#: templates/config.html:6
+msgid "Parámetros y dispositivos de la plataforma"
+msgstr ""
+
+#: templates/config.html:7
+msgid "Centro del mapa"
+msgstr ""
+
+#: templates/config.html:15
+msgid "Cambiar centro"
+msgstr ""
+
+#: templates/config.html:20
+msgid "INFO proyección:"
+msgstr ""
+
+#: templates/config.html:20
+msgid ""
+"la proyección actual con la que se han calculado los datos de la longitud de "
+"las rutas es la proyección europea (EPSG:3035). En caso de necesitar "
+"implementar este proyecto en una zona diferente, contactar con el soporte "
+"técnico a través del correo "
+msgstr ""
+
+#: templates/config.html:22 templates/config_list.html:7
+msgid "BIDs desplegados (IDs)"
+msgstr ""
+
+#: templates/config.html:35
+msgid "Editar Lista Kits"
+msgstr ""
+
+#: templates/config.html:39
+msgid "Refrescar información:"
+msgstr ""
+
+#: templates/config.html:44
+msgid "Refrescar info kits"
+msgstr ""
+
+#: templates/config_list.html:6
+msgid "Editar lista kits"
+msgstr ""
+
+#: templates/config_list.html:21
+msgid "Añadir Device"
+msgstr ""
+
+#: templates/config_list.html:22
+msgid "Eliminar Device"
+msgstr ""
+
+#: templates/consulta.html:11
+msgid "Consulta la actividad"
+msgstr ""
+
+#: templates/consulta.html:22
+msgid "Espacial"
+msgstr ""
+
+#: templates/consulta.html:25
+msgid "Temporal"
+msgstr ""
+
+#: templates/consulta.html:31
+msgid "Esquina sudoeste (longitud):"
+msgstr ""
+
+#: templates/consulta.html:36
+msgid "Esquina sudoeste (latitud):"
+msgstr ""
+
+#: templates/consulta.html:41
+msgid "Desde:"
+msgstr ""
+
+#: templates/consulta.html:46
+msgid "Hasta:"
+msgstr ""
+
+#: templates/consulta.html:55
+msgid "Esquina nordeste (longitud):"
+msgstr ""
+
+#: templates/consulta.html:60
+msgid "Esquina nordeste (latitud):"
+msgstr ""
+
+#: templates/consulta.html:66
+msgid "Buscar"
+msgstr ""
+
+#: templates/consulta.html:71
+msgid ""
+"Clicar y seleccionar el área pulsando dos veces para hacer un rectángulo"
+msgstr ""
+
+#: templates/consulta.html:72
+msgid "Seleccionar Área"
+msgstr ""
+
+#: templates/consulta.html:76
+msgid "Consulta en el área y el tiempo seleccionados"
+msgstr ""
+
+#: templates/datacentre.html:13
+msgid "Bidegorris, desvíos, tramos frecuentes..."
+msgstr ""
+
+#: templates/datacentre.html:21
+msgid "Calidad ambiental"
+msgstr ""
+
+#: templates/datacentre.html:22
+msgid "Contaminación atmosférica y acústica, temperatura..."
+msgstr ""
+
+#: templates/datacentre.html:30
+msgid "Consulta la actividad en Bizkaia"
+msgstr ""
+
+#: templates/datacentre.html:39
+msgid "Conoce más sobre el proyecto"
+msgstr ""
+
+#: templates/datacentre.html:46
+msgid "Visita y prueba nuestra API"
+msgstr ""
+
+#: templates/datacentre.html:53
+msgid "Configuración de parámetros del datacentre"
+msgstr ""

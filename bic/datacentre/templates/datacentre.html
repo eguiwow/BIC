@@ -1,52 +1,57 @@
 {% extends "base.html" %}
 {% load static %} 
+{% load i18n %}
 
   {% block section_title %} <h2 class="pt-2">Bike Intelligence Centre</h2> {% endblock %}
   {% block content %}
-  <div class="pt-5 pl-5 row">
-    <div class="col">
+  <div class="pt-5 pl-3 row">
+    <div class="col text-center">
       <a href="{% url 'movilidad' %}"> 
-      <img  src="{% static 'images/bicicleta.png' %}" class="pl-4" style="max-height:70px;max-width:70px ;" alt="bici_logo">
+      <img  src="{% static 'images/bike_lane.jpg' %}" class="" style="max-height:80%;max-width:80% ;"alt="bici_logo">
       </a>
-      <p>Movilidad</p>
-      <i><small>Bidegorris, desvíos, tramos frecuentes...</small></i>
+      <p>
+        <strong>{% translate 'Movilidad' %}</strong><br>
+        <i><small>{% translate 'Bidegorris, desvíos, tramos frecuentes...' %}</small></i>
+      </p>
     </div>
-    <div class="col">
+    <div class="col text-center">
       <a href="{% url 'analisis' %}"> 
-        <img  src="{% static 'images/bicicleta.png' %}" class="pl-4" style="max-height:70px;max-width:70px ;" alt="bici_logo">
+        <img  src="{% static 'images/bike_forest.jpg' %}" style="max-height:80%;max-width:80% ;" alt="bici_logo">
       </a>
-      <p>Calidad ambiental</p>
-      <i><small>Contaminación atmosférica y acústica, temperatura...</small></i>
+      <p>
+        <strong>{% translate 'Calidad ambiental' %}</strong><br>
+        <i><small>{% translate 'Contaminación atmosférica y acústica, temperatura...' %}</small></i>
+      </p>
     </div>
-    <div class="col">
+    <div class="col text-center">
       <a href="{% url 'consulta' %}"> 
-        <img  src="{% static 'images/bicicleta.png' %}" class="pl-4" style="max-height:70px;max-width:70px ;" alt="bici_logo">
+        <img  src="{% static 'images/consulta.jpg' %}" class="" style="max-height:80%;max-width:80% ;" alt="bici_logo">
       </a>
-      <p>Consulta</p>
-      <i><small>Consulta la actividad en Bizkaia</small></i>
+      <p><strong>{% translate 'Consulta' %}</strong><br>
+      <i><small>{% translate 'Consulta la actividad en Bizkaia' %}</small></i></p>
     </div>
   </div>
-  <div class="pt-5 pl-5 row">
-    <div class="col">
+  <div class="pt-5 pl-3 row">
+    <div class="col text-center">
       <a href="{% url 'proyecto' %}"> 
-        <img  src="{% static 'images/bicicleta.png' %}" class="pl-4" style="max-height:70px;max-width:70px ;" alt="bici_logo">
+        <img  src="{% static 'images/bic_ejemplo.png' %}" class="" style="max-height:80%;max-width:80% ;" alt="bici_logo">
       </a>
-      <p>Proyecto</p>
-      <i><small>Conoce más sobre el proyecto</small></i>
+      <p><strong>{% translate 'Proyecto' %}</strong><br>
+      <i><small>{% translate 'Conoce más sobre el proyecto' %}</small></i></p>
     </div>
-    <div class="col">
+    <div class="col text-center">
       <a href="api"> 
-        <img  src="{% static 'images/bicicleta.png' %}" class="pl-4" style="max-height:70px;max-width:70px ;" alt="bici_logo">
+        <img  src="{% static 'images/api.jpg' %}" class="" style="max-height:80%;max-width:80% ;"alt="bici_logo">
       </a>
-      <p>API</p>
-      <i><small>Visita y prueba nuestra API</small></i>
+      <p><strong>API</strong><br>
+      <i><small>{% translate 'Visita y prueba nuestra API' %}</small></i></p>
     </div>
-    <div class="col">
+    <div class="col text-center">
       <a href="{% url 'config' %}"> 
-        <img  src="{% static 'images/bicicleta.png' %}" class="pl-4" style="max-height:70px;max-width:70px ;" alt="bici_logo">
+        <img  src="{% static 'images/config_gear.jpg' %}" class="" style="max-height:80%;max-width:80% ;" alt="bici_logo">
       </a>
-      <p>Configuración</p>
-      <i><small>Configuración de parámetros del datacentre</small></i>
+      <p><strong>{% translate 'Configuración' %}</strong><br>
+      <i><small>{% translate 'Configuración de parámetros del datacentre' %}</small></i></p>
     </div>
   </div>
   {% endblock %}

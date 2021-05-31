@@ -51,7 +51,6 @@ def load_gpx(verbose=True):
         data = parse_gpx(gpx_file)
         lstring = GEOSGeometry(data[2], srid=4326)
         lstring.transform(3035) # Proyección europea EPSG:3035 https://epsg.io/3035 
-        lstring.length
         new_track = Track(name=filepath.name, start_time=data[0], end_time=data[1], distance=lstring.length, mlstring=data[2])
         new_track.save()
         pr_update = "Uploading TRACK ..." + str(new_track)
