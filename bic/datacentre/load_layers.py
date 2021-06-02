@@ -45,7 +45,7 @@ def load_gpx(verbose=True):
         polys.append(track.poly)
 
     # start_time, end_time = gpx.get_time_bounds()
-    dir_gpx_data = Path("/home/eguiwow/github/BIC/bic/datacentre/data/gpx") # Directorio donde están de momento guardados los GPXs
+    dir_gpx_data = Path("/home/eguiwow/github/BIC/bic/datacentre/data/extra_gpx") # Directorio donde están de momento guardados los GPXs
     for filepath in dir_gpx_data.glob( '*.gpx' ):
         gpx_file = open(filepath, 'r')
         data = parse_gpx(gpx_file)

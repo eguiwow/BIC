@@ -140,15 +140,16 @@ var botonVentana = document.getElementById('menu-toggle');
 var json_tracks = document.getElementById("json_tracks")
 var json_points = document.getElementById("json_points")
 var json_dtours = document.getElementById("json_dtours")
+var json_dpoints = document.getElementById("json_dpoints")
 var json_bidegorris = document.getElementById("json_bidegorris")
 var gj_tracks = new GeoJSON().readFeatures(JSON.parse(json_tracks.innerText))
-//var gj_points = new GeoJSON().readFeatures(JSON.parse(json_points.innerText))
 var gj_dtours = new GeoJSON().readFeatures(JSON.parse(json_dtours.innerText))
 var gj_bidegorris = new GeoJSON().readFeatures(JSON.parse(json_bidegorris.innerText))
 var botonDebug = document.getElementById("debugButton")
 var botonCenter = document.getElementById("centerButton")
 var botonDownload = document.getElementById('export-png')
 var switchHM = document.getElementById("switchHM")
+var switchHM2 = document.getElementById("switchHM2")
 // Center & Zoom [From Zaratamap]
 var centerLon = JSON.parse(document.getElementById("center").innerText)[0]
 var centerLat = JSON.parse(document.getElementById("center").innerText)[1]
@@ -160,8 +161,8 @@ var length = 0;
 var isTrack = false;
 var timestamp;
 // Vars heatmap
-var blur = 30;
-var radius = 4;
+var blur = 32;
+var radius = 2;
 
 // ###### FIN Variables dinámicas ######
 
@@ -173,6 +174,13 @@ var sourceGJTracks = new VectorSource({
 var sourceGJTrackpoints = new VectorSource({
   wrapX: false,
   features: new GeoJSON().readFeatures(json_points.innerText, {
+    dataProjection: "EPSG:4326",
+    featureProjection: "EPSG:4326"
+  })
+});
+var sourceGJDtourpoints = new VectorSource({
+  wrapX: false,
+  features: new GeoJSON().readFeatures(json_dpoints.innerText, {
     dataProjection: "EPSG:4326",
     featureProjection: "EPSG:4326"
   })
@@ -215,7 +223,19 @@ var hmTracks = new HeatMapLayer({
     return 1;
   },
 })
-
+var hmDtours = new HeatMapLayer({
+  title: 'heatmap_desvíos',
+  visible: false,
+  source: sourceGJDtourpoints,
+  blur: (blur-25),
+  radius: radius,
+  weight: function (feature) {
+    // Either extract value from feature or do other thing
+    // var name = feature.get('name');
+    // var magnitude = parseFloat(name.substr(2));
+    return 1;
+  },
+})
 // LayerSwitcher (para cambiar entre capas) - https://github.com/walkermatt/ol-layerswitcher 
 var layerSwitcher = new LayerSwitcher();
 
@@ -352,7 +372,7 @@ botonVentana.onclick = function() {
   setTimeout( function() { map.updateSize();}, 200);
 };
 
-// Cambio entre Temperatura Heatmap y temperatura puntos
+// Cambio entre Rutas normal y HM
 function normalToHeatmapTracks(){
   if (switchHM.checked){
     map.getLayers().getArray()
@@ -364,6 +384,21 @@ function normalToHeatmapTracks(){
       .filter(layer => layer.get('title') === 'heatmap_rutas')
       .forEach(layer => map.removeLayer(layer));
       map.addLayer(vTracks);
+  }
+}
+
+// Cambio entre Desvío normal y HM
+function normalToHeatmapDtours(){
+  if (switchHM2.checked){
+    map.getLayers().getArray()
+      .filter(layer => layer.get('title') === 'desvíos')
+      .forEach(layer => map.removeLayer(layer));
+    map.addLayer(hmDtours);
+  }else{
+    map.getLayers().getArray()
+      .filter(layer => layer.get('title') === 'heatmap_desvíos')
+      .forEach(layer => map.removeLayer(layer));
+      map.addLayer(vDtours);
   }
 }
 // ###### FIN Funciones ######
@@ -378,6 +413,17 @@ map.on('pointermove', function (evt) {
   // displayFeatureInfo(pixel);
 });
 
+// Map End
+// var currZoom = map.getView().getZoom();
+// map.on('moveend', function(e) {
+//   var newZoom = map.getView().getZoom();
+//   if (currZoom != newZoom) {
+//     console.log('zoom end, new zoom: ' + newZoom);
+//     currZoom = newZoom;
+//     blur = (zoom/20)+40;
+
+//   }
+// });
 // Click
 map.on('click', function (evt) {  
   displayFeatureInfo(evt.pixel, evt.coordinate);
@@ -389,7 +435,7 @@ map.on('click', function (evt) {
 // Botón DEBUGGING y PRUEBAS
 botonDebug.onclick = function(){
   var i, ii;
-  console.log("A");
+  console.log("ª");
   console.log(centerLon)   
   console.log(centerLat)
   console.log(zoom)
@@ -401,7 +447,9 @@ botonCenter.onclick = function(){
 switchHM.onchange = function(){
   normalToHeatmapTracks();
 }
-  
+switchHM2.onchange = function(){
+  normalToHeatmapDtours();
+}  
 // Botón exportar como PNG
 // https://openlayers.org/en/latest/examples/export-map.html
 botonDownload.onclick = function(){

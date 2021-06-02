@@ -42,13 +42,10 @@ def movilidad(request):
     gj_tracks = tracklist_to_geojson(tracks, "tracks")
     gj_dtours = tracklist_to_geojson(dtour_tracks, "dtours")
     gj_points = tracklist_to_geojson(tracks, "points") # Puntos de los tracks para Heatmap
+    gj_dpoints = tracklist_to_geojson(dtour_tracks, "points") # Puntos de los dtours para Heatmap
 
-
-    # ~| Center & Zoom from Zaratamap |~
-    # -- coords bilbao en lon/lat --
-    # -- [ 43.270200001993764,-2.9456500000716574] --> Cambiadas al pasarlas como parámetros --
     context = { "gj_tracks": gj_tracks,"gj_dtours": gj_dtours, "gj_bidegorris": gj_bidegorris,\
-    'gj_points': gj_points,\
+    'gj_points': gj_points, 'gj_dpoints': gj_dpoints,\
     'center': [config.lon, config.lat],'zoom':config.zoom}
     return render(request, 'movilidad.html', context)
 

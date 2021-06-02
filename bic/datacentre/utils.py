@@ -38,10 +38,13 @@ def tracklist_to_geojson(tracks, geom_name):
             elif geom_name == "points":
                 del gj_tracks[-1:]
                 cont = 0
-                if track.device != None:
-                    puntos_track = get_trkpts(track)
+                if not hasattr(track, 'ratio'):
+                    if track.device != None:
+                        puntos_track = get_trkpts(track)
+                    else: 
+                        puntos_track = get_lista_puntos(track)
                 else:
-                    puntos_track = get_lista_puntos(track) # Devolver Multipoints
+                    puntos_track = get_lista_puntos(track)
                 for punto in puntos_track:
                     if cont == 1: # quitamos la mitad de los puntos
                         gj_tracks.append("{\"type\": \"Feature\",\"geometry\": ") 
@@ -224,26 +227,13 @@ def calc_dtours(polys, geom, new_track):
             print(pr_update)
             intersected = False
 
-
-# def get_multipoint_from_track(gpx):
-#     # gpx es una instancia de GPX_track
-#     track = GEOSGeometry(gpx.mlstring, srid=4326)
-#     track_list_of_points = []
-#     # track es una GEOSGeometry
-#     for ls in track:
-#         for point in ls:
-#             p = Point(point)
-#             track_list_of_points.append(p)
-#     multipoint = MultiPoint(track_list_of_points)
-#     return multipoint
-
-# Prueba por si no se puede con MultiPoint el HeatMap
-def get_lista_puntos(gpx):
-    # gpx es una instancia de GPX_track
-    track = GEOSGeometry(gpx.mlstring, srid=4326)
+# Devuelve lista_puntos partiendo de un track
+def get_lista_puntos(track):
+    # track tiene un atributo .mlstring
+    GEOStrack = GEOSGeometry(track.mlstring, srid=4326)
     track_list_of_points = []
     # track es una GEOSGeometry
-    for ls in track:
+    for ls in GEOStrack:
         for point in ls:
             p = Point(point)
             track_list_of_points.append(p)

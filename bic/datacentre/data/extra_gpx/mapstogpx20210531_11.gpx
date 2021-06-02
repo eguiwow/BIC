@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gpx xmlns="http://www.topografix.com/GPX/1/1" xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3" xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1" creator="mapstogpx.com" version="1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd http://www.garmin.com/xmlschemas/GpxExtensions/v3 http://www.garmin.com/xmlschemas/GpxExtensionsv3.xsd http://www.garmin.com/xmlschemas/TrackPointExtension/v1 http://www.garmin.com/xmlschemas/TrackPointExtensionv1.xsd">
+  <metadata>
+    <link href="http://www.mapstogpx.com">
+      <text>Sverrir Sigmundarson</text>
+    </link>
+    <!--desc>Map data ©2021 Inst. Geogr. Nacional</desc-->
+    <!--copyright author="Google Inc">
+    	<year>2021</year>
+    	<license>https://developers.google.com/maps/terms</license>
+    </copyright-->
+    <!--url>https://www.google.es/maps/dir/Escuela+Universitaria+De+Ingenier%C3%ADa+T%C3%A9cnica+Industrial+De+Bilbao,+Ingeniero+Torres+Quevedo+Plaza,+Bilbao/Poza+Lizentziatuaren+Kalea,+Bilbo,+Bizkaia/Ministerio+de+Empleo+y+Seguridad+Social,+Lopez+de+Haro+D+Diego+Kalea,+Bilbao/@43.2623,-2.9484873,16z/am=t/data=!4m20!4m19!1m5!1m1!1s0xd4e503a6a19d063:0xc21fdb095186c116!2m2!1d-2.949398!2d43.2627309!1m5!1m1!1s0xd4e502865acff15:0xb1f0bbe9a2fc97ca!2m2!1d-2.9395115!2d43.2617747!1m5!1m1!1s0xd4e5027edaee641:0x3f5758e70775dc1e!2m2!1d-2.9383248!2d43.2639049!3e1?shorturl=1&hl=en</url-->
+    <time>2021-05-31T13:06:47Z</time>
+  </metadata>
+  <wpt lat="43.2627309" lon="-2.949398">
+    <name>Escuela Universitaria De Ingeniería Técnica Industrial De Bilbao</name>
+    <desc>Escuela Universitaria De Ingeniería Técnica Industrial De Bilbao, Universidad del País Vasco, Ingeniero Torres Quevedo Plaza, 1, 48013 Bilbao, Biscay, Spain</desc>
+  </wpt>
+  <wpt lat="43.2617747" lon="-2.9395115">
+    <name>Poza Lizentziatuaren Kalea</name>
+    <desc>Poza Lizentziatuaren Kalea, Bilbo, Bizkaia, Spain</desc>
+  </wpt>
+  <wpt lat="43.2639049" lon="-2.9383248">
+    <name>Ministerio de Empleo y Seguridad Social</name>
+    <desc>Ministerio de Empleo y Seguridad Social, Calle Gran Vía Diego López de Haro, 50, 48011 Bilbao, Biscay, Spain</desc>
+  </wpt>
+<trk>
+  <name>Escuela Universitaria De Ingeniería Técnica Industrial De Bilbao to Ministerio de Empleo y Seguridad Social</name>
+  <number>1</number>
+  <trkseg>
+  <trkpt lat="43.2624744" lon="-2.9497338">
+    <name>TP001</name>
+  </trkpt>
+  <trkpt lat="43.26245" lon="-2.94972">
+    <name>TP002</name>
+  </trkpt>
+  <trkpt lat="43.26238" lon="-2.94968">
+    <name>TP003</name>
+  </trkpt>
+  <trkpt lat="43.26233" lon="-2.94962">
+    <name>TP004</name>
+  </trkpt>
+  <trkpt lat="43.26174" lon="-2.94875">
+    <name>TP005</name>
+  </trkpt>
+  <trkpt lat="43.26157" lon="-2.94848">
+    <name>TP006</name>
+  </trkpt>
+  <trkpt lat="43.26116" lon="-2.94782">
+    <name>TP007</name>
+  </trkpt>
+  <trkpt lat="43.26108" lon="-2.9477">
+    <name>TP008</name>
+  </trkpt>
+  <trkpt lat="43.2608" lon="-2.94724">
+    <name>TP009</name>
+  </trkpt>
+  <trkpt lat="43.26072" lon="-2.9471">
+    <name>TP010</name>
+  </trkpt>
+  <trkpt lat="43.26068" lon="-2.94705">
+    <name>TP011</name>
+  </trkpt>
+  <trkpt lat="43.2606809" lon="-2.9470481">
+    <name>TP012</name>
+  </trkpt>
+  <trkpt lat="43.26069" lon="-2.94702">
+    <name>TP013</name>
+  </trkpt>
+  <trkpt lat="43.2607" lon="-2.947">
+    <name>TP014</name>
+  </trkpt>
+  <trkpt lat="43.2607" lon="-2.94699">
+    <name>TP015</name>
+  </trkpt>
+  <trkpt lat="43.26071" lon="-2.94698">
+    <name>TP016</name>
+  </trkpt>
+  <trkpt lat="43.26076" lon="-2.94695">
+    <name>TP017</name>
+  </trkpt>
+  <trkpt lat="43.2608" lon="-2.94693">
+    <name>TP018</name>
+  </trkpt>
+  <trkpt lat="43.26082" lon="-2.94692">
+    <name>TP019</name>
+  </trkpt>
+  <trkpt lat="43.26084" lon="-2.94691">
+    <name>TP020</name>
+  </trkpt>
+  <trkpt lat="43.26087" lon="-2.94689">
+    <name>TP021</name>
+  </trkpt>
+  <trkpt lat="43.26095" lon="-2.94686">
+    <name>TP022</name>
+  </trkpt>
+  <trkpt lat="43.26107" lon="-2.94684">
+    <name>TP023</name>
+  </trkpt>
+  <trkpt lat="43.26116" lon="-2.94682">
+    <name>TP024</name>
+  </trkpt>
+  <trkpt lat="43.26128" lon="-2.94678">
+    <name>TP025</name>
+  </trkpt>
+  <trkpt lat="43.26136" lon="-2.94674">
+    <name>TP026</name>
+  </trkpt>
+  <trkpt lat="43.26151" lon="-2.94669">
+    <name>TP027</name>
+  </trkpt>
+  <trkpt lat="43.26196" lon="-2.9465">
+    <name>TP028</name>
+  </trkpt>
+  <trkpt lat="43.26214" lon="-2.94642">
+    <name>TP029</name>
+  </trkpt>
+  <trkpt lat="43.26237" lon="-2.94633">
+    <name>TP030</name>
+  </trkpt>
+  <trkpt lat="43.26248" lon="-2.94628">
+    <name>TP031</name>
+  </trkpt>
+  <trkpt lat="43.26317" lon="-2.94599">
+    <name>TP032</name>
+  </trkpt>
+  <trkpt lat="43.2632" lon="-2.94598">
+    <name>TP033</name>
+  </trkpt>
+  <trkpt lat="43.2631998" lon="-2.9459829">
+    <name>TP034</name>
+  </trkpt>
+  <trkpt lat="43.26317" lon="-2.94581">
+    <name>TP035</name>
+  </trkpt>
+  <trkpt lat="43.26296" lon="-2.94487">
+    <name>TP036</name>
+  </trkpt>
+  <trkpt lat="43.26272" lon="-2.94385">
+    <name>TP037</name>
+  </trkpt>
+  <trkpt lat="43.26232" lon="-2.94196">
+    <name>TP038</name>
+  </trkpt>
+  <trkpt lat="43.26188" lon="-2.94">
+    <name>TP039</name>
+  </trkpt>
+  <trkpt lat="43.26177" lon="-2.93951">
+    <name>TP040</name>
+  </trkpt>
+  <trkpt lat="43.2617747" lon="-2.9395115">
+    <name>TP041</name>
+  </trkpt>
+  <trkpt lat="43.2617747" lon="-2.9395115">
+    <name>TP042</name>
+  </trkpt>
+  <trkpt lat="43.26172" lon="-2.93926">
+    <name>TP043</name>
+  </trkpt>
+  <trkpt lat="43.2617221" lon="-2.9392576">
+    <name>TP044</name>
+  </trkpt>
+  <trkpt lat="43.26269" lon="-2.93886">
+    <name>TP045</name>
+  </trkpt>
+  <trkpt lat="43.2626944" lon="-2.9388585">
+    <name>TP046</name>
+  </trkpt>
+  <trkpt lat="43.26283" lon="-2.93947">
+    <name>TP047</name>
+  </trkpt>
+  <trkpt lat="43.2628314" lon="-2.9394685">
+    <name>TP048</name>
+  </trkpt>
+  <trkpt lat="43.26284" lon="-2.93947">
+    <name>TP049</name>
+  </trkpt>
+  <trkpt lat="43.26285" lon="-2.93946">
+    <name>TP050</name>
+  </trkpt>
+  <trkpt lat="43.26286" lon="-2.93946">
+    <name>TP051</name>
+  </trkpt>
+  <trkpt lat="43.26287" lon="-2.93946">
+    <name>TP052</name>
+  </trkpt>
+  <trkpt lat="43.26287" lon="-2.93947">
+    <name>TP053</name>
+  </trkpt>
+  <trkpt lat="43.26288" lon="-2.93947">
+    <name>TP054</name>
+  </trkpt>
+  <trkpt lat="43.26289" lon="-2.93947">
+    <name>TP055</name>
+  </trkpt>
+  <trkpt lat="43.2629" lon="-2.93948">
+    <name>TP056</name>
+  </trkpt>
+  <trkpt lat="43.26291" lon="-2.93948">
+    <name>TP057</name>
+  </trkpt>
+  <trkpt lat="43.26292" lon="-2.93949">
+    <name>TP058</name>
+  </trkpt>
+  <trkpt lat="43.26293" lon="-2.9395">
+    <name>TP059</name>
+  </trkpt>
+  <trkpt lat="43.26293" lon="-2.93951">
+    <name>TP060</name>
+  </trkpt>
+  <trkpt lat="43.26294" lon="-2.93951">
+    <name>TP061</name>
+  </trkpt>
+  <trkpt lat="43.26294" lon="-2.93952">
+    <name>TP062</name>
+  </trkpt>
+  <trkpt lat="43.26295" lon="-2.93953">
+    <name>TP063</name>
+  </trkpt>
+  <trkpt lat="43.26295" lon="-2.93954">
+    <name>TP064</name>
+  </trkpt>
+  <trkpt lat="43.26295" lon="-2.93955">
+    <name>TP065</name>
+  </trkpt>
+  <trkpt lat="43.26296" lon="-2.93955">
+    <name>TP066</name>
+  </trkpt>
+  <trkpt lat="43.26296" lon="-2.93956">
+    <name>TP067</name>
+  </trkpt>
+  <trkpt lat="43.26344" lon="-2.93938">
+    <name>TP068</name>
+  </trkpt>
+  <trkpt lat="43.26392" lon="-2.93919">
+    <name>TP069</name>
+  </trkpt>
+  <trkpt lat="43.2639192" lon="-2.9391938">
+    <name>TP070</name>
+  </trkpt>
+  <trkpt lat="43.26389" lon="-2.93907">
+    <name>TP071</name>
+  </trkpt>
+  <trkpt lat="43.26388" lon="-2.93901">
+    <name>TP072</name>
+  </trkpt>
+  <trkpt lat="43.26375" lon="-2.93839">
+    <name>TP073</name>
+  </trkpt>
+  <trkpt lat="43.2637497" lon="-2.9383863">
+    <name>TP074</name>
+  </trkpt>
+  </trkseg>
+</trk>
+</gpx>
