@@ -4,13 +4,14 @@
 # cada layer necesita una tabla 
 import sys, os
 import gpxpy # For manipulating gpx files from python
+import random
 from pathlib import Path
 from django.contrib.gis.utils import LayerMapping
-from django.contrib.gis.geos import GEOSGeometry, LineString, WKTWriter
+from django.contrib.gis.geos import GEOSGeometry, LineString, WKTWriter, Point
 from django.contrib.gis.gdal import DataSource
 from django.contrib.gis.measure import D, Distance
 from django.contrib.gis.db.models.functions import Length
-from .models import Track, BikeLane, Dtour
+from .models import Track, BikeLane, Dtour, SCK_device, Sensor, Measurement
 from .utils import parse_gpx, calc_dtours
 
 
@@ -103,6 +104,37 @@ def load_kml(verbose=True):
                         poly = lstring.buffer(10,quadsegs=8)                    
                     )
                     print(line)
+
+def load_false_measurements():
+
+    device = SCK_device.objects.get(sck_id=999)
+    sensorNoise = Sensor.objects.get(sensor_id=53)
+    sensorTemp = Sensor.objects.get(sensor_id=55)
+    sensorPM = Sensor.objects.get(sensor_id=87)
+
+    avg_lat = 43.26299
+    avg_lon = -2.93522
+
+    i = 0
+    while i<100:
+
+        lon = random.uniform(-0.0095, 0.0095) + avg_lon            
+        lat = random.uniform(-0.0095, 0.0095) + avg_lat
+        point = Point(lon,lat)
+        valueNoise = random.randrange(30,100)
+        valuePM = random.randrange(150)                        
+        valueTemp = random.randrange(-5, 45)                 
+
+        print("Point: " + str(point))
+        print("Noise: " + str(valueNoise))
+        print("Temp: " + str(valueTemp))
+        print("PM: " + str(valuePM))
+        new_measNoise = Measurement(sensor= sensorNoise, device=device, value=valueNoise, point=point).save()
+        new_measTemp = Measurement(sensor= sensorTemp, device=device, value=valueTemp, point=point).save()
+        new_measPM = Measurement(sensor= sensorPM, device=device, value=valuePM, point=point).save()
+
+        i+=1
+
 
 
 # # # # #
