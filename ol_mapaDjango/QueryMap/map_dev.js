@@ -10,7 +10,9 @@ import View from 'ol/View';
 import {Circle as CircleStyle, RegularShape, Fill, Stroke, Style} from 'ol/style';
 import {Tile as TileLayer, Vector as VectorLayer, Group as LayerGroup, Heatmap as HeatMapLayer} from 'ol/layer';
 import LayerSwitcher from 'ol-layerswitcher';
+import Overlay from 'ol/Overlay';
 import Draw, {createBox} from 'ol/interaction/Draw';
+import {toStringHDMS} from 'ol/coordinate';
 
 import Feature from 'ol/Feature';
 import {useGeographic, transform, fromLonLat, toLonLat} from 'ol/proj'
@@ -51,10 +53,12 @@ var mid_high = [255,166,0,0.5]  // ORANGE: 65-70 dB / 90-120 PM2.5
 var mid = [255,255,0,0.5];      // YELLOW: 60-65 dB / 60-90 PM2.5
 var low = [0,255,0,0.5];        // GREEN: 50-60 dB / 30-60 PM2.5
 var very_low = [255,255,255,0.9]; // WHITE < 50 dB / 30 PM2.5
+
 // Creamos lista de estilos en función de valor
 var styleListNoise = [];
 var styleListAir = [];
-var values = [dangerous, high, mid_high, mid, low, very_low] // high income
+var styleListTemp = [];
+var values = [dangerous, high, mid_high, mid, low, very_low] 
 var i, ii;
 for (i = 0; i < values.length; i++){
   // Circle for Noise
@@ -79,11 +83,34 @@ for (i = 0; i < values.length; i++){
     }),
   });    
 }
+// Style de temperatura
+var fire = [0,0,0,0.5];       // BLACK > 40
+var hot = [255,0,0,0.5];      // RED 35-40
+var mid_hot = [255,166,0,0.5] // ORANGE 25-35
+var mild = [255,255,0,0.5];   // YELLOW 15-25
+var mid_cold = [90,180,255,0.5]; // LIGHT BLUE 5-15
+var cold = [90,90,190,0.9]; // DARK BLUE  0-5
+var ice = [255,255,255,0.9];  // WHITE < 0ºC 
+
+var valuesTemp = [fire, hot, mid_hot, mild, mid_cold, cold, ice] 
+
+for (i=0; i< valuesTemp.length; i++){
+  styleListTemp[i] = new Style({
+    image: new CircleStyle({
+        fill: new Fill({
+            color: valuesTemp[i],
+        }),
+        radius: 7,
+        stroke: defaultStyle.stroke,
+    }),
+  });
+}
+
 var style = {
   'Point': new Style({
     image: new CircleStyle({
       fill: new Fill({
-        color: 'rgba(255,255,0,0.4)',
+        color: 'rgba(255,255,0,0.5)',
       }),
       radius: 5,
       stroke: new Stroke({
@@ -95,7 +122,7 @@ var style = {
   'MultiPoint': new Style({
     image: new CircleStyle({
       fill: new Fill({
-        color: 'rgba(255,255,0,0.4)',
+        color: 'rgba(255,255,0,0.5)',
       }),
       radius: 5,
       stroke: new Stroke({
@@ -136,7 +163,7 @@ var style2 = {
   }),
   'MultiLineString': new Style({
     stroke: new Stroke({
-      color: 'rgba(255, 0, 0, 0.5)', //RED
+      color: '#f00', //RED
       width: 3,
     }),
   }),
@@ -197,7 +224,31 @@ var styleAir = function(feature, resolution) {
       }
   }
 }
-
+// Devuelve el estilo correspondiente para cada franja de temperatura
+var styleTemp = function(feature, resolution) {
+  // Obtenemos el value de la feature
+  var value = feature.get('value');
+  // Asignamos estilo a valor
+  if (!value) {
+      return [defaultStyle];
+  }else{
+      if (value >= 40){
+          return [styleListTemp[0]];
+      }else if (value<40 && value >= 35){
+          return [styleListTemp[1]];
+      }else if (value<35 && value >= 25){
+          return [styleListTemp[2]];
+      }else if (value<25 && value >= 15){
+          return [styleListTemp[3]];
+      }else if (value<15 && value >= 5){
+          return [styleListTemp[4]];
+      }else if (value<5 && value >= 0){
+          return [styleListTemp[5]];
+      }else{
+        return [styleListTemp[6]];
+      }
+  }
+}
 // ###### FIN Estilo de pintado de Features ######
 
 
@@ -305,7 +356,7 @@ var vTemp = new VectorLayer({
   title: 'temperatura',
   visible: false,
   source: sourceGJTemp,
-  style: styleNoise, // TODO - hacer style de Temperatura, de momento igual que noise
+  style: styleTemp, 
 });
 
 // Capa para Draw
@@ -328,6 +379,7 @@ var grupoVectores = new LayerGroup({
 // LayerSwitcher (para cambiar entre capas) - https://github.com/walkermatt/ol-layerswitcher 
 var layerSwitcher = new LayerSwitcher();
 var typeSelect = 'None';
+
 // Mapa
 var map = new Map({
   layers: [osm_tiles, grupoVectores, grupoSensorica, vDraw, vTemp], // Capas de información geoespacial
@@ -343,6 +395,12 @@ var map = new Map({
 });
 // Añadimos LayerSwitcher
 map.addControl(layerSwitcher);
+
+// Popup que se va a generar en el html
+var popup = new Overlay({
+  element: document.getElementById('popup'),
+});
+map.addOverlay(popup);
 
 // DIBUJAR BBOX - https://openlayers.org/en/latest/examples/draw-shapes.html?q=draw
 // Adaptado para dibujar solo Box
@@ -555,7 +613,7 @@ map.on('click', function (evt) {
       }
     }
   }else{ // Si no estamos en modo 'Box' sacamos info feature
-    displayFeatureInfo(evt.pixel);
+    displayFeatureInfo(evt.pixel, evt.coordinate);
     primerclick = true;
   }
 

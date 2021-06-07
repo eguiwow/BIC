@@ -7,7 +7,7 @@ from django.utils import timezone
 from .forms import DateTimeRangeBBoxForm, ConfigForm, ConfigDevicesForm
 from .models import GPX_file, Track, BikeLane, Measurement, Sensor, Config, SCK_device, Dtour
 from .utils import tracklist_to_geojson, empty_geojson, get_dtours, get_lista_puntos, measurements_to_geojson
-from .sck_api import check_devices
+from .sck_api import check_devices, calc_new_track
 
 import datetime
 import json
@@ -88,7 +88,9 @@ def config(request):
                 return render(request, 'config.html', context)
         
         elif 'refresh_devices' in request.POST:
-            check_devices()
+            for sck_id in kit_ids:
+                calc_new_track(sck_id, "10s")
+
             form = ConfigForm(initial={'center_zoom': config.zoom,
             'center_lon':config.lon,'center_lat': config.lat})
             context = { 'form': form, 'kits': kit_ids} 
@@ -215,6 +217,8 @@ def consulta(request):
             # Filtro de rango de tiempo + Filtro espacial (BBox)
             # INFO: Ahora mismo, el bbox tiene que contener enteramente el track para mostrarlo (pensar si es así la mejor manera)
             tracks = Track.objects.filter(end_time__range=[dates[0], dates[1]]).filter(mlstring__contained=geom)
+            tracks_device = Track.objects.filter(end_time__range=[dates[0], dates[1]]).filter(lstring__contained=geom)
+            tracks = tracks.union(tracks_device)
             for t in tracks:
                 dtour_qs = Dtour.objects.filter(track=t)
                 if dtour_qs:

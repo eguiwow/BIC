@@ -28,7 +28,7 @@ SECRET_KEY = 'putb9c7wl5cmim1gni4w-dm0oa!el$m4-!48%8zal-^^0)4$vt'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['bizkaiabikeintelligence.deustotech.eu', '130.206.138.91']
+ALLOWED_HOSTS = ['130.206.138.91', 'localhost']
 
 
 # Application definition
