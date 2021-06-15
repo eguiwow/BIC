@@ -98,14 +98,13 @@ def generate_tracks(from_dt, to_dt, rollup):
             print(pr_update)
 
             calc_dtours(polys, linestring, new_track)
-            map_measurements(new_track, device.sck_id)
+            map_measurements(new_track, device.sck_id, "10s")
         
 
 # Given a track and device.sck_id --> Map  Measurements(temperature, air, noise) with Trackpoints
-def map_measurements(track, device_id):
+def map_measurements(track, device_id, rollup):
     device = SCK_device.objects.get(sck_id=device_id)
     trkpts = Trackpoint.objects.filter(track=track) #Approach 1
-    rollup = "1m"
     id_sensor_list = [53,55,87,88,89]
     readings = []
     cont_puntos_malos = 0
@@ -275,7 +274,7 @@ def generate_tracks_time(from_dt, to_dt, rollup, sck_id):
             print(pr_update)
 
             calc_dtours(polys, linestring, new_track)
-            map_measurements(new_track, sck_id)
+            map_measurements(new_track, sck_id, rollup)
             return True
         else:
             print("Track demasiado corto (2 puntos o menos)")
