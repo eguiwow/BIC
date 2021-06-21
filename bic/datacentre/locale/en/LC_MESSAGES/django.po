@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-05-30 01:03+0200\n"
+"POT-Creation-Date: 2021-06-21 11:49+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -62,29 +62,29 @@ msgstr ""
 msgid "Centro del mapa (Zoom)"
 msgstr ""
 
-#: forms.py:68
+#: forms.py:69
 msgid "ID ya en uso"
 msgstr ""
 
-#: forms.py:74
+#: forms.py:75
 msgid "ID no registrado"
 msgstr ""
 
-#: templates/analisis.html:11
+#: templates/analisis.html:12
 msgid "Calidad ambiental rutas"
 msgstr ""
 
-#: templates/analisis.html:35 templates/consulta.html:89
-#: templates/movilidad.html:46
+#: templates/analisis.html:40 templates/consulta.html:89
+#: templates/movilidad.html:50
 msgid "Centrar"
 msgstr ""
 
-#: templates/analisis.html:41
+#: templates/analisis.html:46
 msgid "Modo Heatmap"
 msgstr ""
 
-#: templates/base.html:36 templates/datacentre.html:12
-#: templates/movilidad.html:26
+#: templates/base.html:36 templates/datacentre.html:13
+#: templates/movilidad.html:27
 msgid "Movilidad"
 msgstr "Mobility"
 
@@ -92,37 +92,37 @@ msgstr "Mobility"
 msgid "Análisis"
 msgstr "Analysis"
 
-#: templates/base.html:38 templates/datacentre.html:29
+#: templates/base.html:38 templates/datacentre.html:30
 msgid "Consulta"
 msgstr "Query"
 
-#: templates/base.html:39 templates/datacentre.html:38
-#: templates/proyecto.html:4
+#: templates/base.html:39 templates/datacentre.html:39
+#: templates/proyecto.html:5
 msgid "Proyecto"
 msgstr "Project"
 
-#: templates/base.html:66 templates/config.html:4 templates/config_list.html:4
-#: templates/datacentre.html:52
+#: templates/base.html:66 templates/config.html:5 templates/config_list.html:5
+#: templates/datacentre.html:53
 msgid "Configuración"
 msgstr "Settings"
 
-#: templates/config.html:6
+#: templates/config.html:7
 msgid "Parámetros y dispositivos de la plataforma"
 msgstr "Platform's parameters and devices"
 
-#: templates/config.html:7
+#: templates/config.html:8
 msgid "Centro del mapa"
 msgstr ""
 
-#: templates/config.html:15
+#: templates/config.html:16
 msgid "Cambiar centro"
 msgstr ""
 
-#: templates/config.html:20
+#: templates/config.html:21
 msgid "INFO proyección:"
 msgstr ""
 
-#: templates/config.html:20
+#: templates/config.html:21
 msgid ""
 "la proyección actual con la que se han calculado los datos de la longitud de "
 "las rutas es la proyección europea (EPSG:3035). En caso de necesitar "
@@ -130,31 +130,31 @@ msgid ""
 "técnico a través del correo "
 msgstr ""
 
-#: templates/config.html:22 templates/config_list.html:7
+#: templates/config.html:23 templates/config_list.html:8
 msgid "BIDs desplegados (IDs)"
 msgstr ""
 
-#: templates/config.html:35
+#: templates/config.html:36
 msgid "Editar Lista Kits"
 msgstr ""
 
-#: templates/config.html:39
+#: templates/config.html:40
 msgid "Refrescar información:"
 msgstr ""
 
-#: templates/config.html:44
+#: templates/config.html:45
 msgid "Refrescar info kits"
 msgstr ""
 
-#: templates/config_list.html:6
+#: templates/config_list.html:7
 msgid "Editar lista kits"
 msgstr ""
 
-#: templates/config_list.html:21
+#: templates/config_list.html:22
 msgid "Añadir Device"
 msgstr ""
 
-#: templates/config_list.html:22
+#: templates/config_list.html:23
 msgid "Eliminar Device"
 msgstr ""
 
@@ -211,30 +211,38 @@ msgstr ""
 msgid "Consulta en el área y el tiempo seleccionados"
 msgstr ""
 
-#: templates/datacentre.html:13
+#: templates/datacentre.html:14
 msgid "Bidegorris, desvíos, tramos frecuentes..."
 msgstr "Bike lanes, dtours, frequent routes"
 
-#: templates/datacentre.html:21
+#: templates/datacentre.html:22
 msgid "Calidad ambiental"
 msgstr "Environmental quality"
 
-#: templates/datacentre.html:22
+#: templates/datacentre.html:23
 msgid "Contaminación atmosférica y acústica, temperatura..."
 msgstr "Noise and air pollution, temperature"
 
-#: templates/datacentre.html:30
+#: templates/datacentre.html:31
 msgid "Consulta la actividad en Bizkaia"
 msgstr "Check Bizkaia's activity"
 
-#: templates/datacentre.html:39
+#: templates/datacentre.html:40
 msgid "Conoce más sobre el proyecto"
 msgstr "Get to know more about the project"
 
-#: templates/datacentre.html:46
+#: templates/datacentre.html:47
 msgid "Visita y prueba nuestra API"
 msgstr "Come and visit our API"
 
-#: templates/datacentre.html:53
+#: templates/datacentre.html:54
 msgid "Configuración de parámetros del datacentre"
 msgstr "Datacentre's configuration parameters"
+
+#: templates/movilidad.html:56
+msgid "Modo Heatmap Rutas"
+msgstr ""
+
+#: templates/movilidad.html:60
+msgid "Modo Heatmap Desvíós"
+msgstr ""
