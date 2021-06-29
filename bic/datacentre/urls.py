@@ -10,6 +10,7 @@ router.register(r'measurements', views.MeasurementViewSet)
 router.register(r'dtours', views.DtourViewSet)
 
 urlpatterns = [
+    path('', views.home, name='home'),
     path('datacentre', views.datacentre , name='datacentre'),
     path('movilidad', views.movilidad , name='movilidad'),
     path('bic_proyecto', views.proyecto, name= 'proyecto'),

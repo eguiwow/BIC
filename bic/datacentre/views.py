@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, reverse
 from django.views.static import serve
 from django.core.files import File
 from django.contrib.gis.geos import Point, Polygon, GEOSGeometry # For lazy geometries
@@ -24,6 +24,8 @@ from .serializers import TrackSerializer, BikeLaneSerializer, MeasurementSeriali
 def datacentre(request):
     return render(request, 'datacentre.html')
 
+def home(request):
+    return redirect(reverse('datacentre'))
 
 def movilidad(request):
     # Retrieve config
