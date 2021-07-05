@@ -283,7 +283,7 @@ def generate_tracks_time(from_dt, to_dt, rollup, sck_id):
 # calcular el rango temporal de sigiente track
 def calc_time_limits(sck_id, rollup):
     
-    today = timezone.now()
+    today = timezone.localtime(timezone.now())
     time_limits = []
     # FROM_DATETIME
     try: 
