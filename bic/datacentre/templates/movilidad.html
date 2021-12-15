@@ -61,6 +61,14 @@
       </div>        
     </div>
   </div>
+  <form action="" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="form-group">
+      <label for="upload_gpx">Sube tu fichero GPX</label>
+      {{form.as_p}}
+      <input type="submit" name="upload_gpx" class="btn btn-primary" value="{% translate 'Subir' %}">
+    </div>
+  </form>
   <div class="archivos">
    <!-- <h3> Nombres archivos geojson</h3> -->
     <!-- {% if gj_tracks %}

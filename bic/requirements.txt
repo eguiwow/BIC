@@ -3,7 +3,7 @@ certifi==2020.12.5
 chardet==4.0.0
 Django==3.1.6
 djangorestframework==3.12.4
-GDAL==2.2.3
+#GDAL==2.2.3
 gpx-converter==1.7.3
 gpxpy==1.4.2
 idna==2.10

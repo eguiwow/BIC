@@ -60,7 +60,7 @@ class ConfigForm(forms.Form):
         center = [lon, lat, zoom]
         return center
 
-
+# Formulario para editar lista de dispositivos
 class ConfigDevicesForm(forms.Form):
     device_id = forms.IntegerField()
     def clean_add_id(self, kit_ids):
@@ -74,3 +74,7 @@ class ConfigDevicesForm(forms.Form):
         if delete_id not in kit_ids:
             raise ValidationError(_('ID no registrado'))
         return delete_id
+
+# Formulario para subir archivos GPX
+class UploadGPXForm(forms.Form):
+    file = forms.FileField()

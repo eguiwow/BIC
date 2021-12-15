@@ -38,7 +38,7 @@ def load_gpx_lm(verbose=True):
 # Recorre la carpeta datacentre/data/gpx e introduce en la BD los tracks de los GPX 
 # Sin usar LayerMapping
 # Solo carga tracks, si queremos trackpts, wpts, etc. hay que cambiar el método
-def load_gpx(verbose=True):
+def load_gpx_from_folder(verbose=True):
 
     kml_tracks = BikeLane.objects.all()
     polys = [] 
@@ -59,7 +59,22 @@ def load_gpx(verbose=True):
 
         calc_dtours(polys, lstring, new_track)
 
+# file already opened when passed
+def load_gpx_from_file(gpx_file, verbose=True):
+    kml_tracks = BikeLane.objects.all()
+    polys = [] 
+    for track in kml_tracks:
+        polys.append(track.poly)
+    
+    data = parse_gpx(gpx_file) 
+    lstring = GEOSGeometry(data[2], srid=4326)
+    lstring.transform(3035) # Proyección europea EPSG:3035 https://epsg.io/3035 
+    new_track = Track(name=gpx_file.name, start_time=data[0], end_time=data[1], distance=lstring.length, mlstring=data[2])
+    new_track.save()
+    pr_update = "Uploading TRACK ..." + str(new_track)
+    print(pr_update)
 
+    calc_dtours(polys, lstring, new_track)
 
 
 # # # # # # #
@@ -142,7 +157,7 @@ def load_false_measurements():
 # # # # #
 
 def main():
-    load_gpx()
+    #load_gpx_from_folder()
     load_kml()
 
 if __name__ == '__main__':

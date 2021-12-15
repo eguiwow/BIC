@@ -105,7 +105,7 @@ def generate_tracks(from_dt, to_dt, rollup):
 def map_measurements(track, device_id, rollup):
     device = SCK_device.objects.get(sck_id=device_id)
     trkpts = Trackpoint.objects.filter(track=track) #Approach 1
-    id_sensor_list = [53,55,87,88,89]
+    id_sensor_list = [53,55,87,88,89] # noise, temperature, PM10, PM5, PM2.5
     readings = []
     cont_puntos_malos = 0
     for sensor_id in id_sensor_list:
@@ -329,7 +329,11 @@ def calc_time_limits(sck_id, rollup):
         i=1
         while i<len(dataLat): # desde punto 2 comparar si es igual o cambia muy poco  
             point2 = dataLat[i][1]
-            point2lon = dataLon[i][1]
+            try: # ESTO POR QUÉ? --> El 26 de julio de 2021 a las 15:01:25 se guardó en los servidores de SC la latitud pero no la longitud del dispositivo
+                point2lon = dataLon[i][1]
+                point2lon = dataLon[i][1]
+            except IndexError:
+                point2lon = dataLon[i-1][1]
             time2 = dataLat[i][0]
 
             date_time_last = datetime.datetime.strptime(last_timestamp, '%Y-%m-%dT%H:%M:%SZ')

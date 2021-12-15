@@ -4,10 +4,11 @@ from django.core.files import File
 from django.contrib.gis.geos import Point, Polygon, GEOSGeometry # For lazy geometries
 from django.utils import timezone
 
-from .forms import DateTimeRangeBBoxForm, ConfigForm, ConfigDevicesForm
+from .forms import DateTimeRangeBBoxForm, ConfigForm, ConfigDevicesForm, UploadGPXForm
 from .models import GPX_file, Track, BikeLane, Measurement, Sensor, Config, SCK_device, Dtour
 from .utils import tracklist_to_geojson, empty_geojson, get_dtours, get_lista_puntos, measurements_to_geojson
 from .sck_api import check_devices, calc_new_track
+from .load_layers import load_gpx_from_file
 
 import datetime
 import json
@@ -46,9 +47,33 @@ def movilidad(request):
     gj_points = tracklist_to_geojson(tracks, "points") # Puntos de los tracks para Heatmap
     gj_dpoints = tracklist_to_geojson(dtour_tracks, "points") # Puntos de los dtours para Heatmap
 
+    if request.method == 'POST':
+        if 'upload_gpx' in request.POST:
+            form = UploadGPXForm(request.POST, request.FILES)
+            print("so far so good from views")
+            if form.is_valid():
+                
+                load_gpx_from_file(request.FILES['file']) # subimos el archivo GPX
+                # sacamos los datos con archivo GPX ya incluido 
+                tracks = Track.objects.all()
+                dtour_tracks = Dtour.objects.all()
+                gj_tracks = tracklist_to_geojson(tracks, "tracks")
+                gj_dtours = tracklist_to_geojson(dtour_tracks, "dtours")
+                gj_points = tracklist_to_geojson(tracks, "points") # Puntos de los tracks para Heatmap
+                gj_dpoints = tracklist_to_geojson(dtour_tracks, "points") # Puntos de los dtours para Heatmap
+
+                form = UploadGPXForm()
+                context = { "gj_tracks": gj_tracks,"gj_dtours": gj_dtours, "gj_bidegorris": gj_bidegorris,\
+                'gj_points': gj_points, 'gj_dpoints': gj_dpoints,\
+                'center': [config.lon, config.lat],'zoom':config.zoom, 'form':form}
+                return render(request, 'movilidad.html', context)
+    else:
+        form = UploadGPXForm()
+
+
     context = { "gj_tracks": gj_tracks,"gj_dtours": gj_dtours, "gj_bidegorris": gj_bidegorris,\
     'gj_points': gj_points, 'gj_dpoints': gj_dpoints,\
-    'center': [config.lon, config.lat],'zoom':config.zoom}
+    'center': [config.lon, config.lat],'zoom':config.zoom, 'form':form}
     return render(request, 'movilidad.html', context)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -105,6 +130,7 @@ def config(request):
             context = { 'form': form, 'kits': kit_ids} 
 
             return render(request, 'config_list.html', context)
+        
     # Display de form y mapa vacíos 
     # If this is a GET (or any other method) create the default form.
     else:
