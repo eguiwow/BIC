@@ -1,0 +1,4 @@
+DELETE FROM datacentre_measurement;
+DELETE FROM datacentre_trackpoint;
+DELETE FROM datacentre_dtour;
+DELETE FROM datacentre_track;
