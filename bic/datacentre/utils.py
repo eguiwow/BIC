@@ -4,6 +4,9 @@ from django.contrib.gis.measure import D, Distance
 from django.contrib.gis.db.models.functions import Length
 from .models import BikeLane, Dtour, Trackpoint
 import gpxpy
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Returns an empty but formatted GeoJSON
 def empty_geojson():
@@ -55,7 +58,7 @@ def tracklist_to_geojson(tracks, geom_name):
                         cont += 1
                 del gj_tracks[-1:]
             else:
-                print("ERROR IN PASSING 2nd parameter <geom_name>")
+                logger.info("ERROR IN PASSING 2nd parameter <geom_name>")
         
             if geom_name != "point":
                 # PROPERTIES (length)
@@ -86,7 +89,7 @@ def tracklist_to_geojson(tracks, geom_name):
     # Si la lista de tracks está vacía, devolvemos un GeoJSON vacío
     else:
         formatted_geojson = empty_geojson()
-        print("The tracklist is empty")
+        logger.info("The tracklist is empty")
     
     return formatted_geojson
 
@@ -123,7 +126,7 @@ def measurements_to_geojson(measurements):
     # Si la lista de tracks está vacía, devolvemos un GeoJSON vacío
     else:
         formatted_geojson = empty_geojson()
-        print("The tracklist is empty")
+        logger.info("The tracklist is empty")
     
     return formatted_geojson    
 
@@ -224,7 +227,7 @@ def calc_dtours(polys, geom, new_track):
             ratio_dtour_to_track = (dtour_length/track_length)*100
             dtour = Dtour(track= new_track, mlstring = dtour, distance=dtour_length, ratio=ratio_dtour_to_track).save()
             pr_update = "Uploading DTOURs associated to..." + str(new_track)
-            print(pr_update)
+            logger.info(pr_update)
             intersected = False
 
 # Devuelve lista_puntos partiendo de un track
@@ -288,8 +291,9 @@ def parse_gpx(track):
         return data
 
     except gpxpy.gpx.GPXException as e:
-        logger.error("Valid GPX file: %s" % e)
+        logger.error("Valid GPX file: %s" % e) # TODO añadir logger
         raise ValidationError(u"Valid GPX file: %s" % e)
+
 # Returns gpx_file from filefield
 def parse_gpx_filefield(filefield):
     if filefield.name.endswith(".gz"):

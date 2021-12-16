@@ -563,8 +563,9 @@ function getDate() {
 
 // OnLoad (window)
 window.onload = function() {
-  // Si la consulta es vacía --> sacamos alerta 
+  // Calcular fecha
   getDate();
+  // Si la consulta es vacía --> sacamos alerta 
   if (consulta_vacia.innerText == 1){
     alert("No existe actividad en este rango, prueba a cambiar el rango temporal o espacial")
   }

@@ -2,9 +2,6 @@
 # From geodjango tutorial = how to load geospatial data with LayerMapping 
 # https://docs.djangoproject.com/en/3.1/ref/contrib/gis/tutorial/ - LayerMapping
 # cada layer necesita una tabla 
-import sys, os
-import gpxpy # For manipulating gpx files from python
-import random
 from pathlib import Path
 from django.contrib.gis.utils import LayerMapping
 from django.contrib.gis.geos import GEOSGeometry, LineString, WKTWriter, Point
@@ -14,6 +11,12 @@ from django.contrib.gis.db.models.functions import Length
 from .models import Track, BikeLane, Dtour, SCK_device, Sensor, Measurement
 from .utils import parse_gpx, calc_dtours
 
+import sys, os
+import gpxpy # For manipulating gpx files from python
+import random
+import logging
+
+logger = logging.getLogger(__name__)
 
 # # # # # # #
 # LOAD GPX  #
@@ -24,28 +27,31 @@ track_mapping = {
     'mlstring':'MultiLineString',
 }
 
-# Recorre la carpeta datacentre/data/gpx e introduce en la BD los tracks de los GPX 
-# hace uso de LayerMapping
 # Solo carga tracks, si queremos trackpts, wpts, etc. hay que cambiar el método
 def load_gpx_lm(verbose=True):
-    # LayerMapping --> Docs en https://docs.djangoproject.com/en/3.1/ref/contrib/gis/layermapping/
+    """Recorre la carpeta datacentre/data/gpx e introduce en la BD los tracks de los GPX + dtours asociados
+
+    Hace uso de LayerMapping --> Docs en https://docs.djangoproject.com/en/3.1/ref/contrib/gis/layermapping/
+    """
+
     dir_gpx_data = Path("/home/eguiwow/github/BIC/bic/datacentre/data/gpx") # Directorio donde están de momento guardados los GPXs
     for filepath in dir_gpx_data.glob( '*.gpx' ):
         print(filepath)
         lm = LayerMapping(Track, str(filepath), track_mapping, layer=2, transform=False) # Layer = 2 -> Layer = track de un GPX
         lm.save(strict=False, verbose = verbose) # strict = True antes. Esto lo que hace es que si hay un fallo para la ejecución
 
-# Recorre la carpeta datacentre/data/gpx e introduce en la BD los tracks de los GPX 
-# Sin usar LayerMapping
 # Solo carga tracks, si queremos trackpts, wpts, etc. hay que cambiar el método
 def load_gpx_from_folder(verbose=True):
+    """Recorre la carpeta datacentre/data/gpx e introduce en la BD los tracks de los GPX + dtours asociados
+
+    Sin usar LayerMapping
+    """    
 
     kml_tracks = BikeLane.objects.all()
     polys = [] 
     for track in kml_tracks:
         polys.append(track.poly)
 
-    # start_time, end_time = gpx.get_time_bounds()
     dir_gpx_data = Path("/home/eguiwow/github/BIC/bic/datacentre/data/extra_gpx") # Directorio donde están de momento guardados los GPXs
     for filepath in dir_gpx_data.glob( '*.gpx' ):
         gpx_file = open(filepath, 'r')
@@ -55,42 +61,51 @@ def load_gpx_from_folder(verbose=True):
         new_track = Track(name=filepath.name, start_time=data[0], end_time=data[1], distance=lstring.length, mlstring=data[2])
         new_track.save()
         pr_update = "Uploading TRACK ..." + str(new_track)
-        print(pr_update)
-
+        logger.info(pr_update)
+        # calculamos dtours
         calc_dtours(polys, lstring, new_track)
 
-# file already opened when passed
 def load_gpx_from_file(gpx_file, verbose=True):
+    """ Carga el archivo GPX (gpx_file) pasado en forma de track + dtour en la BD
+    
+    El archivo que se pasa se presupone abierto.
+    Si el archivo es GPX y procesable, devuelve True
+    False si no es procesable o es otro tipo de archivo
+    """
     kml_tracks = BikeLane.objects.all()
     polys = [] 
     for track in kml_tracks:
         polys.append(track.poly)
-    
-    data = parse_gpx(gpx_file) 
-    lstring = GEOSGeometry(data[2], srid=4326)
-    lstring.transform(3035) # Proyección europea EPSG:3035 https://epsg.io/3035 
-    new_track = Track(name=gpx_file.name, start_time=data[0], end_time=data[1], distance=lstring.length, mlstring=data[2])
-    new_track.save()
-    pr_update = "Uploading TRACK ..." + str(new_track)
-    print(pr_update)
+    try:
+        data = parse_gpx(gpx_file) 
+        lstring = GEOSGeometry(data[2], srid=4326)
+        lstring.transform(3035) # Proyección europea EPSG:3035 https://epsg.io/3035 
+        new_track = Track(name=gpx_file.name, start_time=data[0], end_time=data[1], distance=lstring.length, mlstring=data[2])
+        new_track.save()
+        pr_update = "Uploading TRACK ..." + str(new_track)
+        logger.info(pr_update)
+        calc_dtours(polys, lstring, new_track)
+        return True
 
-    calc_dtours(polys, lstring, new_track)
-
+    except(Exception):
+        logger.info(Exception) # TODO capturar la excepción
+        return False
 
 # # # # # # #
 # LOAD KML  #
 # # # # # # #
 
-# Dada una feature --> devuelve property
 def get_feat_property(feat):
+    """ Dada una feature --> devuelve property"""
     property = {
         'name': feat.get('Name'),
     }
     return property
 
-# Dada una ruta a un archivo KML --> introduce en la BD los linestrings de los KML 
-# https://medium.com/@kitcharoenpoolperm/geodjango-import-data-from-kml-file-de110dba1f60 
+# Ahora la ruta es fija
 def load_kml(verbose=True):
+    """ Recorre la carpeta/data/kml --> introduce en la BD los linestrings de los KML 
+    https://medium.com/@kitcharoenpoolperm/geodjango-import-data-from-kml-file-de110dba1f60 """
     # Ruta al archivo que queremos introducir en la BD BikeLanes
     kml_file = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data', 'kml', 'bidegorris.kml'),)
     # Reading Data by DataSource
@@ -118,10 +133,10 @@ def load_kml(verbose=True):
                         # https://www.usna.edu/Users/oceano/pguth/md_help/html/approx_equivalents.htm#:~:text=0.00001%C2%B0%20%3D%201.11%20m 
                         poly = lstring.buffer(10,quadsegs=8)                    
                     )
-                    print(line)
+                    logger.info(line)
 
 def load_false_measurements():
-
+    """ Introduce medidas de sensórica de prueba en la BD"""
     device = SCK_device.objects.get(sck_id=999)
     sensorNoise = Sensor.objects.get(sensor_id=53)
     sensorTemp = Sensor.objects.get(sensor_id=55)

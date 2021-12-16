@@ -10,14 +10,17 @@ from .utils import tracklist_to_geojson, empty_geojson, get_dtours, get_lista_pu
 from .sck_api import check_devices, calc_new_track
 from .load_layers import load_gpx_from_file
 
+# REST
+from rest_framework import viewsets
+from .serializers import TrackSerializer, BikeLaneSerializer, MeasurementSerializer, DtourSerializer
+
 import datetime
 import json
 import time 
 import math
+import logging
 
-# REST
-from rest_framework import viewsets
-from .serializers import TrackSerializer, BikeLaneSerializer, MeasurementSerializer, DtourSerializer
+logger = logging.getLogger(__name__)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # VISTA PRINCIPAL: mapa de rutas por capas + acceso a datos #
@@ -50,30 +53,33 @@ def movilidad(request):
     if request.method == 'POST':
         if 'upload_gpx' in request.POST:
             form = UploadGPXForm(request.POST, request.FILES)
-            print("so far so good from views")
             if form.is_valid():
                 
-                load_gpx_from_file(request.FILES['file']) # subimos el archivo GPX
-                # sacamos los datos con archivo GPX ya incluido 
-                tracks = Track.objects.all()
-                dtour_tracks = Dtour.objects.all()
-                gj_tracks = tracklist_to_geojson(tracks, "tracks")
-                gj_dtours = tracklist_to_geojson(dtour_tracks, "dtours")
-                gj_points = tracklist_to_geojson(tracks, "points") # Puntos de los tracks para Heatmap
-                gj_dpoints = tracklist_to_geojson(dtour_tracks, "points") # Puntos de los dtours para Heatmap
-
+                if load_gpx_from_file(request.FILES['file']): # subimos el archivo GPX
+                    archivo_ok = 1
+                    # sacamos los datos con archivo GPX ya incluido 
+                    tracks = Track.objects.all()
+                    dtour_tracks = Dtour.objects.all()
+                    gj_tracks = tracklist_to_geojson(tracks, "tracks")
+                    gj_dtours = tracklist_to_geojson(dtour_tracks, "dtours")
+                    gj_points = tracklist_to_geojson(tracks, "points") # Puntos de los tracks para Heatmap
+                    gj_dpoints = tracklist_to_geojson(dtour_tracks, "points") # Puntos de los dtours para Heatmap
+                else:
+                    archivo_ok = 0
+                    
                 form = UploadGPXForm()
                 context = { "gj_tracks": gj_tracks,"gj_dtours": gj_dtours, "gj_bidegorris": gj_bidegorris,\
                 'gj_points': gj_points, 'gj_dpoints': gj_dpoints,\
-                'center': [config.lon, config.lat],'zoom':config.zoom, 'form':form}
+                'center': [config.lon, config.lat],'zoom':config.zoom, 'form':form, 'archivo_ok': archivo_ok}
                 return render(request, 'movilidad.html', context)
     else:
         form = UploadGPXForm()
+        archivo_ok = 1 # para alerta por archivo no válido
 
 
     context = { "gj_tracks": gj_tracks,"gj_dtours": gj_dtours, "gj_bidegorris": gj_bidegorris,\
     'gj_points': gj_points, 'gj_dpoints': gj_dpoints,\
-    'center': [config.lon, config.lat],'zoom':config.zoom, 'form':form}
+    'center': [config.lon, config.lat],'zoom':config.zoom, 'form':form, 'archivo_ok': archivo_ok}
     return render(request, 'movilidad.html', context)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

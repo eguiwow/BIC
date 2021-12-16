@@ -150,6 +150,7 @@ var botonCenter = document.getElementById("centerButton")
 var botonDownload = document.getElementById('export-png')
 var switchHM = document.getElementById("switchHM")
 var switchHM2 = document.getElementById("switchHM2")
+var archivo_ok = document.getElementById("archivo_ok");
 // Center & Zoom [From Zaratamap]
 var centerLon = JSON.parse(document.getElementById("center").innerText)[0]
 var centerLat = JSON.parse(document.getElementById("center").innerText)[1]
@@ -404,6 +405,16 @@ function normalToHeatmapDtours(){
 // ###### FIN Funciones ######
 
 // ###### EVENTOS del mapa ######
+
+// OnLoad (window)
+window.onload = function() {
+  // Si el archivo no es GPX --> sacamos alerta 
+  if (archivo_ok.innerText == 0){
+    alert("El archivo que quieres subir no es válido, prueba con otro archivo.")
+  }
+};
+
+
 // Drag
 map.on('pointermove', function (evt) {
   if (evt.dragging) {
