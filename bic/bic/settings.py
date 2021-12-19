@@ -160,6 +160,10 @@ LOCALE_PATHS = (
 
 STATIC_URL = '/static/'
 
+# Redirect to home URL after login (Default redirects to /accounts/profile/)
+LOGIN_REDIRECT_URL = '/'
+
+
 # Additional locations of static files
 STATICFILES_DIRS = (
     # look for static files in a folder called static in our root folder, not just in our apps.

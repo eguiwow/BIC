@@ -24,6 +24,7 @@ from django.conf.urls import handler404
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('datacentre.urls')),
+    path('accounts/', include('django.contrib.auth.urls')),
 ]
 
 urlpatterns += i18n_patterns(  

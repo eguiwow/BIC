@@ -63,14 +63,20 @@
       </div>        
     </div>
   </div>
-  <form action="" method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    <div class="form-group">
-      <label for="upload_gpx">Sube tu fichero GPX</label>
-      {{form.as_p}}
-      <input type="submit" name="upload_gpx" class="btn btn-primary" value="{% translate 'Subir' %}">
-    </div>
-  </form>
+
+  {% if user.is_authenticated %}
+    <form action="" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="form-group">
+        <label for="upload_gpx">Sube tu fichero GPX</label>
+        {{form.as_p}}
+        <input type="submit" name="upload_gpx" class="btn btn-primary" value="{% translate 'Subir' %}">
+      </div>
+    </form>
+  {% else %}
+    <p>{% translate 'Para poder subir archivos GPX debes de estar logueado' %}</p>
+    <a href="{% url 'login'%}">Click here to login again.</a>
+  {% endif %}
   <div class="archivos">
    <!-- <h3> Nombres archivos geojson</h3> -->
     <!-- {% if gj_tracks %}

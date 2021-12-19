@@ -39,12 +39,18 @@
     <div class="pt-5">
       <p><i><strong>{% translate 'Refrescar información:' %}</strong></i></p>
     </div>  
+    {% if user.is_authenticated %}
     <form action="" method="post">
       {% csrf_token %}
       <div>
         <input type="submit" name="refresh_devices" class="btn btn-primary" value="{% translate 'Refrescar info kits' %}">
       </div>
     </form>
+  {% else %}
+    <p>{% translate 'Para poder actualizar los datos del dispositivo tienes que estar logueado' %}</p>
+    <a href="{% url 'login'%}">{% translate 'Login' %}</a>
+  {% endif %}    
+
   </div>
   {% endblock %}
 
