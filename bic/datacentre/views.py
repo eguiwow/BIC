@@ -5,7 +5,7 @@ from django.contrib.gis.geos import Point, Polygon, GEOSGeometry # For lazy geom
 from django.utils import timezone
 
 from .forms import DateTimeRangeBBoxForm, ConfigForm, ConfigDevicesForm, UploadGPXForm
-from .models import GPX_file, Track, BikeLane, Measurement, Sensor, Config, SCK_device, Dtour
+from .models import GPX_file, Track, BikeLane, Measurement, Sensor, Config, SCK_device, Dtour, Trackpoint
 from .utils import tracklist_to_geojson, empty_geojson, get_dtours, get_lista_puntos, measurements_to_geojson
 from .sck_api import check_devices, calc_new_track
 from .load_layers import load_gpx_from_file
@@ -314,10 +314,14 @@ def analisis(request):
     # Retrieve config
     config = Config.objects.get(name="base_config")
 
-    tracks = Track.objects.all()        
+    # Retrieve the tracks - last 10 
+    # https://stackoverflow.com/questions/20555673/django-query-get-last-n-records
+    # -end_time significa que ordenamos inversamente 
+    tracks = Track.objects.filter().order_by('-end_time')[:10]
+    dtour_tracks = Dtour.objects.filter(track__in=tracks) 
     kml_tracks = BikeLane.objects.all()
-    dtour_tracks = Dtour.objects.all()
- 
+    trackpoints = Trackpoint.objects.filter(track__in=tracks)
+     
     bidegorris = tracklist_to_geojson(kml_tracks, "bidegorris") # Buffered Bidegorris   
     gj_tracks = tracklist_to_geojson(tracks, "tracks")
     gj_dtours = tracklist_to_geojson(dtour_tracks, "dtours")
@@ -326,9 +330,9 @@ def analisis(request):
     sensor_air = Sensor.objects.get(sensor_id= 87) # Sensor PM 2.5
     sensor_noise = Sensor.objects.get(name= "ICS43432 - Noise") # Sensor Noise (dBA)
     sensor_temp = Sensor.objects.get(name= "SHT31 - Temperature") # Sensor Temperatura (ºC)
-    measurements_air = Measurement.objects.filter(sensor=sensor_air)
-    measurements_noise = Measurement.objects.filter(sensor=sensor_noise)
-    measurements_temp = Measurement.objects.filter(sensor=sensor_temp)
+    measurements_air = Measurement.objects.filter(sensor=sensor_air).filter(trkpoint__in=trackpoints)
+    measurements_noise = Measurement.objects.filter(sensor=sensor_noise).filter(trkpoint__in=trackpoints)
+    measurements_temp = Measurement.objects.filter(sensor=sensor_temp).filter(trkpoint__in=trackpoints)
     
     gj_air = measurements_to_geojson(measurements_air)
     gj_noise = measurements_to_geojson(measurements_noise)
