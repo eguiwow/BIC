@@ -8,20 +8,32 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Returns an empty but formatted GeoJSON
 def empty_geojson():
+    """ Devuelve un GeoJSON vacío
+  
+    Returns
+    -------
+    formatted_geojson
+        GeoJSON vacío con 0 features
+    """    
     gj_tracks = []
     gj_tracks.append("{\"type\": \"FeatureCollection\",\"features\": []}")
     formatted_geojson = ''.join(gj_tracks) 
     return formatted_geojson
 
-# Given a list of tracks and its definition --> returns a formatted GeoJSON containing those tracks
-# with the corresponding Feature for the geom_name
-# mlstring --> MULTILINESTRING
-# lstring --> LINESTRING
-# poly --> POLYGON
-# If tracks is empty --> returns an empty GeoJSON 
 def tracklist_to_geojson(tracks, geom_name):
+    """ Dada una lista de tracks y el nombre de su geometría (geom_name) --> devuelve GeoJSON con esos tracks
+    
+    Parameters
+    ----------
+    tracks : <TrackLikeModel>[] (Track, Dtour, BikeLane)
+        List of tracklike records from database 
+    geom_names:
+    mlstring --> MULTILINESTRING
+    lstring --> LINESTRING
+    poly --> POLYGON
+    If tracks is empty --> returns an empty GeoJSON 
+    """
     gj_tracks = []
     gj_tracks.append("{\"type\": \"FeatureCollection\",\"features\": [")
     if tracks:
@@ -94,6 +106,14 @@ def tracklist_to_geojson(tracks, geom_name):
     return formatted_geojson
 
 def measurements_to_geojson(measurements):
+    """ Dada una lista de measurements --> devuelve GeoJSON con esos measurements
+
+    Returns
+    -------
+    formatted_geojson
+        GeoJSON con measurements y properties asociadas
+    """    
+
     gj_measurements = []
     gj_measurements.append("{\"type\": \"FeatureCollection\",\"features\": [")
     if measurements:
@@ -133,6 +153,20 @@ def measurements_to_geojson(measurements):
 # Applies ST_Difference() between a list of tracks and polys (diff = track - poly [mlstring])
 # Returns multilinestring[] with properties[dtour_length, ratio dtour/track]
 def get_dtours(tracks, polys):
+    """ Dada una lista de tracks y de bidegorris (polys) --> devuelve multilinestring[] con properties[dtour_length, ratio dtour/track]
+
+    Parameters
+    ----------
+    tracks : <TrackLikeModel>[] (Track, Dtour, BikeLane)
+        Lista de elementos tipo track de la base de datos
+    polys : MultiPolygon[]
+        Lista de polígonos representando los carriles bici
+
+    Returns
+    -------
+    geojson_d
+        GeoJSON con los dtours y sus properties asociadas    
+    """
     intersected = False
     gj_dtours = []
     # Abrimos los GeoJSON con sus Features
@@ -178,6 +212,7 @@ def get_dtours(tracks, polys):
     
     return geojson_d
 
+# TODO seguir con la documentación
 def get_polygonized_bidegorris():
     kml_tracks = BikeLane.objects.all() 
     polys = []

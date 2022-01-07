@@ -33,13 +33,19 @@ def home(request):
 
 def movilidad(request):
     # Retrieve config
-    config = Config.objects.get(name="base_config")
+    config = Config.objects.get(name="base_config") 
 
-    # Retrieve the tracks
-    tracks = Track.objects.all()
-    kml_tracks = BikeLane.objects.all() 
-    dtour_tracks = Dtour.objects.all()
-    
+    # Retrieve the tracks - last 10 
+    # https://stackoverflow.com/questions/20555673/django-query-get-last-n-records
+    # -end_time significa que ordenamos inversamente 
+    tracks = Track.objects.filter().order_by('-end_time')[:10]
+    dtour_tracks = Dtour.objects.filter(track__in=tracks) 
+    kml_tracks = BikeLane.objects.all()
+
+    # tracks = Track.objects.all()
+    # kml_tracks = BikeLane.objects.all()
+    # dtour_tracks = Dtour.objects.all()
+
     # Retrieve config
     config = Config.objects.get(name="base_config")
     
