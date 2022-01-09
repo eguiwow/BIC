@@ -28,7 +28,8 @@ SECRET_KEY = 'putb9c7wl5cmim1gni4w-dm0oa!el$m4-!48%8zal-^^0)4$vt'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['130.206.138.91', 'localhost', '127.0.0.1']
+# ALLOWED_HOSTS = ['130.206.138.91', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['130.206.138.91', 'localhost']
 
 # LOGGING - console output for every log with level higher than WARNING
 LOGGING = {
@@ -99,11 +100,12 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': 'bic_db',
-        'USER': 'eguiwow',
-        'PASSWORD': 'admin',
+        # Dev
+        #'USER': 'eguiwow',
+        #'PASSWORD': 'admin',
         # Prod
-        #'USER': 'postgres',
-        #'PASSWORD': 'MORElab2020',
+        'USER': 'postgres',
+        'PASSWORD': 'MORElab2020',
         'HOST': 'localhost',
         'PORT': '5432',
     }
