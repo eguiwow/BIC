@@ -6,10 +6,9 @@ from django.contrib.gis.geos import Point, LineString, MultiLineString, GEOSGeom
 from .utils import calc_dtours
 from datetime import date
 import datetime
+import logging
 
-
-
-    
+logger = logging.getLogger(__name__)
 
 # generar los tracks con datetimes inicio y fin + rollup     
 def generate_tracks(from_dt, to_dt, rollup):
@@ -27,12 +26,6 @@ def generate_tracks(from_dt, to_dt, rollup):
         lon_readings = []
         timestamp_readings = []
         linestring = ""
-        # estos tendrán que ser parámetros que pasemos nosotros
-        # ------------------
-        # rollup = "1m"
-        # from_dt = "2021-05-10"
-        # to_dt = "2021-05-19"
-        # -----------------
 
         # Llamada LATITUD
         # ----------------    
@@ -47,7 +40,7 @@ def generate_tracks(from_dt, to_dt, rollup):
             for reading in data:
                 lat_readings.append(reading[1]) # metemos latitud            
         else:
-            print("API ERROR: NOT a 200 answer code") #TODO handle this exception better
+            logger.error("API ERROR: NOT a 200 answer code") #TODO handle this exception better
         
         # Llamada LONGITUD
         # ----------------    
@@ -67,7 +60,7 @@ def generate_tracks(from_dt, to_dt, rollup):
                 lon_readings.append(reading[1]) # metemos longitud
         else:
             hayTrack = False
-            print("API ERROR: NOT a 200 answer code") #TODO handle this exception better
+            logger.error("API ERROR: NOT a 200 answer code") #TODO handle this exception better
         
         if hayTrack:
             # crear_track(lat_readings, lon_readings, timestamp_readings)
@@ -83,8 +76,6 @@ def generate_tracks(from_dt, to_dt, rollup):
                 if i>2:
                     linestring.append((pnt[0], pnt[1]))
                 i+=1
-            print(lon_readings) # AQUÏ DICE QUE NO PUEDE HACER CAMBIO DE STR A TRANSFORM
-            print(linestring)
             linestring.transform(3035) # Proyección europea EPSG:3035 https://epsg.io/3035 
             distance = linestring.length
             name_track = str(device.sck_id) + "_" + end_time
@@ -95,7 +86,7 @@ def generate_tracks(from_dt, to_dt, rollup):
                 Trackpoint(track=new_track, time=timestamp_readings[i], point=points_track[i]).save()
                 i += 1
             pr_update = "Uploading TRACK ..." + str(new_track)
-            print(pr_update)
+            logger.info(pr_update)
 
             calc_dtours(polys, linestring, new_track)
             map_measurements(new_track, device.sck_id, "10s")
@@ -104,10 +95,8 @@ def generate_tracks(from_dt, to_dt, rollup):
 # Given a track and device.sck_id --> Map  Measurements(temperature, air, noise) with Trackpoints
 def map_measurements(track, device_id, rollup):
     device = SCK_device.objects.get(sck_id=device_id)
-    trkpts = Trackpoint.objects.filter(track=track) #Approach 1
     id_sensor_list = [53,55,87,88,89] # noise, temperature, PM10, PM5, PM2.5
-    readings = []
-    cont_puntos_malos = 0
+
     for sensor_id in id_sensor_list:
         url = "https://api.smartcitizen.me/v0/devices/" + str(device_id) +\
         "/readings?sensor_id=" + str(sensor_id) + "&rollup=" + rollup + \
@@ -117,20 +106,23 @@ def map_measurements(track, device_id, rollup):
         sensor = Sensor.objects.get(sensor_id=sensor_id)
         if resp.status_code == 200: # Existen las medidas en el track
             j1 = json.loads(resp.text)
-            data = j1["readings"]
-            for reading in data:
-                timestamp = reading[0]
-                value = reading[1]
-                try: 
-                    trackpoint = Trackpoint.objects.get(track=track, time=timestamp) # Approach 2
-                    new_meas = Measurement(sensor= sensor, device=device, trkpoint=trackpoint, time= timestamp, value=value, point=trackpoint.point) 
-                    new_meas.save()
-                except Trackpoint.DoesNotExist: 
-                    cont_puntos_malos += 1                    
+            data = j1["readings"]                    
         else:
-            print("NOT a 200 answer code") 
+            logger.info("NOT a 200 answer code") 
+        
+        cont_puntos_malos = 0
+        for reading in data:
+            timestamp = reading[0]
+            value = reading[1]
+            try: 
+                trackpoint = Trackpoint.objects.get(track=track, time=timestamp) # Approach 2
+                new_meas = Measurement(sensor= sensor, device=device, trkpoint=trackpoint, time= timestamp, value=value, point=trackpoint.point) 
+                new_meas.save()
+            except Trackpoint.DoesNotExist: 
+                cont_puntos_malos += 1      
+        logger.info("Uploading measurements from sensor " + str(sensor_id))          
 
-    print("Puntos eliminados por mala señal GPS " + str(cont_puntos_malos))
+    logger.info("Puntos eliminados por mala señal GPS " + str(cont_puntos_malos))
     cont_puntos_malos = 0
 
 
@@ -176,10 +168,10 @@ def check_devices():
                     contador_medidas += 1
                 reading = {timestamp, id_sensor, sensor_name, value}
                 readings.append(reading)
-            print("Número de lecturas nuevas: " + str(contador_medidas))
+            logger.info("Número de lecturas nuevas: " + str(contador_medidas))
 
         else:
-            print("NOT a 200 answer code") #TODO handle this exception better
+            logger.info("NOT a 200 answer code") #TODO handle this exception better
 
 
 # generar los tracks con la info de la API SC        
@@ -198,6 +190,7 @@ def generate_tracks_time(from_dt, to_dt, rollup, sck_id):
     lon_readings = []
     timestamp_readings = []
     linestring = ""
+    maxLon = False
 
     # Llamada LATITUD
     # ----------------    
@@ -208,11 +201,9 @@ def generate_tracks_time(from_dt, to_dt, rollup, sck_id):
 
     if resp.status_code == 200: # Existe el device y da respuesta
         j = json.loads(resp.text)
-        data = j["readings"]
-        for reading in data:
-            lat_readings.append(reading[1]) # metemos latitud            
+        dataLat = j["readings"]
     else:
-        print("API ERROR: NOT a 200 answer code") #TODO handle this exception better
+        logger.error("API ERROR: NOT a 200 answer code") 
     
     # Llamada LONGITUD
     # ----------------    
@@ -224,16 +215,64 @@ def generate_tracks_time(from_dt, to_dt, rollup, sck_id):
     if resp.status_code == 200: # Existe el device y da respuesta
         hayTrack = True
         j = json.loads(resp.text)
-        data = j["readings"]
-        end_time = data[0][0] # Primer punto = último del track
-        start_time = data[len(data)-1][0] # Último punto = primero del track
-        for reading in data:
-            timestamp_readings.append(reading[0]) # metemos timestamp
-            lon_readings.append(reading[1]) # metemos longitud
+        dataLon = j["readings"]
+
     else:
         hayTrack = False
-        print("API ERROR: NOT a 200 answer code")
+        logger.error("API ERROR: NOT a 200 answer code")
     
+    # Limpiamos arrays de valores sueltos (lon / lat)
+    # -----------------------------------------------
+    if len(dataLon) > len(dataLat): # si uno es más grande que el otro, cogemos el menor para iterar
+        minMedidas = len(dataLat)
+        maxLon = True
+    elif len(dataLon) < len(dataLat):
+        minMedidas = len(dataLon)
+        maxLon = False
+    else:
+        minMedidas = len(dataLon) # si son iguales nos da igual y cogemos cualquiera
+
+    if maxLon:
+        end_time = dataLon[0][0] # Primer punto = último del track
+        start_time = dataLon[len(dataLon)-1][0] # Último punto = primero del track
+    else:
+        end_time = dataLat[0][0]
+        start_time = dataLat[len(dataLat)-1][0] # Último punto = primero del track
+    
+    difference = len(dataLon)-len(dataLat)
+
+    i = 0
+
+    while abs(difference) > 0:
+        while i < (minMedidas-1):
+            if maxLon:
+                if dataLon[i][0] != dataLat[i][0]:
+                    date_time_lon = datetime.datetime.strptime(dataLon[i][0], '%Y-%m-%dT%H:%M:%SZ')
+                    date_time_lat = datetime.datetime.strptime(dataLat[i][0], '%Y-%m-%dT%H:%M:%SZ')
+                    diff_secs = abs(date_time_lat-date_time_lon)
+                    if diff_secs.total_seconds() >= 10:
+                        dataLon.pop(i)
+                        difference = len(dataLon)-len(dataLat)
+                        i = i-1
+
+            else:
+                if dataLon[i][0] != dataLat[i][0]:
+                    date_time_lon = datetime.datetime.strptime(dataLon[i][0], '%Y-%m-%dT%H:%M:%SZ')
+                    date_time_lat = datetime.datetime.strptime(dataLat[i][0], '%Y-%m-%dT%H:%M:%SZ')
+                    diff_secs = abs(date_time_lat-date_time_lon)
+                    if diff_secs.total_seconds() >= 10:
+                        dataLat.pop(i)
+                        difference = len(dataLon)-len(dataLat)
+                        i = i-1
+
+            i += 1
+    # Ahora que hemos limpiado el array, añadimos medidas a lon, lat y timestamp
+    for i in range(minMedidas):
+        timestamp_readings.append(dataLon[i][0]) # metemos timestamp de cualquiera de los 2
+        lon_readings.append(dataLon[i][1]) # metemos longitud
+        lat_readings.append(dataLat[i][1]) # metemos latitud          
+          
+
     if hayTrack:
         # crear_track(lat_readings, lon_readings, timestamp_readings)
         points_track = []
@@ -241,20 +280,22 @@ def generate_tracks_time(from_dt, to_dt, rollup, sck_id):
         if len(lon_readings) > 2:
             linestring = LineString((lon_readings[0], lat_readings[0]), (lon_readings[1], lat_readings[1]), srid=4326) # evitar error de constructor LineString
         i=0
+        
+        last_lat = lat_readings[0]
+        last_lon = lon_readings[0]
         # creamos array de puntos y linestring
         while i<len(lon_readings):
             if lon_readings[i] != 0 and lat_readings[i] != 0: # Evitamos meter medida cuando pierde señal GPS
                 if i < (len(lon_readings)-1):   
-                    dif_lat = abs(lat_readings[i+1]-lat_readings[i])
-                    dif_lon = abs(lon_readings[i+1]-lon_readings[i])
-                    if dif_lat >0.00002 and dif_lon >0.00002 and dif_lat < 0.05 and dif_lon < 0.05 : 
+                    dif_lat = abs(last_lat-lat_readings[i])
+                    dif_lon = abs(last_lon-lon_readings[i])
+
+                    if dif_lat >0.00002 and dif_lon >0.00002 and dif_lat < 0.04 and dif_lon < 0.04: # Solo metemos aquellos puntos que estén a ~<100 m de distancia para evitar puntos con mala señal GPS
+
+                        last_lat = lat_readings[i]
+                        last_lon = lon_readings[i]
+
                         pnt = Point(lon_readings[i],lat_readings[i])
-                        if lon_readings[i] >-2.9:
-                            print("Punto conflictivo:\n" + str(lon_readings[i]))
-                            print("Anterior a punto conflictivo:\n" + str(lon_readings[i-1]))
-                            print("Posterior a punto conflictivo:\n" + str(lon_readings[i+1]))
-                            print("")
-                            print(str(dif_lon) + "\n")
                         points_track.append(pnt)
                         if i>2:
                             linestring.append((pnt[0], pnt[1]))
@@ -271,14 +312,15 @@ def generate_tracks_time(from_dt, to_dt, rollup, sck_id):
                 Trackpoint(track=new_track, time=timestamp_readings[i], point=points_track[i]).save()
                 i += 1
             pr_update = "Uploading TRACK ..." + str(new_track)
-            print(pr_update)
+            logger.info(pr_update)
 
             calc_dtours(polys, linestring, new_track)
             map_measurements(new_track, sck_id, rollup)
             return True
         else:
-            print("Track demasiado corto (2 puntos o menos)")
+            logger.info("Track demasiado corto (2 puntos o menos)")
             return False
+
 
 # calcular el rango temporal de sigiente track
 def calc_time_limits(sck_id, rollup):
@@ -297,7 +339,7 @@ def calc_time_limits(sck_id, rollup):
 
     # TO_DATE YYYY-mm-dd
     today_str = today.strftime("%Y-%m-%dT%H:%M:%SZ")
-    #LON
+    #Llamada datos LON
     url = "https://api.smartcitizen.me/v0/devices/" + str(sck_id) +\
         "/readings?sensor_id=" + str(126) + "&rollup=" + rollup + \
         "&from=" + from_dt + "&to=" + today_str
@@ -306,69 +348,102 @@ def calc_time_limits(sck_id, rollup):
         j = json.loads(resp.text)
         dataLon = j["readings"]
     else:
-        print("API ERROR: NOT a 200 answer code")
+        logger.error("API ERROR: NOT a 200 answer code")
         return False
-    
+    #Llamada datos LAT
     url = "https://api.smartcitizen.me/v0/devices/" + str(sck_id) +\
         "/readings?sensor_id=" + str(125) + "&rollup=" + rollup + \
         "&from=" + from_dt + "&to=" + today_str
     resp = requests.get(url)
 
-    # Chequeamos los valores desde el último checking
-    # y si varían mandamos los límites al método de construir track
-
     if resp.status_code == 200: # Existe el device y da respuesta       
         j = json.loads(resp.text)
         dataLat = j["readings"]
-        
-        limits = []
-        hayNewTrack = False
-        last_lat = dataLat[0][1] # Primer punto = último del track ()
-        last_lon = dataLon[0][1]
-        last_timestamp = dataLat[0][0] # Primer timestamp = último del track
-        i=1
-        while i<len(dataLat): # desde punto 2 comparar si es igual o cambia muy poco  
-            point2 = dataLat[i][1]
-            try: # ESTO POR QUÉ? --> El 26 de julio de 2021 a las 15:01:25 se guardó en los servidores de SC la latitud pero no la longitud del dispositivo
-                point2lon = dataLon[i][1]
-                point2lon = dataLon[i][1]
-            except IndexError:
-                point2lon = dataLon[i-1][1]
-            time2 = dataLat[i][0]
+    else:
+        logger.error("API ERROR: NOT a 200 answer code")
+        return False
+    
+    # Chequeamos los valores desde el último checking
+    # y si varían mandamos los límites al método de construir track
+    limits = []
+    hayNewTrack = False
+    last_lat = dataLat[0][1] # Primer punto = último del track ()
+    last_lon = dataLon[0][1]
+    last_timestamp = dataLat[0][0] # Primer timestamp = último del track
+    maxLon = False    
 
-            date_time_last = datetime.datetime.strptime(last_timestamp, '%Y-%m-%dT%H:%M:%SZ')
-            date_time2 = datetime.datetime.strptime(time2, '%Y-%m-%dT%H:%M:%SZ')
+    # Mismo número de datos lat y lon? --> Limpiamos arrays de valores sueltos
+    if len(dataLon) > len(dataLat): # si uno es más grande que el otro, cogemos el mayor para iterar
+        minMedidas = len(dataLat)
+        maxLon = True
+    elif len(dataLon) < len(dataLat):
+        minMedidas = len(dataLon)
+        maxLon = False
+    else:
+        minMedidas = len(dataLon) # si son iguales nos da igual y cogemos cualquiera
 
-            duration = date_time_last - date_time2 # porque el primer punto es el último del track                       
-            duration_in_s = duration.total_seconds() 
-            if duration_in_s > 600: # si son más de 10 mins guardamos los limits y pasamos a otro track
-                if hayNewTrack: 
-                    end_time = limits[0]
-                    start_time = limits[len(limits)-1]
-                    track_time_bounds =[start_time, end_time]
-                    time_limits.append(track_time_bounds)
-                    limits = []
-                    hayNewTrack = False
+    difference = len(dataLon)-len(dataLat)
+    i = 0
+
+    while abs(difference) > 0:
+        while i < (minMedidas-1):
+            if maxLon:
+                if dataLon[i][0] != dataLat[i][0]:
+                    date_time_lon = datetime.datetime.strptime(dataLon[i][0], '%Y-%m-%dT%H:%M:%SZ')
+                    date_time_lat = datetime.datetime.strptime(dataLat[i][0], '%Y-%m-%dT%H:%M:%SZ')
+                    diff_secs = abs(date_time_lat-date_time_lon)
+                    if diff_secs.total_seconds() >= 10:
+                        dataLon.pop(i)
+                        difference = len(dataLon)-len(dataLat)
+                        i = i-1
 
             else:
-                dif_lat = abs(point2-last_lat)
-                dif_lon = abs(point2lon-last_lon)
-                if point2 != 0 and dif_lat >0.00002 and point2lon!=0 and dif_lon >0.00002: # si mayor que 0.0002 
-                    if dif_lat < 0.05 and dif_lon < 0.05 : # si es mayor que eso la diferencia descartamos
-                        hayNewTrack = True
-                        limits.append(dataLat[i][0])
-            last_lat = point2
-            last_lon = point2lon
-            last_timestamp = time2
-            i+=1
+                if dataLon[i][0] != dataLat[i][0]:
+                    date_time_lon = datetime.datetime.strptime(dataLon[i][0], '%Y-%m-%dT%H:%M:%SZ')
+                    date_time_lat = datetime.datetime.strptime(dataLat[i][0], '%Y-%m-%dT%H:%M:%SZ')
+                    diff_secs = abs(date_time_lat-date_time_lon)
+                    if diff_secs.total_seconds() >= 10:
+                        dataLat.pop(i)
+                        difference = len(dataLon)-len(dataLat)
+                        i = i-1
 
-        if time_limits: 
-            print("Chequeando nuevos tracks\ndesde: " + time_limits[len(time_limits)-1][0] + "\nhasta: " + time_limits[0][1] + "\ncon rollup: " + rollup)
-            return time_limits
+            i += 1
+    
+    i = 0
+    while i<(minMedidas-1): # desde punto 2 comparar si es igual o cambia muy poco  
+        point2lat = dataLat[i][1]
+        point2lon = dataLon[i][1]
+        time2 = dataLat[i][0]
+           
+        date_time_last = datetime.datetime.strptime(last_timestamp, '%Y-%m-%dT%H:%M:%SZ')
+        date_time2 = datetime.datetime.strptime(time2, '%Y-%m-%dT%H:%M:%SZ')
 
-    else:
-        print("API ERROR: NOT a 200 answer code")
-        return False
+        duration = date_time_last - date_time2 # porque el primer punto es el último del track                       
+        duration_in_s = duration.total_seconds() 
+        if duration_in_s > 600: # si son más de 10 mins guardamos los limits y pasamos a otro track
+            if hayNewTrack: 
+                end_time = limits[0]
+                start_time = limits[len(limits)-1]
+                track_time_bounds =[start_time, end_time]
+                time_limits.append(track_time_bounds)
+                limits = []
+                hayNewTrack = False
+
+        else:
+            dif_lat = abs(point2lat-last_lat)
+            dif_lon = abs(point2lon-last_lon)
+            if point2lat != 0 and dif_lat >0.00002 and point2lon!=0 and dif_lon >0.00002: # si mayor que 0.0002 
+                if dif_lat < 0.05 and dif_lon < 0.05 : # si es mayor que eso la diferencia descartamos
+                    hayNewTrack = True
+                    limits.append(dataLat[i][0])
+        last_lat = point2lat
+        last_lon = point2lon
+        last_timestamp = time2
+        i+=1
+
+    if time_limits: 
+        logger.info("Chequeando nuevos tracks\ndesde: " + time_limits[len(time_limits)-1][0] + "\nhasta: " + time_limits[0][1] + "\ncon rollup: " + rollup)
+        return time_limits
 
 
 
@@ -377,11 +452,11 @@ def calc_new_track(sck_id, rollup):
     if time_bounds:
         for time_limits in time_bounds:
             if generate_tracks_time(time_limits[0], time_limits[1], rollup, sck_id):
-                print("Successfully updated new track")
+                logger.info("Successfully updated new track")
             else:
-                print("NO track updated")
+                logger.info("NO track updated")
     else:
-        print("NO tracks since last fetch")
+        logger.info("NO tracks since last fetch")
 
 
 

@@ -37,6 +37,11 @@
         <a href="{% url 'analisis' %}" class="list-group-item list-group-item-action bg-light">{% translate 'Análisis' %}</a>
         <a href="{% url 'consulta' %}" class="list-group-item list-group-item-action bg-light">{% translate 'Consulta' %}</a>
         <a href="{% url 'proyecto' %}" class="list-group-item list-group-item-action bg-light">{% translate 'Proyecto' %}</a>
+        {% if user.is_authenticated %}
+          <i><a href="{% url 'logout' %}" class="list-group-item list-group-item-action bg-light">{% translate 'Logout' %}</a></i>
+        {% else %}
+          <i><a href="{% url 'login' %}" class="list-group-item list-group-item-action bg-light">{% translate 'Login' %}</a></i>
+        {% endif %}
       </div>
     </div>
     <!-- /#sidebar-wrapper -->

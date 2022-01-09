@@ -11,6 +11,7 @@
     <div class="pt-2">
       {{form.as_ul}}
     </div>
+    {% if user.is_authenticated %}
     <div class="form-row">
       <div class="pl-3 pt-2 text-center">
         <input type="submit" name="center" class="btn btn-primary" value="{% translate 'Cambiar centro' %}">
@@ -20,6 +21,12 @@
   <div class="pt-4">
     <p><i><strong>{% translate 'INFO proyección:' %}</strong> {% translate 'la proyección actual con la que se han calculado los datos de la longitud de las rutas es la proyección europea (EPSG:3035). En caso de necesitar implementar este proyecto en una zona diferente, contactar con el soporte técnico a través del correo ' %}<a href="">ander.eguiluz@opendeusto.es</a></i></p>
   </div>
+  {% else %}
+  <br>
+  <p>{% translate 'Para poder editar el centro del mapa tienes que estar logueado' %}</p>
+  <a href="{% url 'login'%}">{% translate 'Login' %}</a>
+  {% endif %}    
+  <br><br>
   <h3 class="pt-2">{% translate 'BIDs desplegados (IDs)' %}</h3>
   <div class="pt-2 pl-2">
     {% if kits %}
@@ -27,29 +34,28 @@
         <li><strong>{{ k }}</strong></li>
       {% endfor %}
     {% endif %}
-    <div class="row pl-3 pt-3">
-      <!--TODO modificar lista de devices-->
-    </div>
-    <form action="{% url 'config_list' %}" method="post">
-      {% csrf_token %}
-      <div>
-        <input type="submit" name="edit_list" class="btn btn-primary" value="{% translate 'Editar Lista Kits' %}">
-      </div>
-    </form>
+    {% if user.is_superuser %}
+      <form action="{% url 'config_list' %}" method="post">
+        {% csrf_token %}
+        <div>
+          <input type="submit" name="edit_list" class="btn btn-primary" value="{% translate 'Editar Lista Kits' %}">
+        </div>
+      </form>
+    {% endif %}  
     <div class="pt-5">
       <p><i><strong>{% translate 'Refrescar información:' %}</strong></i></p>
     </div>  
     {% if user.is_authenticated %}
-    <form action="" method="post">
-      {% csrf_token %}
-      <div>
-        <input type="submit" name="refresh_devices" class="btn btn-primary" value="{% translate 'Refrescar info kits' %}">
-      </div>
-    </form>
-  {% else %}
-    <p>{% translate 'Para poder actualizar los datos del dispositivo tienes que estar logueado' %}</p>
-    <a href="{% url 'login'%}">{% translate 'Login' %}</a>
-  {% endif %}    
+      <form action="" method="post">
+        {% csrf_token %}
+        <div>
+          <input type="submit" name="refresh_devices" class="btn btn-primary" value="{% translate 'Refrescar info kits' %}">
+        </div>
+      </form>
+    {% else %}
+      <p>{% translate 'Para poder actualizar los datos del dispositivo tienes que estar logueado' %}</p>
+      <a href="{% url 'login'%}">{% translate 'Login' %}</a>
+    {% endif %}    
 
   </div>
   {% endblock %}

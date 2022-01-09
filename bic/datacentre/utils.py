@@ -52,7 +52,6 @@ def tracklist_to_geojson(tracks, geom_name):
                 gj_tracks.append(GEOSGeometry(track.lstring, srid=4326).geojson)
             elif geom_name == "points":
                 del gj_tracks[-1:]
-                cont = 0
                 if not hasattr(track, 'ratio'):
                     if track.device != None:
                         puntos_track = get_trkpts(track)
@@ -61,13 +60,9 @@ def tracklist_to_geojson(tracks, geom_name):
                 else:
                     puntos_track = get_lista_puntos(track)
                 for punto in puntos_track:
-                    if cont == 1: # quitamos la mitad de los puntos
-                        gj_tracks.append("{\"type\": \"Feature\",\"geometry\": ") 
-                        gj_tracks.append(punto.geojson) # Añadir Point 
-                        gj_tracks.append("},")  
-                        cont = 0
-                    else:
-                        cont += 1
+                    gj_tracks.append("{\"type\": \"Feature\",\"geometry\": ") 
+                    gj_tracks.append(punto.geojson) # Añadir Point 
+                    gj_tracks.append("},")  
                 del gj_tracks[-1:]
             else:
                 logger.info("ERROR IN PASSING 2nd parameter <geom_name>")

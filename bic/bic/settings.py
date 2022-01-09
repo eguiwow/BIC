@@ -49,6 +49,7 @@ LOGGING = {
 # Application definition
 
 INSTALLED_APPS = [
+    'datacentre',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.gis',
@@ -56,7 +57,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'datacentre',
     'rest_framework',
 ]
 
