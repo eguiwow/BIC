@@ -47,12 +47,12 @@ var defaultStyle = new Style({
   }),        
 });
 // Style de Ruido y Polución
-var dangerous = [0,0,0,0.5];      // BLACK > 100dB / 250 PM2.5
-var high = [255,0,0,0.5];         // RED: 70-100dB / 120-250 PM2.5
-var mid_high = [255,166,0,0.5]    // ORANGE: 65-70 dB / 90-120 PM2.5
-var mid = [255,255,0,0.5];        // YELLOW: 60-65 dB / 60-90 PM2.5
-var low = [0,255,0,0.5];          // GREEN: 50-60 dB / 30-60 PM2.5
-var very_low = [255,255,255,0.9]; // WHITE < 50 dB / 30 PM2.5
+var dangerous = [0,0,0,0.5];      // BLACK > 100dB / 75 PM2.5
+var high = [255,0,0,0.5];         // RED: 80-100dB / 50-75 PM2.5
+var mid_high = [255,166,0,0.5]    // ORANGE: 70-80 dB / 25-50 PM2.5
+var mid = [255,255,0,0.5];        // YELLOW: 60-70 dB / 20-25 PM2.5
+var low = [0,255,0,0.5];          // GREEN: 40-60 dB / 10-20 PM2.5
+var very_low = [255,255,255,0.9]; // WHITE < 40 dB / 10 PM2.5
 
 // Creamos lista de estilos en función de valor
 var styleListNoise = [];
