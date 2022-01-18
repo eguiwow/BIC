@@ -183,21 +183,22 @@ var styleNoise = function(feature, resolution) {
   if (!value) {
       return [defaultStyle];
   }else{
-      if (value >= 100){
-          return [styleListNoise[0]];
-      }else if (value<100 && value >= 70){ 
-          return [styleListNoise[1]];
-      }else if (value<70 && value >= 65){
-          return [styleListNoise[2]];
-      }else if (value<65 && value >= 60){
-          return [styleListNoise[3]];
-      }else if (value<60 && value >= 50){
-          return [styleListNoise[4]];
-      }else{
-          return [styleListNoise[5]];
-      }
+    if (value >= 100){
+      return [styleListNoise[0]];
+    }else if (value<100 && value >= 80){ 
+        return [styleListNoise[1]];
+    }else if (value<80 && value >= 70){
+        return [styleListNoise[2]];
+    }else if (value<70 && value >= 60){
+        return [styleListNoise[3]];
+    }else if (value<60 && value >= 40){
+        return [styleListNoise[4]];
+    }else{
+        return [styleListNoise[5]];
+    }
   }
 }
+
 
 // Devuelve el estilo correspondiente para cada franja de polución
 var styleAir = function(feature, resolution) {
@@ -205,21 +206,21 @@ var styleAir = function(feature, resolution) {
   var value = feature.get('value');
   // Asignamos estilo a valor
   if (!value) {
-      return [defaultStyle];
+    return [defaultStyle];
   }else{
-      if (value >= 250){
-          return [styleListAir[0]];
-      }else if (value<250 && value >= 120){
-          return [styleListAir[1]];
-      }else if (value<120 && value >= 90){
-          return [styleListAir[2]];
-      }else if (value<90 && value >= 60){
-          return [styleListAir[3]];
-      }else if (value<60 && value >= 30){
-          return [styleListAir[4]];
-      }else{
-          return [styleListAir[5]];
-      }
+    if (value >= 75){
+        return [styleListAir[0]];
+    }else if (value<75 && value >= 50){
+        return [styleListAir[1]];
+    }else if (value<50 && value >= 25){
+        return [styleListAir[2]];
+    }else if (value<25 && value >= 20){
+        return [styleListAir[3]];
+    }else if (value<20 && value >= 10){
+        return [styleListAir[4]];
+    }else{
+        return [styleListAir[5]];
+    }
   }
 }
 // Devuelve el estilo correspondiente para cada franja de temperatura

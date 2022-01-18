@@ -47,11 +47,11 @@ var defaultStyle = new Style({
   }),        
 });
 // Style de Ruido y Polución
-var dangerous = [0,0,0,0.5];    // BLACK > 100dB / 250 PM2.5
-var high = [255,0,0,0.5];       // RED: 70-100dB / 120-250 PM2.5
-var mid_high = [255,166,0,0.5]  // ORANGE: 65-70 dB / 90-120 PM2.5
-var mid = [255,255,0,0.5];      // YELLOW: 60-65 dB / 60-90 PM2.5
-var low = [0,255,0,0.5];        // GREEN: 50-60 dB / 30-60 PM2.5
+var dangerous = [0,0,0,0.5];      // BLACK > 100dB / 250 PM2.5
+var high = [255,0,0,0.5];         // RED: 70-100dB / 120-250 PM2.5
+var mid_high = [255,166,0,0.5]    // ORANGE: 65-70 dB / 90-120 PM2.5
+var mid = [255,255,0,0.5];        // YELLOW: 60-65 dB / 60-90 PM2.5
+var low = [0,255,0,0.5];          // GREEN: 50-60 dB / 30-60 PM2.5
 var very_low = [255,255,255,0.9]; // WHITE < 50 dB / 30 PM2.5
 
 // Creamos lista de estilos en función de valor
@@ -84,13 +84,13 @@ for (i = 0; i < values.length; i++){
   });    
 }
 // Style de temperatura
-var fire = [0,0,0,0.5];       // BLACK > 40
-var hot = [255,0,0,0.5];      // RED 35-40
-var mid_hot = [255,166,0,0.5] // ORANGE 25-35
-var mild = [255,255,0,0.5];   // YELLOW 15-25
+var fire = [0,0,0,0.5];          // BLACK > 40ºC
+var hot = [255,0,0,0.5];         // RED 35-40
+var mid_hot = [255,166,0,0.5]    // ORANGE 25-35
+var mild = [255,255,0,0.5];      // YELLOW 15-25
 var mid_cold = [90,180,255,0.5]; // LIGHT BLUE 5-15
-var cold = [90,90,190,0.9]; // DARK BLUE  0-5
-var ice = [255,255,255,0.9];  // WHITE < 0ºC 
+var cold = [90,90,190,0.9];      // DARK BLUE  0-5
+var ice = [255,255,255,0.9];     // WHITE < 0ºC 
 
 var valuesTemp = [fire, hot, mid_hot, mild, mid_cold, cold, ice] 
 
@@ -187,13 +187,13 @@ var styleNoise = function(feature, resolution) {
   }else{
       if (value >= 100){
           return [styleListNoise[0]];
-      }else if (value<100 && value >= 70){ 
+      }else if (value<100 && value >= 80){ 
           return [styleListNoise[1]];
-      }else if (value<70 && value >= 65){
+      }else if (value<80 && value >= 70){
           return [styleListNoise[2]];
-      }else if (value<65 && value >= 60){
+      }else if (value<70 && value >= 60){
           return [styleListNoise[3]];
-      }else if (value<60 && value >= 50){
+      }else if (value<60 && value >= 40){
           return [styleListNoise[4]];
       }else{
           return [styleListNoise[5]];
@@ -209,15 +209,15 @@ var styleAir = function(feature, resolution) {
   if (!value) {
       return [defaultStyle];
   }else{
-      if (value >= 250){
+      if (value >= 75){
           return [styleListAir[0]];
-      }else if (value<250 && value >= 120){
+      }else if (value<75 && value >= 50){
           return [styleListAir[1]];
-      }else if (value<120 && value >= 90){
+      }else if (value<50 && value >= 25){
           return [styleListAir[2]];
-      }else if (value<90 && value >= 60){
+      }else if (value<25 && value >= 20){
           return [styleListAir[3]];
-      }else if (value<60 && value >= 30){
+      }else if (value<20 && value >= 10){
           return [styleListAir[4]];
       }else{
           return [styleListAir[5]];
