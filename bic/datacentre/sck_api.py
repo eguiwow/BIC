@@ -3,7 +3,7 @@ import requests
 from django.utils import timezone
 from .models import SCK_device, Sensor, Measurement, Track, BikeLane, Trackpoint
 from django.contrib.gis.geos import Point, LineString, MultiLineString, GEOSGeometry, WKTWriter
-from .utils import calc_dtours
+from .utils import calc_dtours, calc_velocity_between_2_points
 from datetime import date
 import datetime
 import logging
@@ -201,31 +201,41 @@ def generate_tracks_time(from_dt, to_dt, rollup, sck_id):
         last_lat = lat_readings[0]
         last_lon = lon_readings[0]
         # creamos array de puntos y linestring
-        while i<len(lon_readings):
+        for i in range (len(lon_readings)):
             if lon_readings[i] != 0 and lat_readings[i] != 0: # Evitamos meter medida cuando pierde señal GPS
-                if i < (len(lon_readings)-1):   
+                if i < (len(lon_readings)-1):
                     dif_lat = abs(last_lat-lat_readings[i])
                     dif_lon = abs(last_lon-lon_readings[i])
 
-                    if dif_lat >0.00002 and dif_lon >0.00002 and dif_lat < 0.04 and dif_lon < 0.04: # Solo metemos aquellos puntos que estén a ~<100 m de distancia para evitar puntos con mala señal GPS
+                    if dif_lat < 0.04 and dif_lon < 0.04: # Solo metemos aquellos puntos que estén a ~<100 m de distancia para evitar puntos con mala señal GPS
+                        if dif_lat >0.00002 and dif_lon >0.00002:
+                            pnt = Point(lon_readings[i],lat_readings[i])
+                            points_track.append(pnt)
+                            if i>2:
+                                linestring.append((pnt[0], pnt[1])) # en el linestring metemos solo los puntos sin retardos
+                            last_lat = lat_readings[i]
+                            last_lon = lon_readings[i]
+                        else: # metemos también puntos con muy poca diferencia de distancia, que serán los retardos
+                            pnt = Point(lon_readings[i],lat_readings[i])
+                            points_track.append(pnt)
 
-                        last_lat = lat_readings[i]
-                        last_lon = lon_readings[i]
-
-                        pnt = Point(lon_readings[i],lat_readings[i])
-                        points_track.append(pnt)
-                        if i>2:
-                            linestring.append((pnt[0], pnt[1]))
-            #TODO aquí faltaría manejar el último punto del linestring que se pierde ahora mismo
-            i+=1
         if linestring != "":
             linestring.transform(3035) # Proyección europea EPSG:3035 https://epsg.io/3035 
             distance = linestring.length
             name_track = str(sck_id) + "_" + end_time
             new_track = Track(name=name_track, start_time=start_time, end_time=end_time, distance=distance, lstring=linestring, device=device)
             new_track.save()
-            for i in range(len(points_track)):
-                Trackpoint(track=new_track, time=timestamp_readings[i], point=points_track[i]).save()
+            velocity = 0
+            for i in range(len(points_track)):      
+                delay = False
+                if i>0:
+                    date_time_1 = datetime.datetime.strptime(timestamp_readings[i-1], '%Y-%m-%dT%H:%M:%SZ')
+                    date_time_2 = datetime.datetime.strptime(timestamp_readings[i], '%Y-%m-%dT%H:%M:%SZ')
+
+                    velocity = calc_velocity_between_2_points(points_track[i-1], points_track[i], date_time_1, date_time_2)
+                    if velocity < 1: # if velocity is less than 1km/h then it's a delay point
+                        delay = True
+                Trackpoint(track=new_track, time=timestamp_readings[i], point=points_track[i], velocity=velocity, delay=delay).save()
         
             pr_update = "Uploading TRACK ..." + str(new_track)
             logger.info(pr_update)
@@ -245,7 +255,7 @@ def calc_time_limits(sck_id, rollup):
     time_limits = []
     # FROM_DATETIME
     try: 
-        last_track = Track.objects.filter(end_time__isnull=False).latest('end_time')    
+        last_track = Track.objects.filter(mlstring__isnull=True).latest('end_time')    
         last_track_datetime = last_track.end_time
         from_dt = last_track_datetime.strftime("%Y-%m-%dT%H:%M:%SZ")
 

@@ -335,6 +335,12 @@ def analisis(request):
     gj_noise = measurements_to_geojson(measurements_noise)
     gj_temp = measurements_to_geojson(measurements_temp)
 
+
+# SACAR gj_velocity 
+#     qs = Trackpoint.objects.values_list('id', 'velocity')
+# #   qs = <QuerySet [(1, 'Beatles Blog')]>
+#     reloaded_qs = Blog.objects.all()
+
     
     context = { "gj_tracks": gj_tracks,"gj_dtours": gj_dtours, "gj_bidegorris": bidegorris,\
     "gj_air": gj_air,"gj_noise": gj_noise, "gj_temp": gj_temp,\

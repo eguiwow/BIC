@@ -3,8 +3,11 @@ from django.contrib.gis.geos import GEOSGeometry, LineString, MultiLineString, P
 from django.contrib.gis.measure import D, Distance
 from django.contrib.gis.db.models.functions import Length
 from .models import BikeLane, Dtour, Trackpoint
-import gpxpy
+import gpxpy # For manipulating gpx files from python
+import geopy.distance
 import logging
+import datetime
+
 
 logger = logging.getLogger(__name__)
 
@@ -271,6 +274,27 @@ def get_lista_puntos(track):
             p = Point(point)
             ml_list_of_points.append(p)
     return ml_list_of_points
+
+def calc_distance_between_2_points(point1, point2):
+    # distance in m
+    
+    coords_1 = (point1[0], point1[1])
+    coords_2 = (point2[0], point2[1])
+
+    return geopy.distance.geodesic(coords_1, coords_2).km
+
+def calc_velocity_between_2_points(point1, point2, time1, time2):
+    # vel = space / time
+    # time (s):
+    diff_secs = abs(time2-time1)
+    passed_time = diff_secs.total_seconds()
+    # space (km):
+    distance_between_points = calc_distance_between_2_points(point1, point2)
+    # vel (km/h):
+    velocity = distance_between_points/(passed_time/3600)
+    if velocity > 40: # si la velocidad es mayor a 40km/h es con toda probabilidad un error 
+        velocity = -1 
+    return velocity
 
 # These bunch of functions --> Given a gpx_file from a gpxpy parser, returns a MLSTRING
 # From: https://github.com/PetrDlouhy/django-gpxpy/blob/master/django_gpxpy/gpx_parse.py

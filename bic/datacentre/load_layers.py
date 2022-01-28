@@ -9,7 +9,7 @@ from django.contrib.gis.gdal import DataSource
 from django.contrib.gis.measure import D, Distance
 from django.contrib.gis.db.models.functions import Length
 from .models import Track, BikeLane, Dtour, SCK_device, Sensor, Measurement, Trackpoint
-from .utils import parse_gpx, calc_dtours
+from .utils import parse_gpx, calc_dtours, calc_velocity_between_2_points
 
 import sys, os
 import gpxpy # For manipulating gpx files from python
@@ -90,9 +90,17 @@ def load_gpx_from_file(gpx_file, verbose=True):
         lstring.transform(3035) # Proyección europea EPSG:3035 https://epsg.io/3035 
         new_track = Track(name=gpx_file.name, start_time=data[0], end_time=data[1], distance=lstring.length, mlstring=data[2])
         new_track.save()
-
+        last_point = False
+        velocity = 0
         for point in data[3]:
-            Trackpoint(track=new_track, time=point[1], point=point[0]).save()
+            delay = False
+            if last_point != False:
+                velocity = calc_velocity_between_2_points(point[0], last_point[0], point[1], last_point[1])
+                if velocity < 1: # if velocity is less than 1km/h then it's a delay point
+                    delay = True
+            Trackpoint(track=new_track, time=point[1], point=point[0], velocity=velocity, delay=delay).save()
+            last_point = point
+ 
 
         pr_update = "Uploading TRACK and associated TRACKPOINTS..." + str(new_track)
         logger.info(pr_update)
