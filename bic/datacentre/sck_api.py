@@ -10,88 +10,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# generar los tracks con datetimes inicio y fin + rollup     
-def generate_tracks(from_dt, to_dt, rollup):
-    devices = SCK_device.objects.all()
-    gps_lat_id = 125
-    gps_lon_id = 126
-
-    kml_tracks = BikeLane.objects.all()
-    polys = [] 
-    for track in kml_tracks:
-        polys.append(track.poly)
-
-    for device in devices:
-        lat_readings = []
-        lon_readings = []
-        timestamp_readings = []
-        linestring = ""
-
-        # Llamada LATITUD
-        # ----------------    
-        url = "https://api.smartcitizen.me/v0/devices/" + str(device.sck_id) +\
-        "/readings?sensor_id=" + str(gps_lat_id) + "&rollup=" + rollup + \
-        "&from=" + from_dt + "&to=" + to_dt 
-        resp = requests.get(url)
-
-        if resp.status_code == 200: # Existe el device y da respuesta
-            j = json.loads(resp.text)
-            data = j["readings"]
-            for reading in data:
-                lat_readings.append(reading[1]) # metemos latitud            
-        else:
-            logger.error("API ERROR: NOT a 200 answer code") #TODO handle this exception better
-        
-        # Llamada LONGITUD
-        # ----------------    
-        url = "https://api.smartcitizen.me/v0/devices/" + str(device.sck_id) +\
-        "/readings?sensor_id=" + str(gps_lon_id) + "&rollup=" + rollup + \
-        "&from=" + from_dt + "&to=" + to_dt 
-        resp = requests.get(url)
-
-        if resp.status_code == 200: # Existe el device y da respuesta
-            hayTrack = True
-            j = json.loads(resp.text)
-            data = j["readings"]
-            end_time = data[0][0] # Primer punto = último del track
-            start_time = data[len(data)-1][0] # Último punto = primero del track
-            for reading in data:
-                timestamp_readings.append(reading[0]) # metemos timestamp
-                lon_readings.append(reading[1]) # metemos longitud
-        else:
-            hayTrack = False
-            logger.error("API ERROR: NOT a 200 answer code") #TODO handle this exception better
-        
-        if hayTrack:
-            # crear_track(lat_readings, lon_readings, timestamp_readings)
-            points_track = []
-
-            if len(lon_readings) > 2:
-                linestring = LineString((lon_readings[0], lat_readings[0]), (lon_readings[1], lat_readings[1]), srid=4326) # evitar error de constructor LineString
-            i=0
-            # creamos array de puntos y linestring
-            while i<len(lon_readings): 
-                pnt = Point(lon_readings[i],lat_readings[i])
-                points_track.append(pnt)
-                if i>2:
-                    linestring.append((pnt[0], pnt[1]))
-                i+=1
-            linestring.transform(3035) # Proyección europea EPSG:3035 https://epsg.io/3035 
-            distance = linestring.length
-            name_track = str(device.sck_id) + "_" + end_time
-            new_track = Track(name=name_track, start_time=start_time, end_time=end_time, distance=distance, lstring=linestring, device=device)
-            new_track.save()
-            i=0
-            while i<len(points_track):
-                Trackpoint(track=new_track, time=timestamp_readings[i], point=points_track[i]).save()
-                i += 1
-            pr_update = "Uploading TRACK ..." + str(new_track)
-            logger.info(pr_update)
-
-            calc_dtours(polys, linestring, new_track)
-            map_measurements(new_track, device.sck_id, "10s")
-        
-
 # Given a track and device.sck_id --> Map  Measurements(temperature, air, noise) with Trackpoints
 def map_measurements(track, device_id, rollup):
     device = SCK_device.objects.get(sck_id=device_id)
@@ -242,7 +160,6 @@ def generate_tracks_time(from_dt, to_dt, rollup, sck_id):
     difference = len(dataLon)-len(dataLat)
 
     i = 0
-
     while abs(difference) > 0:
         while i < (minMedidas-1):
             if maxLon:
@@ -307,10 +224,9 @@ def generate_tracks_time(from_dt, to_dt, rollup, sck_id):
             name_track = str(sck_id) + "_" + end_time
             new_track = Track(name=name_track, start_time=start_time, end_time=end_time, distance=distance, lstring=linestring, device=device)
             new_track.save()
-            i=0
-            while i<len(points_track):
+            for i in range(len(points_track)):
                 Trackpoint(track=new_track, time=timestamp_readings[i], point=points_track[i]).save()
-                i += 1
+        
             pr_update = "Uploading TRACK ..." + str(new_track)
             logger.info(pr_update)
 

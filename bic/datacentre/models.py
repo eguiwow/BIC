@@ -9,8 +9,7 @@ class KML_file(models.Model):
     kml_name = models.TextField(help_text="The raw kml file name")
     kml_file = models.FileField(
         verbose_name=("KML File"),
-        upload_to='uploads/kml/',
-        #storage=OverwriteFileSystemStorage(create_backups=True),
+        upload_to='uploads/kml/',    
         max_length=511,
         null=True,
         blank=True,
@@ -25,7 +24,6 @@ class GPX_file(models.Model):
     gpx_file = models.FileField(
         verbose_name=("GPX File"),
         upload_to='uploads/gpx/',
-        #storage=OverwriteFileSystemStorage(create_backups=True),
         max_length=511,
         null=True,
         blank=True,
@@ -64,11 +62,12 @@ class Sensor(models.Model):
 class Track(models.Model):
     # Django fields corresponding to 
     # layer [tracks] of gpx
+    device = models.ForeignKey(SCK_device, on_delete=models.CASCADE, null=True)
     name = models.CharField(max_length=50, null=True)
     start_time = models.DateTimeField(null=True)
     end_time = models.DateTimeField(null=True) 
     distance = models.FloatField(null=True)
-    device = models.ForeignKey(SCK_device, on_delete=models.CASCADE, null=True)
+    avg_velocity = models.FloatField(null=True)
 
     # GeoDjango-field <-> (MultiLineString or LineString) 
     mlstring = models.MultiLineStringField(null=True)
@@ -84,7 +83,6 @@ class BikeLane(models.Model):
     # layer [3D LineString] of kml
     name = models.CharField(max_length=50, null=True)
     distance = models.FloatField(null=True)
-    #time = models.DateTimeField()
 
     # GeoDjango-field <-> (MultiLineString or LineString) + Polygon (for buffered bidegorri)
     mlstring = models.MultiLineStringField(null=True)
@@ -99,7 +97,9 @@ class BikeLane(models.Model):
 # Points dentro de un track: <trkpt>
 class Trackpoint(models.Model):
     track = models.ForeignKey(Track, on_delete=models.CASCADE)
-    time = models.DateTimeField(null=True) 
+    time = models.DateTimeField(null=True)
+    velocity = models.FloatField(null=True) 
+    delay = models.BooleanField(default=False)
     # GeoDjango-field <-> (Point)
     point = models.PointField()
 
@@ -116,14 +116,18 @@ class Dtour(models.Model):
     # GeoDjango-field <-> (MultiLineString)
     mlstring = models.MultiLineStringField()
 
+    # Returns the string representation of the model.
+    def __str__(self):
+        return self.name
+
 ########################################
 ############### Others #################
 ########################################
 
 
 class Measurement(models.Model):
-    sensor = models.ForeignKey(Sensor, on_delete=models.CASCADE)
     device = models.ForeignKey(SCK_device, on_delete=models.CASCADE)
+    sensor = models.ForeignKey(Sensor, on_delete=models.CASCADE)
     trkpoint = models.ForeignKey(Trackpoint, on_delete=models.CASCADE, null=True)
     time  = models.DateTimeField(null=True)
     value = models.FloatField(null=True)
@@ -136,7 +140,6 @@ class Measurement(models.Model):
 class Config(models.Model):
     name = models.CharField(max_length=50, null=True)
     lon = models.FloatField()
-
     lat = models.FloatField()
     zoom = models.FloatField()
     devices = models.ManyToManyField(SCK_device)

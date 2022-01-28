@@ -45,9 +45,6 @@ def movilidad(request):
     # tracks = Track.objects.all()
     # kml_tracks = BikeLane.objects.all()
     # dtour_tracks = Dtour.objects.all()
-
-    # Retrieve config
-    config = Config.objects.get(name="base_config")
     
     # RETRIEVE tracks
     gj_bidegorris = tracklist_to_geojson(kml_tracks, "bidegorris")    

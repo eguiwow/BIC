@@ -8,7 +8,7 @@ from django.contrib.gis.geos import GEOSGeometry, LineString, WKTWriter, Point
 from django.contrib.gis.gdal import DataSource
 from django.contrib.gis.measure import D, Distance
 from django.contrib.gis.db.models.functions import Length
-from .models import Track, BikeLane, Dtour, SCK_device, Sensor, Measurement
+from .models import Track, BikeLane, Dtour, SCK_device, Sensor, Measurement, Trackpoint
 from .utils import parse_gpx, calc_dtours
 
 import sys, os
@@ -67,28 +67,41 @@ def load_gpx_from_folder(verbose=True):
 
 def load_gpx_from_file(gpx_file, verbose=True):
     """ Carga el archivo GPX (gpx_file) pasado en forma de track + dtour en la BD
-    
-    El archivo que se pasa se presupone abierto.
-    Si el archivo es GPX y procesable, devuelve True
-    False si no es procesable o es otro tipo de archivo
+
+
+    Parameters
+    ----------
+    gpx_file : 
+        archivo GPX abierto
+
+    Returns
+    -------
+    boolean :
+        True si es GPX y procesable
+        False si otro archivo o no procesable
     """
     kml_tracks = BikeLane.objects.all()
     polys = [] 
     for track in kml_tracks:
         polys.append(track.poly)
     try:
-        data = parse_gpx(gpx_file) 
+        data = parse_gpx(gpx_file)
         lstring = GEOSGeometry(data[2], srid=4326)
         lstring.transform(3035) # Proyección europea EPSG:3035 https://epsg.io/3035 
         new_track = Track(name=gpx_file.name, start_time=data[0], end_time=data[1], distance=lstring.length, mlstring=data[2])
         new_track.save()
-        pr_update = "Uploading TRACK ..." + str(new_track)
+
+        for point in data[3]:
+            Trackpoint(track=new_track, time=point[1], point=point[0]).save()
+
+        pr_update = "Uploading TRACK and associated TRACKPOINTS..." + str(new_track)
         logger.info(pr_update)
         calc_dtours(polys, lstring, new_track)
         return True
 
-    except(Exception):
-        logger.info(Exception) # TODO capturar la excepción
+    except IOError:
+        type, value, traceback = sys.exc_info()
+        print('Error opening %s: %s' % (value.filename, value.strerror))
         return False
 
 # # # # # # #

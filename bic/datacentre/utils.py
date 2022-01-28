@@ -264,23 +264,26 @@ def calc_dtours(polys, geom, new_track):
 def get_lista_puntos(track):
     # track tiene un atributo .mlstring
     GEOStrack = GEOSGeometry(track.mlstring, srid=4326)
-    track_list_of_points = []
+    ml_list_of_points = []
     # track es una GEOSGeometry
     for ls in GEOStrack:
         for point in ls:
             p = Point(point)
-            track_list_of_points.append(p)
-    return track_list_of_points
+            ml_list_of_points.append(p)
+    return ml_list_of_points
 
 # These bunch of functions --> Given a gpx_file from a gpxpy parser, returns a MLSTRING
 # From: https://github.com/PetrDlouhy/django-gpxpy/blob/master/django_gpxpy/gpx_parse.py
 # Returns points[] from segment
 def parse_segment(segment):
+    ml_list_of_points = []
     track_list_of_points = []
     for point in segment.points:
         point_in_segment = Point(point.longitude, point.latitude)
-        track_list_of_points.append(point_in_segment.coords)
-    return track_list_of_points
+        ml_list_of_points.append(point_in_segment.coords)
+        track_list_of_points.append([point_in_segment, point.time])
+    data = [ml_list_of_points, track_list_of_points]
+    return data
 # Returns multiline, start&end_times from tracks[]
 # Método adaptado para coger tiempo inicio y fin 
 # Aunque normalmente solo hay un track en cada gpx, en caso de que hubiera más habría que modificar este método
@@ -291,20 +294,24 @@ def parse_tracks(tracks):
     for track in tracks:
         start_time, end_time = track.get_time_bounds() 
         for segment in track.segments:
-            track_list_of_points = parse_segment(segment)
-            if len(track_list_of_points) > 1:
-                multiline.append(LineString(track_list_of_points))
+            lists_points = parse_segment(segment)
+            ml_list_of_points = lists_points[0]
+            if len(ml_list_of_points) > 1:
+                multiline.append(LineString(ml_list_of_points))
     data.append(start_time)
     data.append(end_time)
     data.append(multiline)
+    data.append(lists_points[1])
     return data
 # Returns multiline from routes[]
-def parse_routes(routes):
+def parse_routes(routes): # TODO está sin probar => subir GPX con codificación route para probar
     multiline = []
     for route in routes:
-        track_list_of_points = parse_segment(route)
-        if len(track_list_of_points) > 1:
-            multiline.append(LineString(track_list_of_points))
+        lists_points = parse_segment(route)
+        ml_list_of_points = lists_points[0]
+        if len(ml_list_of_points) > 1:
+            multiline.append(LineString(ml_list_of_points))
+    data = [multiline, lists_points[1]]        
     return multiline
 # Returns track_data[] (data=mlstring + start_time + end_time) from gpx_file
 def parse_gpx(track):
@@ -316,19 +323,13 @@ def parse_gpx(track):
             multiline += data[2]
 
         if gpx.routes:
-            multiline += parse_routes(gpx.routes)
+            routes = parse_routes(gpx.routes)
+            multiline += routes[0]
+            data[3] = routes[1]
         data[2] = MultiLineString(multiline, srid=4326)
         return data
 
     except gpxpy.gpx.GPXException as e:
-        logger.error("Valid GPX file: %s" % e) # TODO añadir logger
+        logger.error("Valid GPX file: %s" % e) 
         raise ValidationError(u"Valid GPX file: %s" % e)
-
-# Returns gpx_file from filefield
-def parse_gpx_filefield(filefield):
-    if filefield.name.endswith(".gz"):
-        track_file = gzip.GzipFile(fileobj=filefield).read().decode("utf-8")
-    else:
-        track_file = filefield.read().decode("utf-8")
-    return parse_gpx(track_file)
 
