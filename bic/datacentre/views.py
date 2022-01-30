@@ -214,6 +214,7 @@ def consulta(request):
     sensor_air = Sensor.objects.get(sensor_id= 87) # Sensor PM 2.5
     sensor_noise = Sensor.objects.get(sensor_id= 53) # Sensor Noise (dBA)
     sensor_temp = Sensor.objects.get(sensor_id= 55) # Sensor Temperatura (ºC)
+    sensor_hum = Sensor.objects.get(name= "SHT31 - Humidity") # Sensor Humedad ()
 
 
     # If this is a POST request then process the Form data
@@ -267,9 +268,13 @@ def consulta(request):
             measurements_air = Measurement.objects.filter(sensor=sensor_air).filter(time__range=[dates[0], dates[1]]).filter(point__contained=geom)
             measurements_noise = Measurement.objects.filter(sensor=sensor_noise).filter(time__range=[dates[0], dates[1]]).filter(point__contained=geom)
             measurements_temp = Measurement.objects.filter(sensor=sensor_temp).filter(time__range=[dates[0], dates[1]]).filter(point__contained=geom)
+            measurements_hum = Measurement.objects.filter(sensor=sensor_hum).filter(time__range=[dates[0], dates[1]]).filter(point__contained=geom)
+
             gj_air = measurements_to_geojson(measurements_air)
             gj_noise = measurements_to_geojson(measurements_noise)
             gj_temp = measurements_to_geojson(measurements_temp)
+            gj_hum = measurements_to_geojson(measurements_hum)
+
 
             if not tracks:
                 consulta_vacia = 1
@@ -278,7 +283,7 @@ def consulta(request):
 
             context = { 'form': form, 'consulta_vacia': consulta_vacia,\
             'gj_tracks': gj_tracks, "gj_dtours": gj_dtours, "gj_bidegorris": bidegorris,\
-            "gj_air": gj_air,"gj_noise": gj_noise, "gj_temp": gj_temp,\
+            "gj_air": gj_air,"gj_noise": gj_noise, "gj_temp": gj_temp, "gj_hum": gj_hum,\
             'center': [new_center_lon, new_center_lat],'zoom':new_center_zoom} 
 
             return render(request, 'consulta.html', context)
@@ -298,7 +303,7 @@ def consulta(request):
     gj_vacio = empty_geojson()
     context = { 'form': form,\
     'gj_tracks': gj_vacio, "gj_dtours": gj_vacio, "gj_bidegorris": gj_vacio,\
-    "gj_air": gj_vacio,"gj_noise": gj_vacio, "gj_temp": gj_vacio,\
+    "gj_air": gj_vacio,"gj_noise": gj_vacio, "gj_temp": gj_vacio, "gj_hum": gj_vacio,\
     'center': [config.lon, config.lat],'zoom':config.zoom}  
 
     return render(request, 'consulta.html', context)    
@@ -327,14 +332,16 @@ def analisis(request):
     sensor_air = Sensor.objects.get(sensor_id= 87) # Sensor PM 2.5
     sensor_noise = Sensor.objects.get(name= "ICS43432 - Noise") # Sensor Noise (dBA)
     sensor_temp = Sensor.objects.get(name= "SHT31 - Temperature") # Sensor Temperatura (ºC)
+    sensor_hum = Sensor.objects.get(name= "SHT31 - Humidity") # Sensor Humedad ()
     measurements_air = Measurement.objects.filter(sensor=sensor_air).filter(trkpoint__in=trackpoints)
     measurements_noise = Measurement.objects.filter(sensor=sensor_noise).filter(trkpoint__in=trackpoints)
     measurements_temp = Measurement.objects.filter(sensor=sensor_temp).filter(trkpoint__in=trackpoints)
-    
+    measurements_hum = Measurement.objects.filter(sensor=sensor_hum).filter(trkpoint__in=trackpoints)
+
     gj_air = measurements_to_geojson(measurements_air)
     gj_noise = measurements_to_geojson(measurements_noise)
     gj_temp = measurements_to_geojson(measurements_temp)
-
+    gj_hum = measurements_to_geojson(measurements_hum)
 
 # SACAR gj_velocity 
 #     qs = Trackpoint.objects.values_list('id', 'velocity')
@@ -343,7 +350,7 @@ def analisis(request):
 
     
     context = { "gj_tracks": gj_tracks,"gj_dtours": gj_dtours, "gj_bidegorris": bidegorris,\
-    "gj_air": gj_air,"gj_noise": gj_noise, "gj_temp": gj_temp,\
+    "gj_air": gj_air,"gj_noise": gj_noise, "gj_temp": gj_temp, "gj_hum": gj_hum,\
     'center': [config.lon, config.lat],'zoom':config.zoom}
 
     return render(request, 'analisis.html', context)

@@ -1,0 +1,3 @@
+from datacentre import load_layers
+load_layers.load_humidity_measurements()
+quit()

@@ -58,6 +58,7 @@ var very_low = [255,255,255,0.9]; // WHITE < 40 dB / 10 PM2.5
 var styleListNoise = [];
 var styleListAir = [];
 var styleListTemp = [];
+var styleListHum = [];
 var values = [dangerous, high, mid_high, mid, low, very_low] 
 var i, ii;
 for (i = 0; i < values.length; i++){
@@ -106,6 +107,30 @@ for (i=0; i< valuesTemp.length; i++){
   });
 }
 
+// Style de humedad
+var water = [191,0,255,0.8];         // PURPLE > 90%
+var port = [90,90,190,0.9];          // DARK BLUE 75-90
+var much = [0,0,255, 0.8]            // BLUE 60-75
+var reg_moisture = [90,180,255,0.5]; // LIGHT BLUE 45-60
+var not_much = [255,255,0,0.5];      // YELLOW 30-45
+var arid = [255,166,0,0.5];          // ORANGE  15-30
+var desert = [255,0,0,0.5];          // RED < 15% 
+
+var valuesHum = [water, port, much, reg_moisture, not_much, arid, desert] 
+
+for (i=0; i< valuesHum.length; i++){
+  styleListHum[i] = new Style({
+    image: new CircleStyle({
+        fill: new Fill({
+            color: valuesHum[i],
+        }),
+        radius: 7,
+        stroke: defaultStyle.stroke,
+    }),
+  });
+}
+
+// Style general
 var style = {
   'Point': new Style({
     image: new CircleStyle({
@@ -183,23 +208,24 @@ var styleNoise = function(feature, resolution) {
   var value = feature.get('value');
   // Asignamos estilo a valor
   if (!value) {
-      return [defaultStyle];
+    return [defaultStyle];
   }else{
-      if (value >= 100){
-          return [styleListNoise[0]];
-      }else if (value<100 && value >= 80){ 
-          return [styleListNoise[1]];
-      }else if (value<80 && value >= 70){
-          return [styleListNoise[2]];
-      }else if (value<70 && value >= 60){
-          return [styleListNoise[3]];
-      }else if (value<60 && value >= 40){
-          return [styleListNoise[4]];
-      }else{
-          return [styleListNoise[5]];
-      }
+  if (value >= 100){
+    return [styleListNoise[0]];
+  }else if (value<100 && value >= 80){ 
+      return [styleListNoise[1]];
+  }else if (value<80 && value >= 70){
+      return [styleListNoise[2]];
+  }else if (value<70 && value >= 60){
+      return [styleListNoise[3]];
+  }else if (value<60 && value >= 40){
+      return [styleListNoise[4]];
+  }else{
+      return [styleListNoise[5]];
   }
 }
+}
+
 
 // Devuelve el estilo correspondiente para cada franja de polución
 var styleAir = function(feature, resolution) {
@@ -249,6 +275,31 @@ var styleTemp = function(feature, resolution) {
       }
   }
 }
+// Devuelve el estilo correspondiente para cada franja de humedad
+var styleHum = function(feature, resolution) {
+  // Obtenemos el value de la feature
+  var value = feature.get('value');
+  // Asignamos estilo a valor
+  if (!value) {
+    return [defaultStyle];
+  }else{
+    if (value >= 90){
+        return [styleListHum[0]];
+    }else if (value<90 && value >= 75){
+        return [styleListHum[1]];
+    }else if (value<75 && value >= 60){
+        return [styleListHum[2]];
+    }else if (value<60 && value >= 45){
+        return [styleListHum[3]];
+    }else if (value<45 && value >= 30){
+        return [styleListHum[4]];
+    }else if (value<30 && value >= 15){
+        return [styleListHum[5]];
+    }else{
+      return [styleListHum[6]];
+    }
+  }
+}
 // ###### FIN Estilo de pintado de Features ######
 
 
@@ -260,12 +311,13 @@ var json_bidegorris = document.getElementById("json_bidegorris")
 var json_air = document.getElementById("json_air")
 var json_noise = document.getElementById("json_noise")
 var json_temp = document.getElementById("json_temp")
+var json_hum = document.getElementById("json_hum")
 var gj_tracks = new GeoJSON().readFeatures(JSON.parse(json_tracks.innerText))
 var gj_dtours = new GeoJSON().readFeatures(JSON.parse(json_dtours.innerText))
 var gj_air = new GeoJSON().readFeatures(JSON.parse(json_air.innerText))
 var gj_noise = new GeoJSON().readFeatures(JSON.parse(json_noise.innerText))
 var gj_temp = new GeoJSON().readFeatures(JSON.parse(json_temp.innerText))
-// TODO meter temperatura
+var gj_hum = new GeoJSON().readFeatures(JSON.parse(json_hum.innerText))
 var gj_bidegorris = new GeoJSON().readFeatures(JSON.parse(json_bidegorris.innerText))
 // Botones
 var botonDebug = document.getElementById("debugButton")
@@ -321,6 +373,10 @@ var sourceGJTemp = new VectorSource({
   wrapX:false,
   features: gj_temp
 });
+var sourceGJHum = new VectorSource({
+  wrapX:false,
+  features: gj_hum
+});
 
 var vTracks = new VectorLayer({
   title: 'rutas',
@@ -358,6 +414,12 @@ var vTemp = new VectorLayer({
   source: sourceGJTemp,
   style: styleTemp, 
 });
+var vHum = new VectorLayer({
+  title: 'humedad',
+  visible: true,
+  source: sourceGJHum,
+  style: styleHum,
+});
 
 // Capa para Draw
 var srcDraw = new VectorSource({wrapX: false});
@@ -382,7 +444,7 @@ var typeSelect = 'None';
 
 // Mapa
 var map = new Map({
-  layers: [osm_tiles, grupoVectores, grupoSensorica, vDraw, vTemp], // Capas de información geoespacial
+  layers: [osm_tiles, grupoVectores, grupoSensorica, vHum, vDraw, vTemp], // Capas de información geoespacial
   target: document.getElementById('map'), // Elemento HTML donde va situado el mapa
   view: new View({ // Configuración de la vista (centro, proyección del mapa)
     // Esta función es para cuando la proyección usada sea Mercator

@@ -8,12 +8,16 @@ from django.contrib.gis.geos import GEOSGeometry, LineString, WKTWriter, Point
 from django.contrib.gis.gdal import DataSource
 from django.contrib.gis.measure import D, Distance
 from django.contrib.gis.db.models.functions import Length
+from django.utils import timezone
 from .models import Track, BikeLane, Dtour, SCK_device, Sensor, Measurement, Trackpoint
 from .utils import parse_gpx, calc_dtours, calc_velocity_between_2_points
 
 import sys, os
 import gpxpy # For manipulating gpx files from python
 import random
+import requests
+import json
+import datetime
 import logging
 
 logger = logging.getLogger(__name__)
@@ -98,7 +102,7 @@ def load_gpx_from_file(gpx_file, verbose=True):
                 velocity = calc_velocity_between_2_points(point[0], last_point[0], point[1], last_point[1])
                 if velocity < 1: # if velocity is less than 1km/h then it's a delay point
                     delay = True
-            Trackpoint(track=new_track, time=point[1], point=point[0], velocity=velocity, delay=delay).save()
+            Trackpoint(track=new_track, time_tracks=point[1], point=point[0], velocity=velocity, delay=delay).save()
             last_point = point
  
 
@@ -185,6 +189,76 @@ def load_false_measurements():
         new_measPM = Measurement(sensor= sensorPM, device=device, value=valuePM, point=point).save()
 
         i+=1
+
+
+def load_humidity_measurements():
+    """ Introduce medidas de sensórica de prueba en la BD"""
+    device = SCK_device.objects.get(sck_id=14061)
+    sensorHum = Sensor.objects.get(sensor_id=56)
+    
+    dt_timestamps_tracks = [] # Primero el más reciente, último el más viejo
+    tracks = Track.objects.all().order_by('-end_time')
+    
+    for track in tracks:
+        dt_timestamps_tracks.append([track.start_time, track.end_time, track.id])
+
+    today = timezone.localtime(timezone.now())
+    time_limits = []
+    # FROM_DATETIME
+    try: 
+        first_track = Track.objects.filter(mlstring__isnull=True).earliest('end_time')
+        last_track = Track.objects.filter(mlstring__isnull=True).latest('end_time')        
+        dt_first_track_end_time = first_track.end_time
+        from_dt = dt_first_track_end_time.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    except Track.DoesNotExist: 
+        dt_first_track_end_time = datetime.datetime.now() - datetime.timedelta(days=365)
+        from_dt = dt_first_track_end_time.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    # GET ALL READINGS HUMIDITY 
+    today_str = today.strftime("%Y-%m-%dT%H:%M:%SZ")
+    url = "https://api.smartcitizen.me/v0/devices/" + str(14061) +\
+        "/readings?sensor_id=" + str(56) + "&rollup=" + "10s" + \
+        "&from=" + from_dt + "&to=" + today_str
+    resp = requests.get(url)
+    if resp.status_code == 200: # Existen las medidas en el track
+        j1 = json.loads(resp.text)
+        data = j1["readings"]                    
+    else:
+        logger.info("NOT a 200 answer code") 
+
+    # GET HUMIDITY MEASUREMENTS WITH TRACKPOINTS
+    cont_puntos_malos = 0
+    cont_medidas = 0
+
+    dt_last_track_end_time = last_track.end_time
+    dt_last_track_start_time = last_track.start_time
+    del dt_timestamps_tracks[0] # eliminamos último track de la lista
+
+    for t in data:
+        dt_measurement = datetime.datetime.strptime(t[0], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=datetime.timezone.utc)
+        if dt_measurement <= dt_last_track_end_time and dt_measurement >=dt_last_track_start_time:
+
+            # AÑADIMOS MEASUREMENT NUEVO
+            try: 
+                trackpoint = Trackpoint.objects.get(track=track, time=dt_measurement)
+                Measurement(sensor=sensorHum, time=dt_measurement, device=device, value=t[1], point=trackpoint.point, trkpoint=trackpoint).save()
+                cont_medidas += 1
+
+            except Trackpoint.DoesNotExist: 
+                cont_puntos_malos += 1      
+
+        elif dt_measurement < dt_last_track_start_time:
+            dt_last_track_start_time = dt_timestamps_tracks[0][0]
+            dt_last_track_end_time = dt_timestamps_tracks[0][1]
+            track = Track.objects.get(id=dt_timestamps_tracks[0][2])
+
+            del dt_timestamps_tracks[0]
+        
+        if cont_medidas % 1000 == 0:
+            print(str(cont_medidas) + "medidas subidas")
+
+    print("Total medidas subidas " + str(cont_medidas))
 
 
 
