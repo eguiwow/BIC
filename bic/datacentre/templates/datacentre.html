@@ -6,6 +6,13 @@
   {% block content %}
   <div class="pt-5 pl-3 row">
     <div class="col text-center">
+      <a href="{% url 'recent' %}"> 
+        <img  src="{% static 'images/consulta.jpg' %}" class="" style="max-height:80%;max-width:80% ;" alt="bici_logo">
+      </a>
+      <p><strong>{% translate 'Actividad reciente' %}</strong><br>
+      <i><small>{% translate 'Consulta la actividad reciente' %}</small></i></p>
+    </div>
+    <div class="col text-center">
       <a href="{% url 'movilidad' %}"> 
       <img  src="{% static 'images/bike_lane.jpg' %}" class="" style="max-height:80%;max-width:80% ;"alt="bici_logo">
       </a>
@@ -23,28 +30,21 @@
         <i><small>{% translate 'Contaminación atmosférica y acústica, temperatura...' %}</small></i>
       </p>
     </div>
-    <div class="col text-center">
-      <a href="{% url 'consulta' %}"> 
-        <img  src="{% static 'images/consulta.jpg' %}" class="" style="max-height:80%;max-width:80% ;" alt="bici_logo">
-      </a>
-      <p><strong>{% translate 'Consulta' %}</strong><br>
-      <i><small>{% translate 'Consulta la actividad en Bizkaia' %}</small></i></p>
-    </div>
   </div>
   <div class="pt-5 pl-3 row">
+    <div class="col text-center">
+      <a href="{% url 'consulta' %}"> 
+        <img  src="{% static 'images/api.jpg' %}" class="" style="max-height:80%;max-width:80% ;"alt="bici_logo">
+      </a>
+      <p><strong>Consulta avanzada</strong><br>
+      <i><small>{% translate 'Consulta avanzada y análisis de datos' %}</small></i></p>
+    </div>
     <div class="col text-center">
       <a href="{% url 'proyecto' %}"> 
         <img  src="{% static 'images/bic_ejemplo.png' %}" class="" style="max-height:80%;max-width:80% ;" alt="bici_logo">
       </a>
       <p><strong>{% translate 'Proyecto' %}</strong><br>
       <i><small>{% translate 'Conoce más sobre el proyecto' %}</small></i></p>
-    </div>
-    <div class="col text-center">
-      <a href="api"> 
-        <img  src="{% static 'images/api.jpg' %}" class="" style="max-height:80%;max-width:80% ;"alt="bici_logo">
-      </a>
-      <p><strong>API</strong><br>
-      <i><small>{% translate 'Visita y prueba nuestra API' %}</small></i></p>
     </div>
     <div class="col text-center">
       <a href="{% url 'config' %}"> 

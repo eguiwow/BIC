@@ -10,8 +10,22 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Given a track and device.sck_id --> Map  Measurements(temperature, air, noise) with Trackpoints
 def map_measurements(track, device_id, rollup):
+    """ Recoge, guarda en la BD y relaciona las medidas de sensórica con los trackpoints
+
+
+    Parameters
+    ----------
+    track : 
+        track del que mapearemos las medidas con sus trackpoints
+    device_id : 
+        id del dispositivo para el que queremos mapear la sensórica
+    rollup : 
+        rollup para la búsqueda en la API de Smart Citizen
+
+    """
+
+
     device = SCK_device.objects.get(sck_id=device_id)
     id_sensor_list = [53,55,87,88,89] # noise, temperature, PM10, PM5, PM2.5
 
@@ -44,9 +58,11 @@ def map_measurements(track, device_id, rollup):
     cont_puntos_malos = 0
 
 
-
-# Check for new sensors and for new measurements of stored devices
 def check_devices():
+    """ Comprueba si hay nuevas medidas (y/o sensores) en la API para los dispositivos guardados en la plataforma , y en ese caso, los añade a la BD
+
+    """
+
     devices = SCK_device.objects.all()
     sensors = Sensor.objects.all()
     contador_medidas = 0
@@ -94,6 +110,27 @@ def check_devices():
 
 # generar los tracks con la info de la API SC        
 def generate_tracks_time(from_dt, to_dt, rollup, sck_id):
+    """ Generar los tracks con la info de la API de Smart Citizen
+
+
+    Parameters
+    ----------
+    from_dt : 
+        datetime comienzo búsqueda 
+    to_dt : 
+        datetime final búsqueda 
+    rollup : 
+        rollup para la búsqueda en la API de Smart Citizen
+    sck_id : 
+        id del dispositivo para el que queremos mapear la sensórica
+
+    Returns
+    -------
+    boolean :
+        True si hay track(s) en ese rango
+        False si no hay
+    """
+
     gps_lat_id = 125
     gps_lon_id = 126
 
@@ -250,6 +287,21 @@ def generate_tracks_time(from_dt, to_dt, rollup, sck_id):
 
 # calcular el rango temporal de sigiente track
 def calc_time_limits(sck_id, rollup):
+    """ Calcular el rango temporal del siguiente track
+
+
+    Parameters
+    ----------
+    rollup : 
+        rollup para la búsqueda en la API de Smart Citizen
+    sck_id : 
+        id del dispositivo para el que queremos mapear la sensórica
+
+    Returns
+    -------
+    time_limits :
+        lista de datetime inicio y datetime fin de los diferentes tracks detectados en la búsqueda a la API
+    """
     
     today = timezone.localtime(timezone.now())
     time_limits = []
@@ -374,6 +426,18 @@ def calc_time_limits(sck_id, rollup):
 
 
 def calc_new_track(sck_id, rollup):
+    """ Método que encapsula la búsqueda y creación de nuevos tracks
+
+
+    Parameters
+    ----------
+    rollup : 
+        rollup para la búsqueda en la API de Smart Citizen
+    sck_id : 
+        id del dispositivo para el que queremos mapear la sensórica
+
+    """
+
     time_bounds = calc_time_limits(sck_id, rollup)
     if time_bounds:
         for time_limits in time_bounds:

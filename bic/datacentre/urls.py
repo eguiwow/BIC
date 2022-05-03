@@ -12,14 +12,14 @@ router.register(r'dtours', views.DtourViewSet)
 urlpatterns = [
     path('', views.home, name='home'),
     path('datacentre', views.datacentre , name='datacentre'),
+    path('recent', views.recent , name='recent'),
     path('movilidad', views.movilidad , name='movilidad'),
     path('bic_proyecto', views.proyecto, name= 'proyecto'),
     path('consulta', views.consulta, name= 'consulta'),
     path('analisis', views.analisis, name= 'analisis'),
     path('config', views.config, name= 'config'),
     path('config-list', views.config_list, name= 'config_list'),
-    # Wire up our API using automatic URL routing.
-    # Additionally, we include login URLs for the browsable API.
+    # API
     path('api/', include(router.urls)),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]

@@ -11,10 +11,86 @@
   {% endblock %}
   {% block section_title %} <h2 class="pt-2">BIC - {% translate 'Calidad ambiental rutas recientes' %}</h2> {% endblock %}
   {% block content %}
+  <!-- Formulario de consulta
+  DÍA/HORA INICIO
+  DÍA/HORA FINAL
+  LON/LAT ? (se puede hacer por bounding box)
+  -->
+  <div class="pt-3">
+    <p>
+      <a class="btn btn-primary" data-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">
+        {% translate 'Consulta' %}
+      </a>
+    </p>
+  </div>
+  <div class="collapse" id="collapseExample">
+    <form action="" method="post">
+      {% csrf_token %}
+      <div class="form-row pl-5 pt-2">
+        <div class="col">
+          <i><strong>{% translate 'Espacial' %} </strong></i>
+        </div>
+        <div class="col">
+          <i> <strong>{% translate 'Temporal' %} </strong> </i>      
+        </div>      
+      </div>
+      <div class="form-row pl-5 pt-2">
+        <div class="col">
+          {{ form.SW_lon.errors }}
+          {% translate 'Esquina sudoeste (longitud):' %}
+          {{ form.SW_lon }}
+        </div>
+        <div class="col">
+          {{ form.SW_lat.errors }}
+          {% translate 'Esquina sudoeste (latitud):' %}
+          {{ form.SW_lat }}            
+        </div>      
+        <div class="col">
+          {{ form.since_datetime.errors }}
+          {% translate 'Desde:' %}
+          {{ form.since_datetime }}
+        </div>
+        <div class="col">
+          {{ form.until_datetime.errors }}
+          {% translate 'Hasta:' %}
+          {{ form.until_datetime }}            
+        </div>
+      </div>
+      <div class="form-row pl-5 pt-3">
+        <div class="col">
+        <div class="form-row">
+          <div class="col">
+            {{ form.NE_lon.errors }}
+            {% translate 'Esquina nordeste (longitud):' %}
+            {{ form.NE_lon }}
+          </div>
+          <div class="col">
+            {{ form.NE_lat.errors }}
+            {% translate 'Esquina nordeste (latitud):' %}
+            {{ form.NE_lat }}            
+          </div>
+        </div>
+        </div>
+        <div class="col text-center pt-3">
+          <input type="submit" class="btn btn-primary" value="{% translate 'Buscar' %}">
+        </div>
+      </div>
+      <div class="form-row pl-5 pt-3">
+        <div class="col text-center">
+          <button type="button" class="btn btn-secondary" id="selectAreaButton" data-toggle="tooltip" data-placement="bottom" title="{% translate 'Clicar y seleccionar el área pulsando dos veces para hacer un rectángulo' %}">
+            {% translate 'Seleccionar Área' %}
+          </button>
+        </div>
+        <div class="col text-center pb-3">
+          <small><i> {% translate 'Consulta en el área y el tiempo seleccionados' %} </i></small>
+        </div>
+      </div>
+    </form>
+    </div>
+
   {% endblock %}
   {% block map %}
   <div id="map" style="width: 100%; height: 90%"></div>
-  
   <a id="export-png" class="btn btn-default"><i class="fa fa-download"></i> Download PNG</a>
   <a id="image-download" download="map.png"></a>
   {% endblock %}
@@ -31,7 +107,7 @@
   <var id="json_noise" hidden> {{gj_noise}} </var>
   <var id="json_temp" hidden> {{gj_temp}} </var>
   <var id="json_hum" hidden> {{gj_hum}} </var>
-
+  <var id="consulta_vacia" hidden> {{consulta_vacia}} </var>
   <!-- /Zona Variables ocultas -->
   <!-- Zona archivos -->
   <div class="form-row">

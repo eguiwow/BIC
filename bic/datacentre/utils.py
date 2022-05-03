@@ -126,7 +126,8 @@ def measurements_to_geojson(measurements):
             value = measurement.value
             units = measurement.sensor.units
             timestamp = measurement.time 
-            prop_dict = { 'value' : str(value), 'units' : units, 'time' : str(timestamp) }
+            vel = measurement.trkpoint.velocity
+            prop_dict = { 'value' : str(value), 'units' : units, 'time' : str(timestamp), 'velocity' : str(vel) }
             gj_measurements = addProperties(gj_measurements, prop_dict)
 
             # Cerramos el Feature (track) 
@@ -148,10 +149,57 @@ def measurements_to_geojson(measurements):
     
     return formatted_geojson    
 
-# Applies ST_Difference() between a list of tracks and polys (diff = track - poly [mlstring])
-# Returns multilinestring[] with properties[dtour_length, ratio dtour/track]
+def points_vel_to_geojson(trkpoints):
+    """ Dada una lista de trkpoints --> devuelve GeoJSON con trkpoints y su velocidad
+
+    Returns
+    -------
+    formatted_geojson
+        GeoJSON con trkpoints y velocidad asociada
+    """    
+
+    gj_trkpoints = []
+    gj_trkpoints.append("{\"type\": \"FeatureCollection\",\"features\": [")
+    if trkpoints:
+        for point in trkpoints:
+            #Inicio de una Feature
+            gj_trkpoints.append("{\"type\": \"Feature\",\"geometry\": ") 
+            
+            #Añadimos a la lista el geojson pertinente
+            gj_trkpoints.append(GEOSGeometry(point.point, srid=4326).geojson) 
+            # PROPERTIES ()
+            gj_trkpoints.append(",")  
+            value = point.velocity
+            units = "km/h"
+            timestamp = point.time 
+            prop_dict = { 'value' : str(value), 'units' : units, 'time' : str(timestamp) }
+            gj_trkpoints = addProperties(gj_trkpoints, prop_dict)
+
+            # Cerramos el Feature (track) 
+            gj_trkpoints.append("},")
+        
+        # Quitamos la coma para el último track
+        if len(gj_trkpoints) > 1:
+            gj_trkpoints = gj_trkpoints[:-1]
+        
+        # Cerramos el GeoJSON 
+        gj_trkpoints.append("}]}")
+        # Lo unimos en un único String
+        formatted_geojson = ''.join(gj_trkpoints)
+
+    # Si la lista de tracks está vacía, devolvemos un GeoJSON vacío
+    else:
+        formatted_geojson = empty_geojson()
+        logger.info("The tracklist is empty")
+    
+    return formatted_geojson    
+
+
+
 def get_dtours(tracks, polys):
     """ Dada una lista de tracks y de bidegorris (polys) --> devuelve multilinestring[] con properties[dtour_length, ratio dtour/track]
+
+    Applies ST_Difference() between a list of tracks and polys (diff = track - poly [mlstring])
 
     Parameters
     ----------
@@ -163,7 +211,7 @@ def get_dtours(tracks, polys):
     Returns
     -------
     geojson_d
-        GeoJSON con los dtours y sus properties asociadas    
+        GeoJSON con los dtours y sus properties asociadas
     """
     intersected = False
     gj_dtours = []
@@ -210,8 +258,15 @@ def get_dtours(tracks, polys):
     
     return geojson_d
 
-# TODO seguir con la documentación
 def get_polygonized_bidegorris():
+    """ Devuelve los bidegorris en forma de polígono
+
+    Returns
+    -------
+    polys :
+        Lista de polígonos representando los carriles bici
+    """
+    
     kml_tracks = BikeLane.objects.all() 
     polys = []
 
@@ -222,6 +277,21 @@ def get_polygonized_bidegorris():
     return polys
 
 def get_trkpts(track):
+    """ Dada una lista de tracks y de bidegorris (polys) --> devuelve multilinestring[] con properties[dtour_length, ratio dtour/track]
+
+    Applies ST_Difference() between a list of tracks and polys (diff = track - poly [mlstring])
+
+    Parameters
+    ----------
+    track : Track
+        Track del que sacar los trackpoints
+
+    Returns
+    -------
+    lista_puntos :
+        lista con trackpoints de ese track
+    """
+
     lista_puntos = []
     trackpoints = Trackpoint.objects.filter(track=track)
     for trackpoint in trackpoints:
@@ -230,6 +300,21 @@ def get_trkpts(track):
 
 # Given a list of geojson strs and a properties {}, adds the properties to the geojson list
 def addProperties(geojson, properties):
+    """ Dado un geojson --> añade properties
+
+    Parameters
+    ----------
+    geojson : 
+        geojson al que queremos añadir las properties
+    properties : 
+        lista de properties
+
+    Returns
+    -------
+    geojson
+        GeoJSON con los properties ya asociados
+    """
+
     props = []
     props.append("\"properties\":{")
     for key in properties:
@@ -243,6 +328,19 @@ def addProperties(geojson, properties):
 
 # Given a list of polys, a mlstring and , new_track --> calc dtours from that track
 def calc_dtours(polys, geom, new_track):
+    """ Dados los bidegorris y una geometría, calcula los desvíos respecto de los bidegorris y los guarda en la BD
+
+    Parameters
+    ----------
+    geom : <TrackLikeModel>[] (Track, Dtour, BikeLane)
+        La geometría del track 
+    polys : MultiPolygon[]
+        Lista de polígonos representando los carriles bici
+    new_track :
+        track que se acaba de añadir
+
+s    """
+
     track_length = geom.length
     geom.transform(4326)
     intersected = False
@@ -265,6 +363,18 @@ def calc_dtours(polys, geom, new_track):
 
 # Devuelve lista_puntos partiendo de un track
 def get_lista_puntos(track):
+    """ Dado un track devuelve los puntos de ese track
+
+    Parameters
+    ----------
+    track : 
+        track del que se extraen los puntos
+
+    Returns
+    -------
+    ml_list_of_points
+        lista de puntos
+    """
     # track tiene un atributo .mlstring
     GEOStrack = GEOSGeometry(track.mlstring, srid=4326)
     ml_list_of_points = []
@@ -276,6 +386,18 @@ def get_lista_puntos(track):
     return ml_list_of_points
 
 def calc_distance_between_2_points(point1, point2):
+    """0 Calcula distancia entre 2 puntos
+
+    Parameters
+    ----------
+    point1 & point2: 
+        puntos entre los que calcular distancia
+
+    Returns
+    -------
+    distancia entre puntos en km    
+    """
+
     # distance in m
     
     coords_1 = (point1[0], point1[1])
@@ -284,6 +406,20 @@ def calc_distance_between_2_points(point1, point2):
     return geopy.distance.geodesic(coords_1, coords_2).km
 
 def calc_velocity_between_2_points(point1, point2, time1, time2):
+    """ Devuelve la velocidad entre 2 puntos 
+
+    Parameters
+    ----------
+    point1 & point2 : 
+        puntos entre los que calcular velocidad
+    time1 & time2 : 
+        timestamps de los puntos
+
+    Returns
+    -------
+    velocidad en km/h
+    """
+
     # vel = space / time
     # time (s):
     diff_secs = abs(time2-time1)

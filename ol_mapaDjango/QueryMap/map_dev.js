@@ -304,7 +304,6 @@ var styleHum = function(feature, resolution) {
 
 
 // ###### Variables dinámicas ######
-var botonVentana = document.getElementById('menu-toggle');
 var json_tracks = document.getElementById("json_tracks")
 var json_dtours = document.getElementById("json_dtours")
 var json_bidegorris = document.getElementById("json_bidegorris")
@@ -320,19 +319,19 @@ var gj_temp = new GeoJSON().readFeatures(JSON.parse(json_temp.innerText))
 var gj_hum = new GeoJSON().readFeatures(JSON.parse(json_hum.innerText))
 var gj_bidegorris = new GeoJSON().readFeatures(JSON.parse(json_bidegorris.innerText))
 // Botones
+var botonVentana = document.getElementById('menu-toggle')
+var botonSelectArea = document.getElementById("selectAreaButton")
 var botonDebug = document.getElementById("debugButton")
 var botonCenter = document.getElementById("centerButton")
-var botonSelectArea = document.getElementById("selectAreaButton")
+var botonAnyadirRango = document.getElementById("anyadirRangoButton")
 var botonDownload = document.getElementById('export-png')
 // Form
 var since_default = document.getElementById("since_default")
 var until_default = document.getElementById("until_default")
-var ne_lon = document.getElementById("id_NE_lon").value;
-var ne_lat = document.getElementById("id_NE_lat").value;
-var sw_lon = document.getElementById("id_SW_lon").value;
-var sw_lat = document.getElementById("id_SW_lat").value;
 var consulta_vacia = document.getElementById("consulta_vacia");
 var lon1, lon2, lat1, lat2;
+var datesList = document.getElementById("datesList");
+var datesData = [];
 // Center & Zoom [From Zaratamap]
 var centerLon = JSON.parse(document.getElementById("center").innerText)[0]
 var centerLat = JSON.parse(document.getElementById("center").innerText)[1]
@@ -342,6 +341,7 @@ var ratio;
 var length = 0;
 var units;
 var value;
+var vel;
 var timestamp;
 var ratioChanged = false;
 var isSensor = false;
@@ -416,10 +416,11 @@ var vTemp = new VectorLayer({
 });
 var vHum = new VectorLayer({
   title: 'humedad',
-  visible: true,
+  visible: false,
   source: sourceGJHum,
   style: styleHum,
 });
+// ###### FIN Layers tipo JSON ######
 
 // Capa para Draw
 var srcDraw = new VectorSource({wrapX: false});
@@ -444,7 +445,7 @@ var typeSelect = 'None';
 
 // Mapa
 var map = new Map({
-  layers: [osm_tiles, grupoVectores, grupoSensorica, vHum, vDraw, vTemp], // Capas de información geoespacial
+  layers: [osm_tiles, grupoVectores, grupoSensorica, vHum, vTemp, vDraw], // Capas de información geoespacial
   target: document.getElementById('map'), // Elemento HTML donde va situado el mapa
   view: new View({ // Configuración de la vista (centro, proyección del mapa)
     // Esta función es para cuando la proyección usada sea Mercator
@@ -487,6 +488,7 @@ function addInteraction() {
 }
 // FIN DIBUJAR BBOX
 
+
 // ###### Funciones ######
 // Display Feature Info - https://openlayers.org/en/latest/examples/gpx.html 
 // Esta función saca información de las features al pinchar (ahora mismo el 'name')
@@ -520,6 +522,8 @@ var displayFeatureInfo = function (pixel, coords) {
         isSensor = true;
         value = parseFloat(features[i].get('value')); // Sacamos value
         info.push(length.toFixed(2));
+        vel = parseFloat(features[i].get('velocity')); // Sacamos velocidad
+        info.push(vel.toFixed(2));
         units = features[i].get('units'); // Sacamos units 
         info.push(units);
         timestamp = features[i].get('time'); // Sacamos timestamp
@@ -542,6 +546,7 @@ var displayFeatureInfo = function (pixel, coords) {
         content: 
         '<p>Value: ' + value.toFixed(2) + units + '</p>'+
         '<p>Location: ' + coords[0].toFixed(4) + 'º lon, '+ coords[1].toFixed(4) + 'º lat</p>'+
+        '<p>Velocity: ' + vel.toFixed(2) + 'km/h' + '</p>'+
         '<p>Time: ' + timestamp.substring(0,19) + '</p>',
       });      
     }else{ 
@@ -598,9 +603,6 @@ function CenterMap(long, lati) {
   map.getView().setZoom(zoom);
 }
 
-// ###### FIN Funciones ######
-
-// ###### EVENTOS ######
 function getDate() {
   var today = new Date();
   var lastYear = new Date();
@@ -618,10 +620,15 @@ function getDate() {
   today = yyyy + '/' + mm + '/' + dd;
   lastYear = yyyy-1 + '/' + mm + '/' + dd;
   console.log(today);
-  document.getElementById("id_since_datetime").value = lastYear;
-  document.getElementById("id_until_datetime").value = today;
+  document.getElementById("id_since_dt1").value = lastYear;
+  document.getElementById("id_until_dt1").value = today;
 
 }
+
+
+// ###### FIN Funciones ######
+
+// ###### EVENTOS ######
 
 // OnLoad (window)
 window.onload = function() {
@@ -633,14 +640,13 @@ window.onload = function() {
   }
 };
 
-// EVENTOSmapa
+// ###### EVENTOS del mapa ######
+
 // Drag
 map.on('pointermove', function (evt) {
   if (evt.dragging) {
     return;
   }
-  // var pixel = map.getEventPixel(evt.originalEvent);
-  // displayFeatureInfo(pixel);
 });
 
 var primerclick = true;
@@ -682,28 +688,13 @@ map.on('click', function (evt) {
 
 });
 
+// ###### FIN EVENTOS del mapa ######
+
+// ###### BOTONES ######
 botonVentana.onclick = function() {
   setTimeout( function() { map.updateSize();}, 200);
 };
 
-// FIN EVENTOSmapa 
-
-// EVENTOS botones
-// Botón DEBUG
-botonDebug.onclick = function(){
-// Zona DEBUGGING y PRUEBAS
-  console.log(since_default);
-  console.log(until_default);
-  console.log("ave cesar AUI"); 
-  document.getElementById("id_since_datetime").value = since_default; // Tiene que ser string ""
-  document.getElementById("id_until_datetime").value = until_default;
-
-};
-// Botón CENTER
-botonCenter.onclick = function(){
-  // Centramos mapa
-  CenterMap(centerLon, centerLat);
-};
 // Botón SELECT AREA 
 // TODO - que sea un toggle en vez de un botón
 botonSelectArea.onclick = function(){
@@ -715,7 +706,22 @@ botonSelectArea.onclick = function(){
   }
   map.removeInteraction(draw);
   addInteraction();
-}
+
+  console.log("YA")
+};
+// Botón DEBUG
+botonDebug.onclick = function(){
+// Zona DEBUGGING y PRUEBAS
+
+};
+// Botón CENTER
+botonCenter.onclick = function(){
+  // Centramos mapa
+  CenterMap(centerLon, centerLat);
+
+  console.log("YI")
+};
+
 
 // Botón exportar como PNG
 // https://openlayers.org/en/latest/examples/export-map.html
@@ -759,6 +765,5 @@ botonDownload.onclick = function(){
   map.renderSync();
 };
 
-// FIN EVENTOS botones
 addInteraction();
-// ###### FIN EVENTOS ######
+// ###### FIN BOTONES ######

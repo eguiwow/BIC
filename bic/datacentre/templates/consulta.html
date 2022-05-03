@@ -1,123 +1,191 @@
 {% extends "base.html" %}
-{% load static %} 
+{% load static %}
 {% load i18n %}
-  {% block style %}
-  <style>
-    .popover-body {
-      min-width: 276px;
-    }
-  </style>
-  {% endblock %}
-  {% block section_title %} <h2 class="pt-2">BIC - {% translate 'Consulta la actividad' %} </h2> {% endblock %}
-  {% block content %}
-  <!-- Formulario de consulta
-  DÍA/HORA INICIO
-  DÍA/HORA FINAL
-  LON/LAT ? (se puede hacer por bounding box)
+{% block style %}
+<style>
+  .popover-body {
+    min-width: 276px;
+  }
+</style>
+{% endblock %}
+{% block section_title %} <h2 class="pt-2">BIC - {% translate 'Consulta la actividad' %} </h2> {% endblock %}
+{% block content %}
+
+<!--
+    PARTE ELECCIÓN FECHAS
   -->
-  <form action="" method="post">
-    {% csrf_token %}
-    <div class="form-row pl-5 pt-2">
-      <div class="col">
-        <i><strong>{% translate 'Espacial' %} </strong></i>
-      </div>
-      <div class="col">
-        <i> <strong>{% translate 'Temporal' %} </strong> </i>      
-      </div>      
+
+<form action="" method="post">
+  {% csrf_token %}
+  <div class="form-row pl-5 pt-2">
+    <div class="col text-center">
+      <i><strong>{% translate 'Espacial' %} </strong></i>
     </div>
-    <div class="form-row pl-5 pt-2">
-      <div class="col">
-        {{ form.SW_lon.errors }}
-        {% translate 'Esquina sudoeste (longitud):' %}
-        {{ form.SW_lon }}
-      </div>
-      <div class="col">
-        {{ form.SW_lat.errors }}
-        {% translate 'Esquina sudoeste (latitud):' %}
-        {{ form.SW_lat }}            
-      </div>      
-      <div class="col">
-        {{ form.since_datetime.errors }}
-        {% translate 'Desde:' %}
-        {{ form.since_datetime }}
-      </div>
-      <div class="col">
-        {{ form.until_datetime.errors }}
-        {% translate 'Hasta:' %}
-        {{ form.until_datetime }}            
-      </div>
+    <div class="col text-center">
+      <i> <strong>{% translate 'Temporal' %} </strong> </i>
     </div>
-    <div class="form-row pl-5 pt-3">
-      <div class="col">
-      <div class="form-row">
+  </div>
+  <div class="form-row pl-2 pt-2">
+
+    <!-- ÁREA -->
+    <div class="col">
+      <div class="form-row pl-5 pt-3">
+        <div class="col">
+          <div id="map" style="width: 50%; height: 45%; max-height: 1000px; min-height: 500px; min-width: 550px"></div>
+        </div>
+      </div>
+
+      <div class="form-row pt-3">
+        <div class="col">
+          {{ form.SW_lon.errors }}
+          {% translate 'SO (lon):' %}
+          {{ form.SW_lon }}
+        </div>
+        <div class="col">
+          {{ form.SW_lat.errors }}
+          {% translate 'SO (lat):' %}
+          {{ form.SW_lat }}
+        </div>
+      </div>
+      <div class="form-row pt-3">
         <div class="col">
           {{ form.NE_lon.errors }}
-          {% translate 'Esquina nordeste (longitud):' %}
+          {% translate 'NE (lon):' %}
           {{ form.NE_lon }}
         </div>
         <div class="col">
           {{ form.NE_lat.errors }}
-          {% translate 'Esquina nordeste (latitud):' %}
-          {{ form.NE_lat }}            
+          {% translate 'NE (lat):' %}
+          {{ form.NE_lat }}
         </div>
       </div>
+
+<!-- BOTONES AQUÍ (quitado un moment para probar)-->
+
+
+    </div>
+
+    <!-- FECHAS -->
+    <div class="col">
+
+      <div class="form-row pl-5 pt-4">
+
+        <div class="form-row pl-5 pt-4">
+          <div class="col">
+            {{ form.since_dt1.errors }}
+            {% translate 'Desde:' %}
+            {{ form.since_dt1 }}
+          </div>
+          <div class="col">
+            {{ form.until_dt1.errors }}
+            {% translate 'Hasta:' %}
+            {{ form.until_dt1 }}
+          </div>
+        </div>
+        <div class="form-row pl-5 pt-4">
+          <div class="col">
+            {{ form.since_dt2.errors }}
+            {% translate 'Desde:' %}
+            {{ form.since_dt2 }}
+          </div>
+          <div class="col">
+            {{ form.until_dt2.errors }}
+            {% translate 'Hasta:' %}
+            {{ form.until_dt2 }}
+          </div>
+        </div>
+        <div class="form-row pl-5 pt-4">
+          <div class="col">
+            {{ form.since_dt3.errors }}
+            {% translate 'Desde:' %}
+            {{ form.since_dt3 }}
+          </div>
+          <div class="col">
+            {{ form.until_dt3.errors }}
+            {% translate 'Hasta:' %}
+            {{ form.until_dt3 }}
+          </div>
+        </div>
+        <div class="form-row pl-5 pt-4">
+          <div class="col">
+            {{ form.since_dt4.errors }}
+            {% translate 'Desde:' %}
+            {{ form.since_dt4 }}
+          </div>
+          <div class="col">
+            {{ form.until_dt4.errors }}
+            {% translate 'Hasta:' %}
+            {{ form.until_dt4 }}
+          </div>
+        </div>
+        <div class="form-row pl-5 pt-4">
+          <div class="col">
+            {{ form.since_dt5.errors }}
+            {% translate 'Desde:' %}
+            {{ form.since_dt5 }}
+          </div>
+          <div class="col">
+            {{ form.until_dt5.errors }}
+            {% translate 'Hasta:' %}
+            {{ form.until_dt5 }}
+          </div>
+        </div>
+
       </div>
-      <div class="col text-center pt-3">
-        <input type="submit" class="btn btn-primary" value="{% translate 'Buscar' %}">
+      <div class="form-row pl-5 pt-4">
+        <div class="col text-center">
+          <div class="col text-center pt-3">
+            <input type="submit" class="btn btn-primary" value="{% translate 'Buscar' %}">
+          </div>
+        </div>
       </div>
     </div>
-    <div class="form-row pl-5 pt-3">
-      <div class="col text-center">
-        <button type="button" class="btn btn-secondary" id="selectAreaButton" data-toggle="tooltip" data-placement="bottom" title="{% translate 'Clicar y seleccionar el área pulsando dos veces para hacer un rectángulo' %}">
-          {% translate 'Seleccionar Área' %}
-        </button>
-      </div>
-      <div class="col text-center pb-3">
-        <small><i> {% translate 'Consulta en el área y el tiempo seleccionados' %} </i></small>
-      </div>
-    </div>
-  </form>
-  
-  {% endblock %}
-  {% block map %}
-  <div id="map" class="pt-3" style="width: 100%; height: 600px; max-height: 1000px;"></div>
-  <a id="export-png" class="btn btn-default"><i class="fa fa-download"></i> Download PNG</a>
-  <a id="image-download" download="map.png"></a>
-  {% endblock %}
-  {% block aftermap %}  
-  <div class="col text-center">
-    <button class="btn btn-primary" id="centerButton"> {% translate 'Centrar' %}  </button>  
-    <button class="botonDebug" id="debugButton"> Debug </button>
   </div>
-  <!-- Info de Features -->
-  <div id="info">&nbsp;</div>
-  <!-- Zona Variables ocultas -->
-  <var id="zoom" hidden> {{zoom}} </var>
-  <var id="center" hidden> {{center}} </var>
-  <var id="json_tracks" hidden> {{gj_tracks}} </var>
-  <var id="json_dtours" hidden> {{gj_dtours}} </var>
-  <var id="json_bidegorris" hidden> {{gj_bidegorris}} </var>
-  <var id="json_air" hidden> {{gj_air}} </var>
-  <var id="json_noise" hidden> {{gj_noise}} </var>
-  <var id="json_temp" hidden> {{gj_temp}} </var>
-  <var id="json_hum" hidden> {{gj_hum}} </var>
-  <var id="consulta_vacia" hidden> {{consulta_vacia}} </var>
-  <!-- /Zona Variables ocultas -->
-  <!-- Zona archivos -->
-  <!-- <div class="archivos"></div> -->
-   <!-- <h3> Nombres archivos geojson</h3>
+</form>
+
+
+<div class="form-row pt-3">
+  <div class="col text-center">
+    <button type="button" class="btn btn-secondary" id="selectAreaButton" data-toggle="tooltip" data-placement="bottom" title="{% translate 'Clicar y seleccionar el área pulsando dos veces para hacer un rectángulo' %}">
+      {% translate 'Seleccionar Área' %}
+    </button>
+    <!--<button class="botonDebug" id="debugButton"> Debug </button>--> 
+  </div>
+</div>
+
+
+
+{% endblock %}
+
+{% block aftermap %}
+<!-- Info de Features -->
+<div id="info">&nbsp;</div>
+<!-- Zona Variables ocultas -->
+<var id="zoom" hidden> {{zoom}} </var>
+<var id="center" hidden> {{center}} </var>
+<var id="json_tracks" hidden> {{gj_tracks}} </var>
+<var id="json_dtours" hidden> {{gj_dtours}} </var>
+<var id="json_bidegorris" hidden> {{gj_bidegorris}} </var>
+<var id="json_air" hidden> {{gj_air}} </var>
+<var id="json_noise" hidden> {{gj_noise}} </var>
+<var id="json_temp" hidden> {{gj_temp}} </var>
+<var id="json_hum" hidden> {{gj_hum}} </var>
+<var id="consulta_vacia" hidden> {{consulta_vacia}} </var>
+<!-- /Zona Variables ocultas -->
+<!-- Zona archivos -->
+<!-- <div class="archivos"></div> -->
+<!-- <h3> Nombres archivos geojson</h3>
     {% if gj_tracks %}
     {{ gj_tracks }}
     {% else %}
       <p> NO se han pasado los GeoJSON </p>     
     {% endif %} -->
-    <!-- <h3> Nombres archivos geojson (sensórica)</h3>
+<!-- <h3> Nombres archivos geojson (sensórica)</h3>
     {% if gj_temp %}
     {{ gj_temp }}
     {% else %}
       <p> NO se han pasado los GeoJSON (buffers)</p>     
     {% endif %} -->
-  <!-- /Zona archivos -->
-  <script src="{% static 'js/query_map.js' %}"></script>        
-  {% endblock %}
-
+<!-- /Zona archivos -->
+<script src="{% static 'js/query_map.js' %}"></script>
+{% endblock %}

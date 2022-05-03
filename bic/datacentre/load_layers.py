@@ -40,7 +40,7 @@ def load_gpx_lm(verbose=True):
 
     dir_gpx_data = Path("/home/eguiwow/github/BIC/bic/datacentre/data/gpx") # Directorio donde están de momento guardados los GPXs
     for filepath in dir_gpx_data.glob( '*.gpx' ):
-        print(filepath)
+        logger.info(filepath)
         lm = LayerMapping(Track, str(filepath), track_mapping, layer=2, transform=False) # Layer = 2 -> Layer = track de un GPX
         lm.save(strict=False, verbose = verbose) # strict = True antes. Esto lo que hace es que si hay un fallo para la ejecución
 
@@ -82,39 +82,47 @@ def load_gpx_from_file(gpx_file, verbose=True):
     -------
     boolean :
         True si es GPX y procesable
-        False si otro archivo o no procesable
+        False si otro archivo o se el GPX ya está en la base de datos
     """
+    try: 
+        data = parse_gpx(gpx_file)
+    except IOError:
+        type, value, traceback = sys.exc_info()
+        logger.error('Error opening %s: %s' % (value.filename, value.strerror))
+        return False
+    
+    tracks = Track.objects.all()
     kml_tracks = BikeLane.objects.all()
     polys = [] 
     for track in kml_tracks:
         polys.append(track.poly)
-    try:
-        data = parse_gpx(gpx_file)
-        lstring = GEOSGeometry(data[2], srid=4326)
-        lstring.transform(3035) # Proyección europea EPSG:3035 https://epsg.io/3035 
-        new_track = Track(name=gpx_file.name, start_time=data[0], end_time=data[1], distance=lstring.length, mlstring=data[2])
-        new_track.save()
-        last_point = False
-        velocity = 0
-        for point in data[3]:
-            delay = False
-            if last_point != False:
-                velocity = calc_velocity_between_2_points(point[0], last_point[0], point[1], last_point[1])
-                if velocity < 1: # if velocity is less than 1km/h then it's a delay point
-                    delay = True
-            Trackpoint(track=new_track, time_tracks=point[1], point=point[0], velocity=velocity, delay=delay).save()
-            last_point = point
- 
 
-        pr_update = "Uploading TRACK and associated TRACKPOINTS..." + str(new_track)
-        logger.info(pr_update)
-        calc_dtours(polys, lstring, new_track)
-        return True
+    lstring = GEOSGeometry(data[2], srid=4326)
+    lstring.transform(3035) # Proyección europea EPSG:3035 https://epsg.io/3035 
+    for track in tracks: # comprobamos si el track está subido de antes
+        if data[2] == track.mlstring:
+            logger.error('Este track ya está subido a la plataforma')
+            return False
+    new_track = Track(name=gpx_file.name, start_time=data[0], end_time=data[1], distance=lstring.length, mlstring=data[2])
+    new_track.save()
+    last_point = False
+    velocity = 0
+    for point in data[3]:
+        delay = False
+        if last_point != False:
+            velocity = calc_velocity_between_2_points(point[0], last_point[0], point[1], last_point[1])
+            if velocity < 1: # if velocity is less than 1km/h then it's a delay point
+                delay = True
+        Trackpoint(track=new_track, time=point[1], point=point[0], velocity=velocity, delay=delay).save()
+        last_point = point
 
-    except IOError:
-        type, value, traceback = sys.exc_info()
-        print('Error opening %s: %s' % (value.filename, value.strerror))
-        return False
+
+    pr_update = "Uploading TRACK and associated TRACKPOINTS..." + str(new_track)
+    logger.info(pr_update)
+    calc_dtours(polys, lstring, new_track)
+    return True
+
+
 
 # # # # # # #
 # LOAD KML  #
@@ -180,10 +188,6 @@ def load_false_measurements():
         valuePM = random.randrange(150)                        
         valueTemp = random.randrange(-5, 45)                 
 
-        print("Point: " + str(point))
-        print("Noise: " + str(valueNoise))
-        print("Temp: " + str(valueTemp))
-        print("PM: " + str(valuePM))
         new_measNoise = Measurement(sensor= sensorNoise, device=device, value=valueNoise, point=point).save()
         new_measTemp = Measurement(sensor= sensorTemp, device=device, value=valueTemp, point=point).save()
         new_measPM = Measurement(sensor= sensorPM, device=device, value=valuePM, point=point).save()
@@ -256,9 +260,9 @@ def load_humidity_measurements():
             del dt_timestamps_tracks[0]
         
         if cont_medidas % 1000 == 0:
-            print(str(cont_medidas) + "medidas subidas")
+            logger.info(str(cont_medidas) + "medidas subidas")
 
-    print("Total medidas subidas " + str(cont_medidas))
+    logger.info("Total medidas subidas " + str(cont_medidas))
 
 
 

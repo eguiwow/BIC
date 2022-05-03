@@ -1,5 +1,5 @@
 // **********************************
-//          MAPA DE CALOR
+//      MAPA CONSULTA AMBIENTAL
 // **********************************
 import 'ol/ol.css';
 import {KML, GPX, GeoJSON} from 'ol/format';
@@ -11,11 +11,13 @@ import {Circle as CircleStyle, RegularShape, Fill, Stroke, Style} from 'ol/style
 import {Tile as TileLayer, Vector as VectorLayer, Group as LayerGroup, Heatmap as HeatMapLayer} from 'ol/layer';
 import LayerSwitcher from 'ol-layerswitcher';
 import Overlay from 'ol/Overlay';
+import Draw, {createBox} from 'ol/interaction/Draw';
 import {toStringHDMS} from 'ol/coordinate';
 
 import Feature from 'ol/Feature';
 import {useGeographic, transform, fromLonLat} from 'ol/proj'
 import {getAllTextContent, parse} from 'ol/xml';
+import { add } from 'ol/coordinate';
 
 // ###### Variables NO dinámicas ######
 // Mapas y servidor de mapas cortesía de... 
@@ -307,8 +309,7 @@ var json_air = document.getElementById("json_air")
 var json_noise = document.getElementById("json_noise")
 var json_temp = document.getElementById("json_temp")
 var json_hum = document.getElementById("json_hum")
-// TODO - por qué había que hacer la dataProjection y featureProjection en sourceGJTracks? 
-// var gj_tracks = new GeoJSON().readFeatures(JSON.parse(json_tracks.innerText))
+var gj_tracks = new GeoJSON().readFeatures(JSON.parse(json_tracks.innerText))
 var gj_dtours = new GeoJSON().readFeatures(JSON.parse(json_dtours.innerText))
 var gj_bidegorris = new GeoJSON().readFeatures(JSON.parse(json_bidegorris.innerText))
 var gj_air = new GeoJSON().readFeatures(JSON.parse(json_air.innerText))
@@ -318,9 +319,19 @@ var gj_hum = new GeoJSON().readFeatures(JSON.parse(json_hum.innerText))
 // Buttons
 var botonDebug = document.getElementById("debugButton")
 var botonCenter = document.getElementById("centerButton")
+var botonSelectArea = document.getElementById("selectAreaButton")
 var botonVentana = document.getElementById("menu-toggle")
 var botonDownload = document.getElementById('export-png')
 var switchHM = document.getElementById("switchHM")
+// Form
+var since_default = document.getElementById("since_default")
+var until_default = document.getElementById("until_default")
+var ne_lon = document.getElementById("id_NE_lon").value;
+var ne_lat = document.getElementById("id_NE_lat").value;
+var sw_lon = document.getElementById("id_SW_lon").value;
+var sw_lat = document.getElementById("id_SW_lat").value;
+var consulta_vacia = document.getElementById("consulta_vacia");
+var lon1, lon2, lat1, lat2;
 // Center & Zoom [From Zaratamap]
 var centerLon = JSON.parse(document.getElementById("center").innerText)[0]
 var centerLat = JSON.parse(document.getElementById("center").innerText)[1]
@@ -330,6 +341,7 @@ var ratio;
 var length = 0;
 var units;
 var value;
+var vel;
 var timestamp;
 var ratioChanged = false;
 var isSensor = false;
@@ -410,7 +422,7 @@ var vTemp = new VectorLayer({
 });
 var vHum = new VectorLayer({
   title: 'humedad',
-  visible: true,
+  visible: false,
   source: sourceGJHum,
   style: styleHum,
 });
@@ -432,6 +444,10 @@ var hmTemp = new HeatMapLayer({
 })
 // ###### FIN Layers tipo JSON ######
 
+// Capa para Draw
+var srcDraw = new VectorSource({wrapX: false});
+var vDraw = new VectorLayer({source: srcDraw,});
+
 var grupoPolucion = new LayerGroup({
   title: 'Contaminación',
   layers: [vAir, vNoise],  
@@ -444,10 +460,11 @@ var grupoVectores = new LayerGroup({
 })
 // LayerSwitcher (para cambiar entre capas) - https://github.com/walkermatt/ol-layerswitcher 
 var layerSwitcher = new LayerSwitcher();
+var typeSelect = 'None';
 
 // Mapa
 var map = new Map({
-  layers: [osm_tiles, grupoVectores, grupoPolucion, vHum, vTemp], // Capas de información geoespacial
+  layers: [osm_tiles, grupoVectores, grupoPolucion, vHum, vDraw, vTemp], // Capas de información geoespacial
   target: document.getElementById('map'), // Elemento HTML donde va situado el mapa
   view: new View({ // Configuración de la vista (centro, proyección del mapa)
     // Esta función es para cuando la proyección usada sea Mercator
@@ -466,6 +483,29 @@ var popup = new Overlay({
   element: document.getElementById('popup'),
 });
 map.addOverlay(popup);
+
+// DIBUJAR BBOX - https://openlayers.org/en/latest/examples/draw-shapes.html?q=draw
+// Adaptado para dibujar solo Box
+var draw; // global so we can remove it later
+function addInteraction() {
+  // Si no tenemos "Selección Área" no hacemos ná
+  // draw.removeLastPoint();
+  var value = typeSelect;
+  if (value != 'None') {
+    var geometryFunction;
+    if (value == 'Box') {
+      value = 'Circle';
+      geometryFunction = createBox();
+    }
+    draw = new Draw({
+      source: srcDraw,
+      type: value,
+      geometryFunction: geometryFunction,
+    });
+    map.addInteraction(draw);
+  }
+}
+// FIN DIBUJAR BBOX
 
 
 // ###### Funciones ######
@@ -499,7 +539,9 @@ var displayFeatureInfo = function (pixel, coords) {
       }else if(features[i].get('value')){ // Es Measurement
         isSensor = true;
         value = parseFloat(features[i].get('value')); // Sacamos value
-        info.push(length.toFixed(2));
+        info.push(value.toFixed(2));
+        vel = parseFloat(features[i].get('velocity')); // Sacamos velocidad
+        info.push(vel.toFixed(2));
         units = features[i].get('units'); // Sacamos units 
         info.push(units);
         timestamp = features[i].get('time'); // Sacamos timestamp
@@ -522,6 +564,7 @@ var displayFeatureInfo = function (pixel, coords) {
         content: 
         '<p>Value: ' + value.toFixed(2) + units + '</p>'+
         '<p>Location: ' + coords[0].toFixed(4) + 'º lon, '+ coords[1].toFixed(4) + 'º lat</p>'+
+        '<p>Velocity: ' + vel.toFixed(2) + 'km/h' + '</p>'+
         '<p>Date & Time: ' + timestamp.substring(0,19) + '</p>',
       });      
     }else{ 
@@ -564,7 +607,6 @@ var displayFeatureInfo = function (pixel, coords) {
       }
     }  
     $(element).popover('show');
-
   } else {
     map.getTarget().style.cursor = '';
   }  
@@ -590,9 +632,42 @@ function normalToHeatmapTemp(){
       map.addLayer(vTemp);
   }
 }
+
+function getDate() {
+  var today = new Date();
+  var lastYear = new Date();
+  var dd = today.getDate();
+  var mm = today.getMonth()+1; //January is 0!
+  var yyyy = today.getFullYear();
+  if(dd<10) {
+      dd = '0'+dd
+  } 
+
+  if(mm<10) {
+      mm = '0'+mm
+  } 
+
+  today = yyyy + '/' + mm + '/' + dd;
+  lastYear = yyyy-1 + '/' + mm + '/' + dd;
+  console.log(today);
+  document.getElementById("id_since_datetime").value = lastYear;
+  document.getElementById("id_until_datetime").value = today;
+
+}
+
+// OnLoad (window)
+window.onload = function() {
+  // Calcular fecha
+  getDate();
+  // Si la consulta es vacía --> sacamos alerta 
+  if (consulta_vacia.innerText == 1){
+    alert("No existe actividad en este rango, prueba a cambiar el rango temporal o espacial")
+  }
+};
 // ###### FIN Funciones ######
 
 // ###### EVENTOS del mapa ######
+
 // Drag
 map.on('pointermove', function (evt) {
   if (evt.dragging) {
@@ -600,19 +675,51 @@ map.on('pointermove', function (evt) {
   }
 });
 
+var primerclick = true;
 // Click
-map.on('click', function (evt) {
-  // No sé por qué con el heatmap parece que no funciona
-  displayFeatureInfo(evt.pixel, evt.coordinate);
+map.on('click', function (evt) {  
+  // evt.coordinate guarda las coordenadas del evento de click
+  if (typeSelect == 'Box'){
+    if (primerclick == true){ // Primer click --> borramos y empezamos BBox
+      if (draw) srcDraw.clear()
+      lon1 = evt.coordinate[0];
+      lat1 = evt.coordinate[1];
+      primerclick = false;
+    }else{ // Segundo click --> formamos BBox
+      lon2 = evt.coordinate[0];
+      lat2 = evt.coordinate[1];
+      primerclick = true;
+      // Check that BBox is correctly formed
+      // Check lon
+      if (lon1>lon2){
+        document.getElementById("id_SW_lon").value = lon2;
+        document.getElementById("id_NE_lon").value = lon1;
+      }else{
+        document.getElementById("id_SW_lon").value = lon1;
+        document.getElementById("id_NE_lon").value = lon2;
+      }
+      // Check lat
+      if (lat1>lat2){
+        document.getElementById("id_SW_lat").value = lat2;  
+        document.getElementById("id_NE_lat").value = lat1;  
+      }else{
+        document.getElementById("id_SW_lat").value = lat1;  
+        document.getElementById("id_NE_lat").value = lat2;  
+      }
+    }
+  }else{ // Si no estamos en modo 'Box' sacamos info feature
+    displayFeatureInfo(evt.pixel, evt.coordinate);
+    primerclick = true;
+  }
 });
-
-botonVentana.onclick = function() {
-  setTimeout( function() { map.updateSize();}, 200);
-};
 
 // ###### FIN EVENTOS del mapa ######
 
 // ###### BOTONES ######
+
+botonVentana.onclick = function() {
+  setTimeout( function() { map.updateSize();}, 200);
+};
 
 botonDebug.onclick = function(){
 // Zona DEBUGGING y PRUEBAS
@@ -622,6 +729,20 @@ botonCenter.onclick = function(){
   // Centramos mapa
   CenterMap(centerLon, centerLat);
 };
+
+// Botón SELECT AREA 
+// TODO - que sea un toggle en vez de un botón
+botonSelectArea.onclick = function(){
+  if (draw) srcDraw.clear();
+  if (typeSelect == 'Box'){
+    typeSelect = 'None';  
+  }else{
+    typeSelect = 'Box';
+  }
+  map.removeInteraction(draw);
+  addInteraction();
+}
+
 
 switchHM.onchange = function(){
   normalToHeatmapTemp();
@@ -669,4 +790,5 @@ botonDownload.onclick = function(){
   map.renderSync();
 };
 
+addInteraction();
 // ###### FIN BOTONES ######

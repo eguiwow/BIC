@@ -33,9 +33,10 @@
     <div class="bg-light border-right" id="sidebar-wrapper">
       <div class="sidebar-heading"><a href="{% url 'datacentre' %}" class="sidebar-title">Bike Intelligence Centre</a> </div>
       <div class="list-group list-group-flush">
+        <a href="{% url 'recent' %}" class="list-group-item list-group-item-action bg-light">{% translate 'Actividad Reciente' %}</a>
         <a href="{% url 'movilidad' %}" class="list-group-item list-group-item-action bg-light">{% translate 'Movilidad' %}</a>
-        <a href="{% url 'analisis' %}" class="list-group-item list-group-item-action bg-light">{% translate 'Análisis' %}</a>
-        <a href="{% url 'consulta' %}" class="list-group-item list-group-item-action bg-light">{% translate 'Consulta' %}</a>
+        <a href="{% url 'analisis' %}" class="list-group-item list-group-item-action bg-light">{% translate 'Calidad ambiental' %}</a>
+        <a href="{% url 'consulta' %}" class="list-group-item list-group-item-action bg-light">{% translate 'Consulta avanzada' %}</a>
         <a href="{% url 'proyecto' %}" class="list-group-item list-group-item-action bg-light">{% translate 'Proyecto' %}</a>
         {% if user.is_authenticated %}
           <i><a href="{% url 'logout' %}" class="list-group-item list-group-item-action bg-light">{% translate 'Logout' %}</a></i>
